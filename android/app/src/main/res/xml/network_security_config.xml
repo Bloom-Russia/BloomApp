@@ -1,0 +1,16 @@
+<network-security-config>
+    <!-- Allow cleartext for specific domains -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain> <!-- Android Emulator -->
+        <domain includeSubdomains="true">192.168.1.54</domain>
+        <domain includeSubdomains="true">192.168.0.191</domain>
+    </domain-config>
+
+    <!-- Force HTTPS for all other domains -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
