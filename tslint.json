@@ -16,13 +16,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-native",
-
     /* Строгие проверки TypeScript */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
     /* Настройки для React Native */
     "types": ["react-native", "jest"],
     "baseUrl": "./",
@@ -38,8 +36,7 @@
       "@assets/*": ["assets/*"]
     }
   },
-  "include": ["src/**/*",
-    "src/App.tsx", "index.js", "declarations.d.ts"],
+  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],
   "exclude": [
     "node_modules",
     "babel.config.js",
