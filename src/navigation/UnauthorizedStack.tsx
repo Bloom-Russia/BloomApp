@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { BootSplashScreen, LoginScreen, PinCodeScreen, SmsConfirmScreen } from '@screens';
+import { LoginScreen, PinCodeScreen, SmsConfirmScreen } from '@screens';
 import { Colors } from '@UIKit';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
@@ -19,10 +19,10 @@ const UnAuthentication: React.FC<UnAuthorizationStackProps> = () => {
         animated={true}
       />
       <Stack.Navigator
-        initialRouteName={EScreens.BOOT_SPLASH_SCREEN}
+        initialRouteName={EScreens.LOGIN_SCREEN}
         screenOptions={{ headerShown: false }}
       >
-        <Stack.Screen name={EScreens.BOOT_SPLASH_SCREEN} component={BootSplashScreen} />
+        {/*<Stack.Screen name={EScreens.BOOT_SPLASH_SCREEN} component={BootSplashScreen} />*/}
         <Stack.Screen name={EScreens.LOGIN_SCREEN} component={LoginScreen} />
         <Stack.Screen name={EScreens.SMS_CONFIRM_SCREEN} component={SmsConfirmScreen} />
         <Stack.Screen name={EScreens.AUTH_PIN_CODE_SCREEN} component={PinCodeScreen} />

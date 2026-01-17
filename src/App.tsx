@@ -1,11 +1,11 @@
 import { TransparentLogoAppImage } from '@assets/images';
 import { AuthProvider } from '@contexts';
-import { AxiosService } from '@services';
+import { AppNavigation } from '@navigation';
+import { AxiosService, NotificationCoordinator } from '@services';
 import { Block, Colors } from '@UIKit';
 // ✅ Убедитесь в правильности импортов
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
-import { AlertNotificationRoot } from 'react-native-alert-notification';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import styled from 'styled-components';
@@ -44,15 +44,14 @@ const App: React.FC = () => {
   }
 
   return (
-    <AlertNotificationRoot>
-      <AuthProvider>
-        <KeyboardProvider>
-          <SafeAreaProvider>
-            <Block flex={1} backgroundColor={'red'} />
-          </SafeAreaProvider>
-        </KeyboardProvider>
-      </AuthProvider>
-    </AlertNotificationRoot>
+    <AuthProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <NotificationCoordinator />
+          <AppNavigation />
+        </SafeAreaProvider>
+      </KeyboardProvider>
+    </AuthProvider>
   );
 };
 
