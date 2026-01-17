@@ -1,0 +1,1 @@
+export { isWeakPin } from './isWeakPin';

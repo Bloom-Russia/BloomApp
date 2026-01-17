@@ -1,52 +1,66 @@
 import UIKit
 import React
-import React_RCTAppDelegate
-import ReactAppDependencyProvider
+import Firebase
 import RNBootSplash
 
-@main class AppDelegate: UIResponder, UIApplicationDelegate {
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
-
-    var reactNativeDelegate: ReactNativeDelegate?
-    var reactNativeFactory: RCTReactNativeFactory?
+    var bridge: RCTBridge!
 
     func application(_ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let delegate = ReactNativeDelegate()
-        let factory = RCTReactNativeFactory(delegate: delegate)
-        delegate.dependencyProvider = RCTAppDependencyProvider()
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-        reactNativeDelegate = delegate
-        reactNativeFactory = factory
+        // Инициализация Firebase
+        FirebaseApp.configure()
 
+        // Инициализация bridge
+        self.bridge = RCTBridge(delegate: self, launchOptions: launchOptions)
+
+        // Создание окна
         window = UIWindow(frame: UIScreen.main.bounds)
 
-        factory.startReactNative(
-            withModuleName: "BloomApp",
-            in: window,
-            launchOptions: launchOptions
+        // Создание rootView с использованием bridge
+        let rootView = RCTRootView(
+            bridge: self.bridge,
+            moduleName: "BloomApp",
+            initialProperties: nil
         )
+
+        // Настройка rootViewController
+        let rootViewController = UIViewController()
+        rootViewController.view = rootView
+        window?.rootViewController = rootViewController
+        window?.makeKeyAndVisible()
+
+        // Инициализация BootSplash
+        RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
 
         return true
     }
+
+    func application(_ application: UIApplication,
+    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Messaging.messaging().apnsToken = deviceToken
+    }
 }
 
-class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
-    // Изменено с forbridge: на for:
-    override func sourceURL(for bridge: RCTBridge) -> URL? {
-        self.bundleURL()
-    }
-
-    override func bundleURL() -> URL? {
+// MARK: - RCTBridgeDelegate
+extension AppDelegate: RCTBridgeDelegate {
+    func sourceURL(for bridge: RCTBridge!) -> URL! {
         #if DEBUG
-        RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+        return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
         #else
-        Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+        return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
         #endif
     }
 
-    override func customize(_ rootView: RCTRootView) {
-        super.customize(rootView)
-        RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
+    // Опционально: дополнительные конфигурации для bridge
+    func extraModules(for bridge: RCTBridge!) -> [RCTBridgeModule]! {
+        return []
+    }
+
+    func shouldBridgeUseJSCExecutor(_ bridge: RCTBridge!) -> Bool {
+        return false
     }
 }

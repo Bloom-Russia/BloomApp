@@ -1,0 +1,1 @@
+export { useCustomAlert } from './useCustomAlert';

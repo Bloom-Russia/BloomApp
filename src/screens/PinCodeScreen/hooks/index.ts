@@ -1,0 +1,1 @@
+export { useGetAttemptsLeftText } from './useGetAttemptsLeftText';

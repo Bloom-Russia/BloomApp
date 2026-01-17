@@ -1,0 +1,89 @@
+import { EScreens } from '@navigation';
+import { AuthResponseDataVerifyCode, AuthTokens, VerifyCoderParams } from '../ApiClientService';
+import AxiosService, { ApiResponse } from '../AxiosService';
+import NavigationService from '../NavigationService';
+import NotificationService from '../NotificationService';
+import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
+import {
+  AuthResponseDataRequestVerificationCode,
+  RequestCodeParams,
+  VerificationCodeRequest,
+} from './types';
+
+class ApiClientService {
+  // Запрос кода подтверждения
+  static async requestVerificationCode({
+    phone,
+  }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode> | undefined> {
+    const fcmToken = await NotificationService.getFCMToken();
+    try {
+      const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
+        '/api/auth/send-code',
+        {
+          phoneNumber: `+7${phone}`,
+          fcmToken,
+        } as VerificationCodeRequest,
+      );
+      NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
+        phone: `+7${phone}`,
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Ошибка:', error);
+      throw error;
+    }
+  }
+
+  // Повторный запрос кода подтверждения
+  static async resendCode({
+    phone,
+  }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode> | undefined> {
+    const fcmToken = await NotificationService.getFCMToken();
+    try {
+      const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
+        '/api/auth/send-code',
+        {
+          phoneNumber: phone,
+          fcmToken,
+        } as VerificationCodeRequest,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Ошибка повторной отправки кода:', error);
+      throw error;
+    }
+  }
+
+  // Верификация кода подтверждения и если isVerified === true, значти авторизовались
+  static async verifyCode({
+    code,
+    phone,
+    setIsVerified,
+  }: VerifyCoderParams): Promise<ApiResponse<AuthResponseDataVerifyCode> | undefined> {
+    try {
+      const response = await AxiosService.post<AuthResponseDataVerifyCode>(
+        '/api/auth/verify-code',
+        {
+          phoneNumber: phone,
+          code,
+        },
+      );
+
+      // Явно приводим тип через unknown или используем утверждение типа
+      const responseData = response.data.data as unknown as AuthTokens;
+      const { accessToken, refreshToken, isVerified, userId } = responseData;
+
+      await SecureStorageService.saveTokens(accessToken, refreshToken);
+      await SecureStorageService.saveValue(SecureStorageKeys.IS_VERIFIED, isVerified);
+      await SecureStorageService.saveUserUserId(userId);
+      await setIsVerified(isVerified);
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка верификации кода ', error);
+      return undefined;
+    }
+  }
+}
+
+export default ApiClientService;

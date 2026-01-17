@@ -1,9 +1,20 @@
-/**
- * @format
- */
-
+// index.js
 import { AppRegistry } from 'react-native';
-import { name as appName } from './app.json';
 import App from './src/App';
+import { name as appName } from './app.json';
+import Reactotron from 'reactotron-react-native';
+
+Reactotron.configure({
+  host: '192.168.1.54',
+  name: 'Bloom',
+  port: 9090,
+})
+  .useReactNative({
+    networking: {
+      ignoreUrls: /symbolicate|logs/,
+    },
+    overlay: false,
+  })
+  .connect();
 
 AppRegistry.registerComponent(appName, () => App);

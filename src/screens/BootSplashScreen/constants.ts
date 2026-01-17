@@ -1,0 +1,8 @@
+export const ANIMATION_CONFIG = {
+  START_DELAY: 100,
+  ANIMATION_DURATION: 3500,
+  FADE_DURATION: 300,
+  FALLBACK_TIMEOUT: 6000,
+} as const;
+
+export type AnimationConfig = typeof ANIMATION_CONFIG;

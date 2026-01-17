@@ -1,0 +1,1 @@
+export { useAnimatedSplash } from './useAnimatedSplash';

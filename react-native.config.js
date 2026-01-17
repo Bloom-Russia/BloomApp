@@ -7,7 +7,10 @@ module.exports = {
     },
   },
   project: {
-    ios: {},
+    ios: {
+      sourceDir: './ios',
+      automaticPodsInstallation: true,
+    },
     android: {},
   },
   assets: ['./assets/fonts/'],
