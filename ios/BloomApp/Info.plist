@@ -37,8 +37,16 @@
 	<string></string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>icomoon.ttf</string>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-Bold.ttf</string>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>BootSplash</string>
+	<string>BootSplash.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
@@ -57,13 +65,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>icomoon.ttf</string>
-		<string>Inter-Medium.ttf</string>
-		<string>Inter-Bold.ttf</string>
-		<string>Inter-Regular.ttf</string>
-		<string>Inter-SemiBold.ttf</string>
-	</array>
 </dict>
 </plist>

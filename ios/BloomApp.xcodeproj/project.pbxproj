@@ -10,12 +10,12 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		31A86C63C8FB4207A652BB69 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6291AC65FF974375A65435D4 /* Inter-Regular.ttf */; };
 		46AE2CB5B8CD4FB586CF06A1 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EDE225E58CC3418FA358FCF3 /* Inter-Medium.ttf */; };
+		581F3D4A230A9F81709BCCEF /* libPods-BloomApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E0F23D28886B42AABB6051FD /* libPods-BloomApp.a */; };
 		611D0978338BE4DD498254DC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		74D5850411CB489FA4A82D49 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FFFC9CD92B0547BBB83EB784 /* BootSplash.storyboard */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8E44AA57DF7A498BB89F89D1 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EAF56628520B4F7CB66B161C /* Colors.xcassets */; };
-		9A9E50F30C63B25A1E04ECCA /* libPods-BloomApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F793646E16AB1C690C0B10BA /* libPods-BloomApp.a */; };
 		A6ECF5922F1AB3670014106D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A6ECF5912F1AB3670014106D /* GoogleService-Info.plist */; };
 		ADD781E6B3EB4EDB92E2F618 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */; };
 		C23972063ED34FC0A9C4EA54 /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */; };
@@ -28,19 +28,19 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BloomApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = BloomApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		29F00F10692C49609A170795 /* icomoon.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = icomoon.ttf; path = ../assets/fonts/icomoon.ttf; sourceTree = "<group>"; };
-		2D408F4D479480ADA8BFBD02 /* Pods-BloomApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BloomApp.release.xcconfig"; path = "Target Support Files/Pods-BloomApp/Pods-BloomApp.release.xcconfig"; sourceTree = "<group>"; };
+		503B2CFB8A50837D9460F74C /* Pods-BloomApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BloomApp.debug.xcconfig"; path = "Target Support Files/Pods-BloomApp/Pods-BloomApp.debug.xcconfig"; sourceTree = "<group>"; };
 		5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Bold.ttf"; path = "../assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; };
 		6291AC65FF974375A65435D4 /* Inter-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Regular.ttf"; path = "../assets/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BloomApp/AppDelegate.swift; sourceTree = "<group>"; };
+		7BA8F19B0E455F3CB3AEBF94 /* Pods-BloomApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BloomApp.release.xcconfig"; path = "Target Support Files/Pods-BloomApp/Pods-BloomApp.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BloomApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A6ECF5912F1AB3670014106D /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		D9F9F56C29C81B0BDF011BD6 /* Pods-BloomApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BloomApp.debug.xcconfig"; path = "Target Support Files/Pods-BloomApp/Pods-BloomApp.debug.xcconfig"; sourceTree = "<group>"; };
-		EAF56628520B4F7CB66B161C /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = BloomApp/Colors.xcassets; sourceTree = "<group>"; };
+		E0F23D28886B42AABB6051FD /* libPods-BloomApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BloomApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EAF56628520B4F7CB66B161C /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = BloomApp/Colors.xcassets; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EDE225E58CC3418FA358FCF3 /* Inter-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Medium.ttf"; path = "../assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; };
-		F793646E16AB1C690C0B10BA /* libPods-BloomApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BloomApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-SemiBold.ttf"; path = "../assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; };
-		FFFC9CD92B0547BBB83EB784 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = BloomApp/BootSplash.storyboard; sourceTree = "<group>"; };
+		FFFC9CD92B0547BBB83EB784 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = BloomApp/BootSplash.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,7 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A9E50F30C63B25A1E04ECCA /* libPods-BloomApp.a in Frameworks */,
+				581F3D4A230A9F81709BCCEF /* libPods-BloomApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,7 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				F793646E16AB1C690C0B10BA /* libPods-BloomApp.a */,
+				E0F23D28886B42AABB6051FD /* libPods-BloomApp.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -112,8 +112,8 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				D9F9F56C29C81B0BDF011BD6 /* Pods-BloomApp.debug.xcconfig */,
-				2D408F4D479480ADA8BFBD02 /* Pods-BloomApp.release.xcconfig */,
+				503B2CFB8A50837D9460F74C /* Pods-BloomApp.debug.xcconfig */,
+				7BA8F19B0E455F3CB3AEBF94 /* Pods-BloomApp.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -137,13 +137,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BloomApp" */;
 			buildPhases = (
-				654291960E064D7D7B7EB9B2 /* [CP] Check Pods Manifest.lock */,
+				047FDD1704A5653BCF63B705 /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				338F0119AD9595FA83FD4F47 /* [CP] Embed Pods Frameworks */,
-				02B2A3DDF9AE4F98C6B8E36C /* [CP] Copy Pods Resources */,
+				4C900087311675548B29CC74 /* [CP] Embed Pods Frameworks */,
+				75A725BBC60F7CB32653FA0D /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -223,41 +223,7 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"\\\"$WITH_ENVIRONMENT\\\" \\\"$REACT_NATIVE_XCODE\\\"\"\n";
 		};
-		02B2A3DDF9AE4F98C6B8E36C /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		338F0119AD9595FA83FD4F47 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		654291960E064D7D7B7EB9B2 /* [CP] Check Pods Manifest.lock */ = {
+		047FDD1704A5653BCF63B705 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -279,6 +245,48 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		4C900087311675548B29CC74 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		75A725BBC60F7CB32653FA0D /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BloomApp/Pods-BloomApp-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -295,7 +303,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D9F9F56C29C81B0BDF011BD6 /* Pods-BloomApp.debug.xcconfig */;
+			baseConfigurationReference = 503B2CFB8A50837D9460F74C /* Pods-BloomApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -329,7 +337,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2D408F4D479480ADA8BFBD02 /* Pods-BloomApp.release.xcconfig */;
+			baseConfigurationReference = 7BA8F19B0E455F3CB3AEBF94 /* Pods-BloomApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
