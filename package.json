@@ -9,7 +9,12 @@
     "start": "react-native start",
     "test": "jest",
     "tsc": "tsc --noEmit",
-    "reverse": "adb reverse tcp:8081 tcp:8081"
+    "reverse": "adb reverse tcp:8081 tcp:8081",
+    "cleanHard": "chmod +x clean.sh\n./clean.sh",
+    "clean": "cd android && ./gradlew clean && cd ..",
+    "createApk": "cd android && ./gradlew assembleRelease && cd ../",
+    "createAab": "cd android && ./gradlew bundleRelease && cd ../",
+    "installApk": "adb install android/app/release/app-release.apk"
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",

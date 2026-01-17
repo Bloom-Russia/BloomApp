@@ -7,11 +7,7 @@ import UserNotifications
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-
-// Добавьте этот импорт
-#if canImport(RNBootSplash)
 import RNBootSplash
-#endif
 
 @main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     var window: UIWindow?
