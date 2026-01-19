@@ -4237,7 +4237,7 @@ eslint-visitor-keys@^4.2.1:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-4.2.1.tgz#4cfea60fe7dd0ad8e816e1ed026c1d5251b512c1"
   integrity sha512-Uhdk5sfqcee/9H/rCOJikYz67o0a2Tw2hGRPOG2Y1R2dg7brRe1uG0yaNQDHu+TO/uQPF/5eCapvYSmHUjt7JQ==
 
-eslint@^8.19.0:
+eslint@^8.57.0:
   version "8.57.1"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.57.1.tgz#7df109654aba7e3bbe5c8eae533c5e461d3c6ca9"
   integrity sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==
@@ -6974,11 +6974,6 @@ react-is@^19.1.0, react-is@^19.2.0:
   version "19.2.3"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.3.tgz#eec2feb69c7fb31f77d0b5c08c10ae1c88886b29"
   integrity sha512-qJNJfu81ByyabuG7hPFEbXqNcWSU3+eVus+KJs+0ncpGfMyYdvSmxiJxbWR65lYi1I+/0HBcliO029gc4F+PnA==
-
-react-native-alert-notification@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/react-native-alert-notification/-/react-native-alert-notification-0.4.2.tgz#fabb1bc94e4f7d459dd8e47e8aed03a93651b8c7"
-  integrity sha512-98EQ+DtI7thEAHzoXMbN8dZRCFcoGXMRYYIKvooPPdASuuZIuON4oxCbJNDb6r6lebnPc/25JCD1tJPaoPNWnw==
 
 react-native-asset@^2.2.8:
   version "2.2.8"
