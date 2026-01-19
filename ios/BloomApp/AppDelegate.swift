@@ -7,7 +7,6 @@ import UserNotifications
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-import RNBootSplash
 
 @main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     var window: UIWindow?
@@ -213,15 +212,15 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
         #endif
     }
 
-    // ✅ ПРАВИЛЬНОЕ РАСПОЛОЖЕНИЕ МЕТОДА customize
-    override func customize(_ rootView: RCTRootView) {
-        super.customize(rootView)
-        
-        // Убедитесь, что имя storyboard соответствует файлу в проекте
-        #if canImport(RNBootSplash)
-        RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
-        #else
-        print("RNBootSplash не доступен")
-        #endif
-    }
+//    // ✅ ПРАВИЛЬНОЕ РАСПОЛОЖЕНИЕ МЕТОДА customize
+//    override func customize(_ rootView: RCTRootView) {
+//        super.customize(rootView)
+//
+//        // Убедитесь, что имя storyboard соответствует файлу в проекте
+//        #if canImport(RNBootSplash)
+//        RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
+//        #else
+//        print("RNBootSplash не доступен")
+//        #endif
+//    }
 }

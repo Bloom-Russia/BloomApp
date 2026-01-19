@@ -1,7 +1,6 @@
 import { RoundLogoAppImage } from '@assets/images';
 import { useCustomAlert, useLoading } from '@hooks';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-
 // Импортируем messaging для работы с уведомлениями
 import { ApiClientService } from '@services';
 import { Block, Button, Colors, ESpacings, IconNames, Row, ScreenContainer } from '@UIKit';
@@ -11,7 +10,6 @@ import {
   BackHandler,
   Image,
   Linking,
-  NativeModules,
   PermissionsAndroid,
   PermissionStatus,
   Platform,
@@ -20,7 +18,6 @@ import styled from 'styled-components';
 import { MaskedInput } from './components/MaskInput';
 import { CONSTANTS } from './constants';
 import type { LoginScreenProps } from './types'; // Изменено здесь
-import AuthorizationStatus = FirebaseMessagingTypes.AuthorizationStatus;
 
 const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const [phone, setPhone] = React.useState<string>('');
@@ -63,7 +60,6 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
             // Закрываем приложение
             if (Platform.OS === 'ios') {
               // На IOS нельзя програмно закрыть приложение
-              NativeModules.AppMinimizeModule.minimizeApp();
               return true;
             } else {
               // Для Android
@@ -89,7 +85,8 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const checkNotificationStatus = useCallback(async (): Promise<boolean> => {
     try {
       if (Platform.OS === 'ios') {
-        const authStatus: AuthorizationStatus = await messaging().requestPermission();
+        const authStatus: FirebaseMessagingTypes.AuthorizationStatus =
+          await messaging().requestPermission();
         return (
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL
@@ -192,11 +189,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   }, [isButtonDisabled, showLoader, phone, showAlert, hideLoader]);
 
   return (
-    <ScreenContainer
-      onPressIcon={backAction}
-      title={'Авторизация'}
-      paddingHorizontal={ESpacings.s16}
-    >
+    <ScreenContainer title={'Авторизация'} paddingHorizontal={ESpacings.s16}>
       <Block flex={1} justifyContent="center">
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />

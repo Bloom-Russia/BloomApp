@@ -18,6 +18,7 @@ type Props = {
   paddingBottom?: number;
   spaceTop?: number;
   onPressIcon?: () => void;
+  icon?: IconNames;
 };
 
 type StyledScrollViewProps = {
@@ -27,15 +28,19 @@ type StyledScrollViewProps = {
 type HeaderProps = {
   title: string;
   onPressIcon?: () => void;
+  icon?: IconNames;
 };
 
-export const Header: React.FC<HeaderProps> = ({ title, onPressIcon }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon }) => {
   const navigation = useNavigation();
   return (
     <Row marginBottom={ESpacings.s20} paddingHorizontal={ESpacings.s16} alignItems={'center'}>
-      <StyledPressable onPress={onPressIcon || navigation.goBack}>
-        <Icon size={ESize.s24} color={Colors.white} name={IconNames.signOut} />
-      </StyledPressable>
+      {icon ? (
+        <StyledPressable onPress={onPressIcon || navigation.goBack}>
+          <Icon size={ESize.s24} color={Colors.white} name={IconNames.signOut} />
+        </StyledPressable>
+      ) : null}
+
       <Row justifyContent={'center'} flex={1}>
         <Typography.B16 numberOfLines={2} color={Colors.white}>
           {title}
@@ -54,6 +59,7 @@ const ScreenContainerComponent: React.FC<Props> = ({
   paddingBottom = ESpacings.s16,
   spaceTop,
   onPressIcon,
+  icon,
 }) => {
   const { loading, hideLoader, showLoader } = useLoading();
 
@@ -76,7 +82,7 @@ const ScreenContainerComponent: React.FC<Props> = ({
           backgroundColor={Colors.black}
           animated={true}
         />
-        {title ? <Header onPressIcon={onPressIcon} title={title} /> : null}
+        {title ? <Header icon={icon} onPressIcon={onPressIcon} title={title} /> : null}
         <StyledScrollView
           refreshControl={
             reload ? <RefreshControl refreshing={loading} onRefresh={handleReload} /> : undefined
