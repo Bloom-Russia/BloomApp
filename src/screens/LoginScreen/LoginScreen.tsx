@@ -23,63 +23,14 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const [phone, setPhone] = React.useState<string>('');
   const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
   const { loading, showLoader, hideLoader } = useLoading();
-  const { showAlert, AlertComponent, hideAlert } = useCustomAlert();
-
-  const backAction = useCallback(() => {
-    // Показать предупреждение при нажатии кнопки "Назад"
-    showAlert({
-      title: 'Выйти из приложения',
-      message: '',
-      type: 'error',
-      theme: 'dark',
-      showIcon: true,
-      shadow: true,
-      shadowColorDark: Colors.red,
-      buttons: [
-        {
-          text: 'Остаться',
-          style: 'cancel',
-          showButtonIcon: true,
-          buttonIconName: IconNames.cancel,
-          onPress: () => {
-            hideAlert(); // Явно закрываем алерт при отмене
-          },
-        },
-        {
-          text: 'Выйти',
-          style: 'default',
-          showButtonIcon: true,
-          buttonIconName: IconNames.signOut,
-          onPress: async () => {
-            // Сначала скрываем алерт
-            hideAlert();
-
-            // Добавляем небольшую задержку для гарантированного скрытия
-            await new Promise<void>((resolve) => setTimeout(resolve, 100)); // Исправлено здесь
-
-            // Закрываем приложение
-            if (Platform.OS === 'ios') {
-              // На IOS нельзя програмно закрыть приложение
-              return true;
-            } else {
-              // Для Android
-              BackHandler.exitApp();
-              return true;
-            }
-          },
-        },
-      ],
-    });
-    // Возвращаем true, чтобы предотвратить стандартное поведение
-    return true;
-  }, [showAlert, hideAlert]);
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   useEffect(() => {
+    const backAction = () => true;
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
     // Очистка при размонтировании компонента
     return () => backHandler.remove();
-  }, [backAction]);
+  }, []);
 
   // Функция проверки статуса уведомлений
   const checkNotificationStatus = useCallback(async (): Promise<boolean> => {

@@ -5,7 +5,6 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
     "tsc": "tsc --noEmit",
@@ -14,7 +13,9 @@
     "clean": "cd android && ./gradlew clean && cd ..",
     "createApk": "cd android && ./gradlew assembleRelease && cd ../",
     "createAab": "cd android && ./gradlew bundleRelease && cd ../",
-    "installApk": "adb install android/app/release/app-release.apk"
+    "installApk": "adb install android/app/release/app-release.apk",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src/**/*.{ts,tsx,js,jsx} --fix"
   },
   "dependencies": {
     "@notifee/react-native": "^9.1.8",
