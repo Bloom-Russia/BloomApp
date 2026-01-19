@@ -20,8 +20,15 @@ export type UnAuthStackParamList = {
 };
 
 export type AuthStackParamList = {
-  [EScreens.EXAMPLE_SCREEN]: undefined;
   [EScreens.AUTH_PIN_CODE_SCREEN]: undefined;
+  [EScreens.TABS_STACK]: undefined;
+};
+
+export type RootTabParamList = {
+  [EScreens.HOME_STACK]: undefined;
+  [EScreens.CHAT_STACK]: undefined;
+  [EScreens.MY_WORKS_STACK]: undefined;
+  [EScreens.PROFILE_STACK]: undefined;
 };
 
 // export type RootModalsStackParamList = {

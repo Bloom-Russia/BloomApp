@@ -19,7 +19,7 @@ export const ExampleScreen: React.FC<ExampleScreenProps> = () => {
       <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
         Вы удачно авторизовались!!!
       </Typography.B14>
-      <Button title={'Выход'} onPress={logOutHandler} />
+      <Button title={'Сменить пользователя'} onPress={logOutHandler} />
     </Block>
   );
 };

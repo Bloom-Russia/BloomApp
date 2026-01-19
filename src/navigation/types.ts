@@ -2,12 +2,13 @@ export enum EScreens {
   // STACK
   AUTHORIZATION_STACK = 'AuthorizationStack',
   UN_AUTHORIZATION_STACK = 'UnAuthorizationStack',
+  TABS_STACK = 'TabsStack',
 
   // TABS
   PROFILE_STACK = 'ProfileStack',
-  WALLET_STACK = 'WalletStack',
-  VACANCIES_STACK = 'VacanciesStack',
-  MY_WORK_STACK = 'MyWorkStack',
+  HOME_STACK = 'HomeStack',
+  CHAT_STACK = 'ChatStack',
+  MY_WORKS_STACK = 'MyWorkSStack',
 
   // SCREENS
   LOGIN_SCREEN = 'LoginScreen',
@@ -15,5 +16,4 @@ export enum EScreens {
   BOOT_SPLASH_SCREEN = 'BootSplashScreen',
   EXAMPLE_SCREEN = 'ExampleScreen',
   AUTH_PIN_CODE_SCREEN = 'AuthPinCodeScreen',
-  MAIN_SCREEN = 'MainScreen',
 }

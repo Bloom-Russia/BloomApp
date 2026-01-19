@@ -25,13 +25,9 @@ export const RootNavigation: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isVerified ? (
-        <>
-          <Stack.Screen name={EScreens.UN_AUTHORIZATION_STACK} component={UnauthorizedStack} />
-        </>
+        <Stack.Screen name={EScreens.UN_AUTHORIZATION_STACK} component={UnauthorizedStack} />
       ) : (
-        <>
-          <Stack.Screen name={EScreens.AUTHORIZATION_STACK} component={AuthenticationStack} />
-        </>
+        <Stack.Screen name={EScreens.AUTHORIZATION_STACK} component={AuthenticationStack} />
       )}
     </Stack.Navigator>
   );

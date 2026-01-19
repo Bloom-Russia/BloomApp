@@ -5,7 +5,7 @@ import { name as appName } from './app.json';
 import Reactotron from 'reactotron-react-native';
 
 Reactotron.configure({
-  host: '192.168.0.218',
+  host: '192.168.1.54',
   name: 'Bloom',
   port: 9090,
 })

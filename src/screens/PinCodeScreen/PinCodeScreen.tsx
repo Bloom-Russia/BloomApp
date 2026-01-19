@@ -419,7 +419,8 @@ export const PinCodeScreen: React.FC<
       await delay(DELAYS.SUCCESS_AUTH);
 
       setPinVisible(false);
-      navigation.replace(EScreens.EXAMPLE_SCREEN);
+
+      navigation.replace(EScreens.TABS_STACK);
     } catch (error) {
       console.error('Ошибка при успешной аутентификации:', error);
       showError(ERROR_MESSAGES.AUTH);
