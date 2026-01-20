@@ -1,5 +1,4 @@
-import { SecureStorageService } from '@services';
-import { SecureStorageKeys } from '../services/SecureStorageService';
+import { SecureStorageKeys, SecureStorageService } from '@services';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { AuthContextType } from 'src/contexts/types'; // Тип контекста
 
