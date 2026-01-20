@@ -680,12 +680,7 @@ class SecureStorageService {
   }
 }
 
-// Экспортируем класс для особых случаев (например, если нужно создать новый экземпляр)
-export { SecureStorageService };
-
-// Экспортируем готовый экземпляр по умолчанию (самый удобный способ)
-const secureStorage = SecureStorageService.getInstance();
-export default secureStorage;
+export default SecureStorageService.getInstance();
 
 // ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ:
 //
