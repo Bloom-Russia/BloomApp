@@ -6,14 +6,8 @@ import { ApiClientService } from '@services';
 import { Block, Button, Colors, ESpacings, IconNames, Row, ScreenContainer } from '@UIKit';
 import React, { memo, useCallback, useEffect } from 'react';
 import isEqual from 'react-fast-compare';
-import {
-  BackHandler,
-  Image,
-  Linking,
-  PermissionsAndroid,
-  PermissionStatus,
-  Platform,
-} from 'react-native';
+import { BackHandler, Image, PermissionsAndroid, PermissionStatus, Platform } from 'react-native';
+import { openSettings } from 'react-native-permissions';
 import styled from 'styled-components';
 import { MaskedInput } from './components/MaskInput';
 import { CONSTANTS } from './constants';
@@ -97,13 +91,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
               buttonIconName: IconNames.success,
               onPress: () => {
                 // Перенаправляем пользователя в настройки уведомлений
-                // Для IOS
-                if (Platform.OS === 'ios') {
-                  Linking.openURL('app-settings:');
-                } else {
-                  // Для Android
-                  Linking.openSettings();
-                }
+                openSettings();
               },
             },
           ],
