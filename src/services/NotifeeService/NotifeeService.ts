@@ -773,48 +773,6 @@ class NotifeeServiceClass {
   }
 
   /**
-   * Тестовый метод для проверки уведомлений на iOS
-   */
-  public async testIosNotification(): Promise<void> {
-    if (Platform.OS !== 'ios') {
-      console.log('Тест доступен только для iOS');
-      return;
-    }
-
-    try {
-      // Проверяем текущие разрешения
-      const settings = await notifee.getNotificationSettings();
-      console.log('Текущие настройки iOS:', settings);
-
-      // Показываем тестовое уведомление
-      const notificationId = await this.showNotification({
-        title: 'Тест iOS',
-        body: 'Это тестовое уведомление для проверки работы на iOS',
-        data: {
-          test: 'true',
-          timestamp: Date.now().toString(),
-          screen: 'TestScreen',
-        },
-        priority: 'high',
-        ios: {
-          sound: 'default',
-          critical: true,
-        },
-      });
-
-      console.log('Тестовое уведомление отправлено:', notificationId);
-
-      // Проверяем, что уведомление отобразилось
-      setTimeout(async () => {
-        const displayed = await this.getDisplayedNotifications();
-        console.log('Отображенные уведомления:', displayed.length);
-      }, 1000);
-    } catch (error: unknown) {
-      console.error('Ошибка тестирования iOS уведомлений:', error);
-    }
-  }
-
-  /**
    * Проверить разрешения на уведомления
    */
   public async checkNotificationPermissions(): Promise<NotificationSettings> {
