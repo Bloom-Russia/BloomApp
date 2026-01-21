@@ -7,12 +7,8 @@ import notifee, {
   type IOSInput,
   type Notification,
   type NotificationSettings,
-  RepeatFrequency,
-  type TimestampTrigger,
-  TriggerType,
 } from '@notifee/react-native';
 import { Platform } from 'react-native';
-import { NOTIFICATION_COLORS } from './constants';
 import type {
   BackgroundMessageHandler,
   FirebaseNotificationData,
@@ -280,11 +276,17 @@ class NotifeeServiceClass {
 
     // Добавляем дополнительные настройки для iOS
     if (Platform.OS === 'ios') {
-      options.ios = {
+      const iosConfig: any = {
         sound: 'default',
         critical: remoteMessage.priority === 2, // HIGH приоритет
-        badgeCount: 1, // Увеличиваем бейджи
       };
+
+      // Добавляем badgeCount только если есть notification
+      if (notification) {
+        iosConfig.badgeCount = 1; // Убедитесь что это number
+      }
+
+      options.ios = iosConfig;
     }
 
     return this.showNotification(options);
@@ -403,9 +405,6 @@ class NotifeeServiceClass {
       // Получаем channelId (только для Android)
       const channelId = this.getChannelIdByType(type, priority);
 
-      // Получаем цвет для уведомления
-      const color = this.getColorByType(type);
-
       // Базовое уведомление
       const notification: Notification = {
         id: id || `${Date.now()}-${Math.random()}`,
@@ -420,9 +419,14 @@ class NotifeeServiceClass {
           channelId,
           importance: this.getAndroidImportance(priority),
           pressAction: { id: 'default' },
-          smallIcon: 'notification_icon',
-          color,
-          ...android,
+          smallIcon: 'notification_icon', // Маленькая иконка
+          largeIcon: 'logo_large', // Большая иконка
+          color: '#000000', // Белый цвет для иконки
+          circularLargeIcon: true, // Делаем большую иконку круглой
+          // Настройка отображения
+          colorized: true,
+          visibility: AndroidVisibility.PUBLIC,
+          ...android, // Позволяет переопределить настройки
         },
         ios: {
           categoryId: type,
@@ -443,6 +447,23 @@ class NotifeeServiceClass {
         },
       };
 
+      // Если переданы кастомные настройки Android, применяем их
+      if (android.smallIcon && notification.android) {
+        notification.android.smallIcon = android.smallIcon;
+      }
+
+      if (android.largeIcon && notification.android) {
+        notification.android.largeIcon = android.largeIcon;
+      }
+
+      if (android.color && notification.android) {
+        notification.android.color = android.color;
+      }
+
+      if (android.circularLargeIcon !== undefined && notification.android) {
+        notification.android.circularLargeIcon = android.circularLargeIcon;
+      }
+
       // Добавление изображения
       if (imageUrl) {
         if (Platform.OS === 'ios') {
@@ -450,11 +471,8 @@ class NotifeeServiceClass {
             ...notification.ios,
             attachments: [{ url: imageUrl }],
           };
-        } else {
-          notification.android = {
-            ...notification.android,
-            largeIcon: imageUrl,
-          };
+        } else if (notification.android) {
+          notification.android.largeIcon = imageUrl;
         }
       }
 
@@ -466,7 +484,7 @@ class NotifeeServiceClass {
             ...notification.ios,
             categoryId: 'CUSTOM_ACTIONS',
           };
-        } else {
+        } else if (notification.android) {
           // Для Android создаем действия
           const androidActions: AndroidAction[] = (actions as NotificationAction[]).map(
             (action) => {
@@ -559,113 +577,6 @@ class NotifeeServiceClass {
       return [];
     } catch (error: unknown) {
       console.error('Ошибка получения отображенных уведомлений:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Открыть настройки уведомлений системы
-   */
-  public async openNotificationSettings(): Promise<void> {
-    try {
-      await notifee.openNotificationSettings();
-    } catch (error: unknown) {
-      console.error('Ошибка открытия настроек уведомлений:', error);
-    }
-  }
-
-  /**
-   * Открыть настройки канала (Android)
-   */
-  public async openChannelSettings(channelId: string): Promise<void> {
-    try {
-      console.log(`Открытие настроек для канала: ${channelId}`);
-      await notifee.openNotificationSettings();
-    } catch (error: unknown) {
-      console.error('Ошибка открытия настроек канала:', error);
-    }
-  }
-
-  /**
-   * Быстрые методы для разных типов уведомлений
-   */
-  public async showInfo(
-    title: string,
-    body?: string,
-    data?: Record<string, unknown>,
-  ): Promise<string> {
-    return this.showNotification({
-      title,
-      body,
-      data,
-      type: 'info',
-    });
-  }
-
-  public async showSuccess(
-    title: string,
-    body?: string,
-    data?: Record<string, unknown>,
-  ): Promise<string> {
-    return this.showNotification({
-      title,
-      body,
-      data,
-      type: 'success',
-    });
-  }
-
-  public async showWarning(
-    title: string,
-    body?: string,
-    data?: Record<string, unknown>,
-  ): Promise<string> {
-    return this.showNotification({
-      title,
-      body,
-      data,
-      type: 'warning',
-    });
-  }
-
-  public async showError(
-    title: string,
-    body?: string,
-    data?: Record<string, unknown>,
-  ): Promise<string> {
-    return this.showNotification({
-      title,
-      body,
-      data,
-      type: 'error',
-      priority: 'high',
-    });
-  }
-
-  /**
-   * Запланировать уведомление на определенное время
-   */
-  public async scheduleNotification(
-    options: NotifeeOptions & { timestamp: Date; repeat?: RepeatFrequency },
-  ): Promise<string> {
-    try {
-      const { timestamp, repeat, ...notificationOptions } = options;
-
-      const trigger: TimestampTrigger = {
-        type: TriggerType.TIMESTAMP,
-        timestamp: timestamp.getTime(),
-        repeatFrequency: repeat,
-      };
-
-      const notificationId = await notifee.createTriggerNotification(
-        await this.buildNotificationConfig(notificationOptions),
-        trigger,
-      );
-
-      console.log('Уведомление запланировано:', notificationId);
-      return notificationId;
-    } catch (error: unknown) {
-      console.error('Ошибка планирования уведомления:', error);
       throw error;
     }
   }
@@ -859,79 +770,6 @@ class NotifeeServiceClass {
       default:
         return AndroidImportance.DEFAULT;
     }
-  }
-
-  /**
-   * Получить цвет по типу уведомления
-   */
-  private getColorByType(type: NotificationType): string {
-    // Используем константы цветов вместо несуществующих свойств в Colors
-    return NOTIFICATION_COLORS[type] || NOTIFICATION_COLORS.default;
-  }
-
-  /**
-   * Создать конфигурацию уведомления
-   */
-  private async buildNotificationConfig(options: NotifeeOptions): Promise<Notification> {
-    const channelId = this.getChannelIdByType(
-      options.type || 'info',
-      options.priority || 'default',
-    );
-
-    const color = this.getColorByType(options.type || 'info');
-
-    const notification: Notification = {
-      id: options.id || `${Date.now()}-${Math.random()}`,
-      title: options.title,
-      body: options.body || '',
-      data: options.data || {},
-      android: {
-        channelId,
-        importance: this.getAndroidImportance(options.priority || 'default'),
-        pressAction: { id: 'default' },
-        smallIcon: 'notification_icon',
-        color,
-        ...options.android,
-      },
-      ios: {
-        categoryId: options.type || 'info',
-        foregroundPresentationOptions: {
-          sound: true,
-          badge: true,
-          banner: true,
-          list: true,
-        },
-        ...options.ios,
-      },
-    };
-
-    // Добавление действий для Android
-    if (options.actions && options.actions.length > 0 && Platform.OS === 'android') {
-      const androidActions: AndroidAction[] = (options.actions as NotificationAction[]).map(
-        (action) => {
-          const androidAction: AndroidAction = {
-            title: action.title,
-            pressAction: action.pressAction || { id: action.id },
-          };
-
-          if (action.input) {
-            androidAction.input = {
-              allowFreeFormInput: true,
-              placeholder: action.input.placeholder,
-            };
-          }
-
-          return androidAction;
-        },
-      );
-
-      notification.android = {
-        ...notification.android,
-        actions: androidActions,
-      };
-    }
-
-    return notification;
   }
 
   /**
