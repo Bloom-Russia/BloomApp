@@ -283,6 +283,7 @@ class NotifeeServiceClass {
       options.ios = {
         sound: 'default',
         critical: remoteMessage.priority === 2, // HIGH приоритет
+        badgeCount: 1, // Увеличиваем бейджи
       };
     }
 

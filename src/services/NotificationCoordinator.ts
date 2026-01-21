@@ -1,5 +1,5 @@
 // NotificationCoordinator.ts - исправленная версия
-import { EventType } from '@notifee/react-native';
+import { AndroidStyle, EventType } from '@notifee/react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -93,8 +93,8 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
           ...additionalData,
         });
         console.log(`📝 Событие ${eventType} успешно залогировано`);
-      } catch (error: unknown) {
-        console.warn(`⚠️ Не удалось залогировать событие!`);
+      } catch (error) {
+        console.warn(`⚠️ Не удалось залогировать событие!`, error);
       }
     },
     [isAxiosInitialized],
@@ -106,6 +106,32 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const checkAxiosAvailability = useCallback((): boolean => {
     return isAxiosInitialized && AxiosService.isServiceInitialized();
   }, [isAxiosInitialized]);
+
+  /**
+   * Обновление бейджей для iOS
+   */
+  const updateBadgeCount = useCallback(async (): Promise<void> => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+
+    try {
+      // Получаем количество непрочитанных уведомлений
+      const displayedNotifications = await NotifeeService.getDisplayedNotifications();
+      const badgeCount = displayedNotifications.length;
+
+      // Обновляем бейджи
+      await NotifeeService.setBadgeCount(badgeCount);
+      console.log(`📱 iOS: Бейджи обновлены: ${badgeCount}`);
+
+      // Логируем обновление бейджей
+      if (checkAxiosAvailability()) {
+        await logNotificationEvent('ios_badge_updated', { badgeCount });
+      }
+    } catch (error: unknown) {
+      console.warn('⚠️ Не удалось обновить бейджи на iOS:', error);
+    }
+  }, [checkAxiosAvailability, logNotificationEvent]);
 
   /**
    * Координация отображения уведомления из фонового сообщения
@@ -122,6 +148,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
           messageId: remoteMessage.messageId,
         });
 
+        // Обновляем бейджи для iOS
+        if (Platform.OS === 'ios') {
+          await updateBadgeCount();
+        }
+
         // Координируем отображение через Notifee
         await NotifeeService.showNotification({
           title: notification?.title || 'Новое уведомление',
@@ -134,17 +165,24 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
             pressAction: {
               id: 'default',
             },
+            // Добавляем большой логотип для Android
+            largeIcon: 'logo_large', // Убедитесь что этот ресурс есть в Android проекте
+            style: {
+              type: AndroidStyle.BIGPICTURE,
+              picture: 'logo_large', // Для больших изображений
+            },
           },
           ios:
             Platform.OS === 'ios'
               ? {
                   foregroundPresentationOptions: {
                     alert: true,
-                    badge: true,
+                    badge: true, // Включаем бейджи
                     sound: true,
                     banner: true,
                     list: true,
                   },
+                  badgeCount: 1, // Увеличиваем счетчик бейджей
                 }
               : undefined,
         });
@@ -161,7 +199,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         await logNotificationEvent('background_error', { error: errorMessage });
       }
     },
-    [logNotificationEvent],
+    [logNotificationEvent, updateBadgeCount],
   );
 
   /**
@@ -196,6 +234,18 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         const notificationData = remoteMessage.data || {};
         console.log('Координатор: данные уведомления для навигации:', notificationData);
 
+        // Для iOS уменьшаем счетчик бейджей при открытии уведомления
+        if (Platform.OS === 'ios') {
+          const currentBadgeCount = await NotifeeService.getDisplayedNotifications().then(
+            (notifications) => notifications.length,
+          );
+
+          if (currentBadgeCount > 0) {
+            await NotifeeService.setBadgeCount(currentBadgeCount - 1);
+            console.log(`📱 iOS: Бейдж уменьшен до ${currentBadgeCount - 1}`);
+          }
+        }
+
         // Логируем взаимодействие пользователя
         await logNotificationEvent('notification_tap', {
           messageId: remoteMessage.messageId,
@@ -225,6 +275,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       const displayedNotifications = await NotifeeService.getDisplayedNotifications();
       console.log('Координатор: текущие отображенные уведомления:', displayedNotifications.length);
 
+      // Обновляем бейджи для iOS
+      if (Platform.OS === 'ios') {
+        await updateBadgeCount();
+      }
+
       // Координируем сбор статистики
       if (checkAxiosAvailability() && displayedNotifications.length > 0) {
         await logNotificationEvent('notifications_check', {
@@ -235,7 +290,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       console.error('Координатор: ошибка проверки уведомлений:', errorMessage);
     }
-  }, [checkAxiosAvailability, logNotificationEvent]);
+  }, [checkAxiosAvailability, logNotificationEvent, updateBadgeCount]);
 
   /**
    * Координация обработки изменения состояния приложения
@@ -247,6 +302,14 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       // Координируем действия при переходе в активное состояние
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
         console.log('Координатор: приложение перешло в активное состояние');
+
+        // Для iOS обновляем бейджи при возвращении в активное состояние
+        if (Platform.OS === 'ios') {
+          updateBadgeCount().catch((error: unknown) => {
+            console.error('Ошибка при обновлении бейджей:', error);
+          });
+        }
+
         coordinatePendingNotificationsCheck().catch((error: unknown) => {
           console.error('Ошибка при проверке уведомлений:', error);
         });
@@ -264,7 +327,12 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         });
       }
     },
-    [coordinatePendingNotificationsCheck, checkAxiosAvailability, logNotificationEvent],
+    [
+      coordinatePendingNotificationsCheck,
+      checkAxiosAvailability,
+      logNotificationEvent,
+      updateBadgeCount,
+    ],
   );
 
   /**
@@ -288,6 +356,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
 
         const firebaseData = remoteMessage as FirebaseNotificationData;
 
+        // Обновляем бейджи для iOS
+        if (Platform.OS === 'ios') {
+          await updateBadgeCount();
+        }
+
         // Координируем платформозависимую обработку
         if (Platform.OS === 'ios') {
           // Координируем отображение через Notifee для iOS
@@ -305,11 +378,30 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
                 banner: true,
                 list: true,
               },
+              badgeCount: 1, // Увеличиваем счетчик бейджей
             },
           });
         } else {
-          // Координируем отображение для Android
-          await NotifeeService.showNotificationFromFirebase(firebaseData);
+          // Координируем отображение для Android с большим логотипом
+          await NotifeeService.showNotification({
+            title: firebaseData.notification?.title || 'Новое уведомление',
+            body: firebaseData.notification?.body || '',
+            data: firebaseData.data || {},
+            type: 'info',
+            priority: 'high',
+            android: {
+              channelId: 'alerts',
+              pressAction: {
+                id: 'default',
+              },
+              // Добавляем большой логотип для Android
+              largeIcon: 'logo_large',
+              style: {
+                type: AndroidStyle.BIGPICTURE,
+                picture: 'logo_large_foreground',
+              },
+            },
+          });
         }
 
         // Координируем трансформацию и уведомление подписчиков
@@ -334,7 +426,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     });
 
     return unsubscribe;
-  }, [logNotificationEvent, onNotificationReceived]);
+  }, [logNotificationEvent, onNotificationReceived, updateBadgeCount]);
 
   /**
    * Координация обработки фонового состояния приложения
@@ -402,6 +494,13 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         });
       }
 
+      // Обновляем бейджи для iOS при определенных событиях
+      if (Platform.OS === 'ios' && (type === EventType.DISMISSED || type === EventType.PRESS)) {
+        updateBadgeCount().catch((error: unknown) => {
+          console.error('Ошибка при обновлении бейджей:', error);
+        });
+      }
+
       // Координируем обработку разных типов событий
       switch (type) {
         case EventType.PRESS:
@@ -429,7 +528,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     });
 
     return unsubscribe;
-  }, [checkAxiosAvailability, logNotificationEvent]);
+  }, [checkAxiosAvailability, logNotificationEvent, updateBadgeCount]);
 
   /**
    * Координация подписки на получение уведомлений
@@ -453,6 +552,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     const handler = (data: Record<string, unknown>): void => {
       console.log('📱 Координатор iOS: silent push получен:', data);
 
+      // Обновляем бейджи при silent push
+      updateBadgeCount().catch((error: unknown) => {
+        console.error('Ошибка при обновлении бейджей:', error);
+      });
+
       // Логирование silent push
       if (isAxiosInitialized) {
         logNotificationEvent('ios_silent_push', data).catch(() => {
@@ -470,7 +574,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       subscription.remove();
       console.log('📱 Координатор iOS: silent push handler удален');
     };
-  }, [isAxiosInitialized, logNotificationEvent]);
+  }, [isAxiosInitialized, logNotificationEvent, updateBadgeCount]);
 
   /**
    * Координация настройки всех обработчиков уведомлений
@@ -506,6 +610,23 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   ]);
 
   /**
+   * Координация инициализации бейджей для iOS
+   */
+  const coordinateBadgeInitialization = useCallback(async (): Promise<void> => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+
+    try {
+      // Инициализируем бейджи при запуске
+      await updateBadgeCount();
+      console.log('📱 iOS: Бейджи инициализированы');
+    } catch (error: unknown) {
+      console.warn('⚠️ Не удалось инициализировать бейджи на iOS:', error);
+    }
+  }, [updateBadgeCount]);
+
+  /**
    * Основная координация инициализации сервисов уведомлений
    */
   const coordinateNotificationServices = useCallback(async (): Promise<void> => {
@@ -519,7 +640,10 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       // 3. Координируем инициализацию логирования через Axios
       await initializeAxiosLogging();
 
-      // 4. Координируем установку обработчика фоновых сообщений для Notifee
+      // 4. Координируем инициализацию бейджей для iOS
+      await coordinateBadgeInitialization();
+
+      // 5. Координируем установку обработчика фоновых сообщений для Notifee
       NotifeeService.setBackgroundMessageHandler(
         async (remoteMessage: FirebaseNotificationData): Promise<void> => {
           await coordinateBackgroundMessage(remoteMessage);
@@ -533,6 +657,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         await logNotificationEvent('coordinator_initialized', {
           services: ['NotificationService', 'NotifeeService', 'AxiosService'],
           platform: Platform.OS,
+          hasBadgeSupport: Platform.OS === 'ios',
         });
       }
     } catch (error: unknown) {
@@ -556,6 +681,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     coordinateBackgroundMessage,
     checkAxiosAvailability,
     logNotificationEvent,
+    coordinateBadgeInitialization,
   ]);
 
   /**
