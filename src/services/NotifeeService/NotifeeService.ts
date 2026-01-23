@@ -22,20 +22,18 @@ import type {
 } from './types';
 
 class NotifeeServiceClass {
+  private static instance: NotifeeServiceClass | null = null;
   private channelIds: Map<string, string> = new Map();
   private notificationHandlers: NotificationCallback[] = [];
   private eventHandlers: NotificationEventHandler[] = [];
   private backgroundMessageHandler?: BackgroundMessageHandler;
   private lastNotificationShownTime: Map<string, number> = new Map();
 
-  // Приватный статический экземпляр для Singleton
-  private static instance: NotifeeServiceClass | null = null;
-
   /**
    * Приватный конструктор для Singleton
    */
   private constructor() {
-    this.initialize();
+    // Инициализация будет вызываться через initializeService
   }
 
   /**
@@ -46,13 +44,6 @@ class NotifeeServiceClass {
       NotifeeServiceClass.instance = new NotifeeServiceClass();
     }
     return NotifeeServiceClass.instance;
-  }
-
-  /**
-   * Статический метод для обработки действий уведомлений
-   */
-  public static processNotificationAction(event: NotificationEvent): void {
-    console.log('Обработка действия уведомления:', event);
   }
 
   /**
@@ -70,34 +61,13 @@ class NotifeeServiceClass {
         await this.createIosCategories();
       }
 
+      // Слушаем события уведомлений
+      this.setupEventListeners();
+
       console.log('Сервис уведомлений успешно инициализирован');
     } catch (error: unknown) {
       console.error('Ошибка инициализации сервиса уведомлений:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Приватная инициализация
-   */
-  private async initialize(): Promise<void> {
-    try {
-      console.log('Инициализация сервиса уведомлений...');
-
-      // Запрашиваем разрешения при инициализации
-      await this.requestPermissions();
-
-      // Создаем каналы/категории в зависимости от платформы
-      if (Platform.OS === 'android') {
-        await this.createDefaultChannels();
-      } else if (Platform.OS === 'ios') {
-        await this.createIosCategories();
-      }
-
-      // Слушаем события уведомлений
-      this.setupEventListeners();
-    } catch (error: unknown) {
-      console.error('Ошибка инициализации сервиса уведомлений:', error);
     }
   }
 
@@ -268,29 +238,52 @@ class NotifeeServiceClass {
       throw new Error('Нет данных уведомления');
     }
 
+    // Безопасное извлечение заголовка и текста
+    const title =
+      notification?.title ||
+      (typeof data?.title === 'string' ? (data.title as string) : 'Уведомление');
+
+    const body =
+      notification?.body || (typeof data?.body === 'string' ? (data.body as string) : '');
+
     const options: NotifeeOptions = {
-      title: notification?.title || (data?.title as string) || 'Уведомление',
-      body: notification?.body || (data?.body as string) || '',
-      data: data || {},
+      title,
+      body,
+      data: data ? this.cleanNotificationData(data) : {},
       priority: this.getPriorityFromFirebase(remoteMessage.priority),
     };
 
     // Добавляем дополнительные настройки для iOS
     if (Platform.OS === 'ios') {
-      const iosConfig: any = {
+      options.ios = {
         sound: 'default',
-        critical: remoteMessage.priority === 2, // HIGH приоритет
+        critical: remoteMessage.priority === 2,
       };
-
-      // Добавляем badgeCount только если есть notification
-      if (notification) {
-        iosConfig.badgeCount = 1; // Убедитесь что это number
-      }
-
-      options.ios = iosConfig;
     }
 
     return this.showNotification(options);
+  }
+
+  /**
+   * Очистка данных уведомления от undefined значений
+   */
+  private cleanNotificationData(
+    data: Record<string, unknown>,
+  ): Record<string, string | number | object> {
+    const cleanData: Record<string, string | number | object> = {};
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'object') {
+          cleanData[key] = value as string | number | object;
+        } else {
+          // Преобразуем другие типы в строку
+          cleanData[key] = String(value);
+        }
+      }
+    });
+
+    return cleanData;
   }
 
   /**
@@ -370,7 +363,6 @@ class NotifeeServiceClass {
         name: 'Тихие уведомления',
         importance: AndroidImportance.LOW,
         vibration: false,
-        // Не указываем sound для тихих уведомлений
       },
     ];
 
@@ -395,10 +387,11 @@ class NotifeeServiceClass {
   ): boolean {
     try {
       // Создаем ключ дедупликации
+      const dataMessageId = data.messageId as string | undefined;
+      const dataNotificationId = data.notificationId as string | undefined;
+
       const dedupeKey =
-        (data.messageId as string) ||
-        (data.notificationId as string) ||
-        `${title}_${body}_${JSON.stringify(data).hashCode()}`;
+        dataMessageId || dataNotificationId || `${title}_${body}_${JSON.stringify(data)}`;
 
       const currentTime = Date.now();
       const lastShownTime = this.lastNotificationShownTime.get(dedupeKey);
@@ -419,13 +412,15 @@ class NotifeeServiceClass {
       // Ограничиваем размер Map (очищаем старые записи)
       if (this.lastNotificationShownTime.size > 100) {
         const oldestKey = this.lastNotificationShownTime.keys().next().value;
-        this.lastNotificationShownTime.delete(oldestKey);
+        if (typeof oldestKey === 'string') {
+          this.lastNotificationShownTime.delete(oldestKey);
+        }
       }
 
       return true;
     } catch (error) {
       console.error('Ошибка дедупликации уведомления:', error);
-      return true; // В случае ошибки показываем уведомление
+      return true;
     }
   }
 
@@ -456,30 +451,30 @@ class NotifeeServiceClass {
       // Получаем channelId (только для Android)
       const channelId = this.getChannelIdByType(type, priority);
 
+      // Создаем data объект с правильной типизацией
+      const notificationData: Record<string, string | number | object> = {
+        timestamp: Date.now().toString(),
+        platform: Platform.OS,
+        ...this.cleanNotificationData(data),
+      };
+
       // Базовое уведомление
       const notification: Notification = {
         id: id || `${Date.now()}-${Math.random()}`,
         title,
         body,
-        data: {
-          ...data,
-          // Добавляем timestamp для отслеживания
-          timestamp: Date.now().toString(),
-          // Добавляем платформу
-          platform: Platform.OS,
-        },
+        data: notificationData,
         android: {
           channelId,
           importance: this.getAndroidImportance(priority),
           pressAction: { id: 'default' },
-          smallIcon: 'notification_icon', // Маленькая иконка
-          largeIcon: 'logo_large', // Большая иконка
-          color: '#000000', // Белый цвет для иконки
-          circularLargeIcon: true, // Делаем большую иконку круглой
-          // Настройка отображения
+          smallIcon: 'notification_icon',
+          largeIcon: 'logo_large',
+          color: '#000000',
+          circularLargeIcon: true,
           colorized: true,
           visibility: AndroidVisibility.PUBLIC,
-          ...android, // Позволяет переопределить настройки
+          ...android,
         },
         ios: {
           categoryId: type,
@@ -493,7 +488,6 @@ class NotifeeServiceClass {
           sound: 'default',
           critical: priority === 'high',
           criticalVolume: 1.0,
-          // Уникальный ID для iOS
           threadId: `thread_${type}`,
           summaryArgument: title,
           ...ios,
@@ -532,13 +526,11 @@ class NotifeeServiceClass {
       // Добавление действий (кнопок) в уведомление
       if (actions.length > 0) {
         if (Platform.OS === 'ios') {
-          // Для iOS используем заранее созданные категории
           notification.ios = {
             ...notification.ios,
             categoryId: 'CUSTOM_ACTIONS',
           };
         } else if (notification.android) {
-          // Для Android создаем действия
           const androidActions: AndroidAction[] = (actions as NotificationAction[]).map(
             (action) => {
               const androidAction: AndroidAction = {
@@ -576,7 +568,6 @@ class NotifeeServiceClass {
     } catch (error: unknown) {
       console.error('Ошибка отображения уведомления:', error);
 
-      // Добавляем дополнительную информацию для отладки iOS
       if (Platform.OS === 'ios') {
         console.error('Детали ошибки iOS:', {
           title: options.title,
@@ -616,64 +607,6 @@ class NotifeeServiceClass {
   }
 
   /**
-   * Получить список всех отображенных уведомлений
-   */
-  public async getDisplayedNotifications(): Promise<Notification[]> {
-    try {
-      const notifications = await notifee.getDisplayedNotifications();
-
-      if (Array.isArray(notifications)) {
-        return notifications;
-      } else if (notifications && 'notifications' in notifications) {
-        return (notifications as { notifications: Notification[] }).notifications || [];
-      }
-      return [];
-    } catch (error: unknown) {
-      console.error('Ошибка получения отображенных уведомлений:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Отменить конкретное уведомление
-   */
-  public async cancelNotification(notificationId: string): Promise<void> {
-    try {
-      await notifee.cancelNotification(notificationId);
-      console.log(`Уведомление отменено: ${notificationId}`);
-    } catch (error: unknown) {
-      console.error('Ошибка отмены уведомления:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Отменить все уведомления
-   */
-  public async cancelAllNotifications(): Promise<void> {
-    try {
-      await notifee.cancelAllNotifications();
-      console.log('Все уведомления отменены');
-    } catch (error: unknown) {
-      console.error('Ошибка отмены всех уведомлений:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Получить все запланированные уведомления
-   */
-  public async getScheduledNotifications(): Promise<Notification[]> {
-    try {
-      const notifications = await notifee.getTriggerNotifications();
-      return notifications.map((n) => n.notification);
-    } catch (error: unknown) {
-      console.error('Ошибка получения запланированных уведомлений:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Установить счетчик бейджей (iOS)
    */
   public async setBadgeCount(count: number): Promise<void> {
@@ -682,6 +615,19 @@ class NotifeeServiceClass {
       console.log(`Счетчик бейджей установлен: ${count}`);
     } catch (error: unknown) {
       console.error('Ошибка установки счетчика бейджей:', error);
+    }
+  }
+
+  /**
+   * Получение количества отображенных уведомлений
+   */
+  public async getDisplayedNotificationsCount(): Promise<number> {
+    try {
+      const displayedNotifications = await notifee.getDisplayedNotifications();
+      return displayedNotifications.length;
+    } catch (error: unknown) {
+      console.error('Ошибка получения количества отображенных уведомлений:', error);
+      return 0;
     }
   }
 
@@ -706,10 +652,8 @@ class NotifeeServiceClass {
    * Обработка событий уведомлений
    */
   private handleNotificationEvent(event: NotificationEvent): void {
-    // Уведомляем подписчиков о событии
     this.notifyEventSubscribers(event);
 
-    // Обрабатываем события
     switch (event.type) {
       case EventType.PRESS:
         console.log('Уведомление нажато:', event.detail.notification?.id);
@@ -741,11 +685,8 @@ class NotifeeServiceClass {
   private handleNotificationPress(event: NotificationEvent): void {
     const notification = event.detail.notification;
 
-    // Можно обработать навигацию на основе данных уведомления
     if (notification?.data?.screen) {
       console.log('Переход на экран:', notification.data.screen);
-      // Здесь можно вызвать навигацию, например:
-      // NavigationService.navigate(notification.data.screen, notification.data);
     }
   }
 
@@ -759,29 +700,24 @@ class NotifeeServiceClass {
     switch (actionId) {
       case 'like':
         console.log('Пользователю понравилось:', notification?.data);
-        // Отправка события "лайк" на сервер
         break;
 
       case 'save':
         console.log('Сохраняем:', notification?.data);
-        // Сохранение контента
         break;
 
       case 'reply': {
         const userInput = (event.detail.input as { value?: string })?.value;
         console.log('Пользователь ответил:', userInput);
-        // Отправка ответа на сервер
         break;
       }
 
       case 'view':
         console.log('Просмотр:', notification?.data);
-        // Открытие деталей
         break;
 
       case 'dismiss':
         console.log('Уведомление отклонено пользователем');
-        // Логика для отклонения
         break;
 
       default:
@@ -794,7 +730,6 @@ class NotifeeServiceClass {
    * Получить channelId по типу и приоритету
    */
   private getChannelIdByType(type: NotificationType, priority: NotificationPriority): string {
-    // Для iOS channelId не используется
     if (Platform.OS === 'ios') {
       return 'default';
     }
@@ -823,44 +758,6 @@ class NotifeeServiceClass {
       default:
         return AndroidImportance.DEFAULT;
     }
-  }
-
-  /**
-   * Проверить разрешения на уведомления
-   */
-  public async checkNotificationPermissions(): Promise<NotificationSettings> {
-    try {
-      const settings = await notifee.getNotificationSettings();
-      console.log('Текущие разрешения:', settings);
-      return settings;
-    } catch (error: unknown) {
-      console.error('Ошибка проверки разрешений:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Получить все созданные каналы (Android)
-   */
-  public async getNotificationChannels(): Promise<AndroidChannel[]> {
-    try {
-      if (Platform.OS === 'android') {
-        const channels = await notifee.getChannels();
-        return channels;
-      }
-      return [];
-    } catch (error: unknown) {
-      console.error('Ошибка получения каналов:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Метод экземпляра для обработки действий уведомлений
-   * (альтернатива статическому методу)
-   */
-  public processNotificationActionInstance(event: NotificationEvent): void {
-    NotifeeServiceClass.processNotificationAction(event);
   }
 }
 

@@ -1,15 +1,16 @@
 // NotificationService.ts
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import _ from 'lodash';
 import { NativeEventEmitter, NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import {
   SecureStorageKeys,
   SecureStorageResult,
   SecureStorageService,
 } from '../SecureStorageService';
-import { LocalNotification, NotificationHandler, NotificationPayload } from './types';
+import { NotificationHandler, NotificationPayload } from './types';
 
-// Кастомный интерфейс для Notification со свойством sound
-interface FirebaseNotificationWithSound extends FirebaseMessagingTypes.Notification {
+// Интерфейс для расширенного notification с полем sound
+interface ExtendedNotification extends FirebaseMessagingTypes.Notification {
   sound?: string;
 }
 
@@ -40,45 +41,9 @@ class NotificationService {
   }
 
   /**
-   * Статический метод для преобразования Firebase сообщения
-   */
-  public transformFirebaseMessage(
-    remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-  ): LocalNotification {
-    const { notification, data, messageId } = remoteMessage;
-
-    // Создаем базовый объект LocalNotification
-    const localNotification: LocalNotification = {
-      title: notification?.title || '',
-      body: notification?.body || '',
-      data: data ? (data as Record<string, string>) : {},
-      timestamp: Date.now(),
-      id: messageId || Date.now().toString(),
-    };
-
-    return localNotification;
-  }
-
-  /**
-   * Статический метод для уведомления подписчиков
-   */
-  public notifySubscribers(notification: LocalNotification): void {
-    // Преобразуем LocalNotification в NotificationPayload
-    const payload: NotificationPayload = {
-      title: notification.title,
-      body: notification.body,
-      data: notification.data,
-      messageId: notification.id,
-    };
-
-    // Уведомляем подписчиков
-    NotificationService.notifyHandlers(payload);
-  }
-
-  /**
    * Статический метод для уведомления всех подписчиков
    */
-  private static notifyHandlers(notification: NotificationPayload): void {
+  static notifySubscribers(notification: NotificationPayload): void {
     const handlers = [...NotificationService.notificationHandlers];
     handlers.forEach((handler) => {
       try {
@@ -122,13 +87,6 @@ class NotificationService {
   }
 
   /**
-   * Проверка инициализации сервиса
-   */
-  isServiceInitialized(): boolean {
-    return this.isInitialized;
-  }
-
-  /**
    * Запрос разрешений на уведомления
    */
   private async requestPermission(): Promise<boolean> {
@@ -140,7 +98,7 @@ class NotificationService {
         return true;
       }
 
-      let permissionGranted = false;
+      let permissionGranted;
 
       if (Platform.OS === 'ios') {
         const authStatus = await messaging().requestPermission();
@@ -214,9 +172,13 @@ class NotificationService {
   /**
    * Проверка дедупликации уведомлений
    */
-  private shouldProcessNotification(messageId: string, title: string): boolean {
+  private shouldProcessNotification(
+    messageId: string | undefined,
+    title: string | undefined,
+  ): boolean {
     const currentTime = Date.now();
-    const dedupeKey = messageId || `${title}_${currentTime}`;
+    const safeTitle = title || '';
+    const dedupeKey = messageId || `${safeTitle}_${currentTime}`;
 
     // Проверяем, обрабатывается ли уже это уведомление
     if (this.isProcessingForeground.has(dedupeKey)) {
@@ -225,14 +187,14 @@ class NotificationService {
     }
 
     // Проверяем время последнего показа похожего уведомления
-    const lastTime = this.lastNotificationTime.get(title);
+    const lastTime = this.lastNotificationTime.get(safeTitle);
     if (lastTime && currentTime - lastTime < 5000) {
-      console.log(`[${Platform.OS}] Похожее уведомление показывалось недавно: ${title}`);
+      console.log(`[${Platform.OS}] Похожее уведомление показывалось недавно: ${safeTitle}`);
       return false;
     }
 
     this.isProcessingForeground.add(dedupeKey);
-    this.lastNotificationTime.set(title, currentTime);
+    this.lastNotificationTime.set(safeTitle, currentTime);
 
     // Очищаем старые записи
     setTimeout(() => {
@@ -242,7 +204,9 @@ class NotificationService {
     // Ограничиваем размер Map
     if (this.lastNotificationTime.size > 50) {
       const oldestKey = this.lastNotificationTime.keys().next().value;
-      this.lastNotificationTime.delete(oldestKey);
+      if (oldestKey) {
+        this.lastNotificationTime.delete(oldestKey);
+      }
     }
 
     return true;
@@ -266,8 +230,8 @@ class NotificationService {
     console.log('[Android] Настройка обработчиков сообщений (только подписчики)');
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-      const messageId = remoteMessage.messageId || `android_fg_${Date.now()}`;
-      const title = remoteMessage.notification?.title || '';
+      const messageId = remoteMessage.messageId;
+      const title = remoteMessage.notification?.title;
 
       console.log('[Android] Уведомление получено в foreground:', messageId);
 
@@ -358,8 +322,8 @@ class NotificationService {
   private setupIOSFirebaseHandlers(): void {
     try {
       messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        const messageId = remoteMessage.messageId || `ios_fg_${Date.now()}`;
-        const title = remoteMessage.notification?.title || '';
+        const messageId = remoteMessage.messageId;
+        const title = remoteMessage.notification?.title;
 
         console.log('[iOS] Уведомление получено через FCM (foreground):', messageId);
 
@@ -426,15 +390,15 @@ class NotificationService {
     const notificationData = dataObj?.data || dataObj;
     const isSilent = (dataObj?.isSilent as boolean) || false;
 
-    // Безопасное получение sound - проверяем, что это строка
+    // Безопасное получение sound
     let sound: string | undefined = 'default';
     const soundFromData = dataObj?.sound;
 
     if (soundFromData) {
       if (typeof soundFromData === 'string') {
         sound = soundFromData;
-      } else if (typeof soundFromData === 'object' && soundFromData !== null) {
-        const soundObj = soundFromData as Record<string, any>;
+      } else if (typeof soundFromData === 'object') {
+        const soundObj = soundFromData as Record<string, unknown>;
         if (soundObj.name && typeof soundObj.name === 'string') {
           sound = soundObj.name;
         }
@@ -442,27 +406,52 @@ class NotificationService {
     }
 
     // Получаем notification объект из dataObj
-    const notificationObj = dataObj?.notification as Record<string, any> | undefined;
+    const notificationObj = dataObj?.notification as Record<string, unknown> | undefined;
 
     // Если есть notification в dataObj, используем его поля
-    const title =
-      (notificationData as Record<string, string>)?.title || notificationObj?.title || '';
+    const notificationDataObj = notificationData as Record<string, unknown> | null;
 
-    const body = (notificationData as Record<string, string>)?.body || notificationObj?.body || '';
+    let title = '';
+    let body = '';
+    const dataForPayload: Record<string, string> = {};
 
-    const payload: NotificationPayload = {
+    if (notificationDataObj) {
+      // Извлекаем данные для payload
+      Object.keys(notificationDataObj).forEach((key) => {
+        const value = notificationDataObj[key];
+        if (typeof value === 'string') {
+          dataForPayload[key] = value;
+        } else if (typeof value === 'number') {
+          dataForPayload[key] = value.toString();
+        }
+      });
+
+      // Получаем title и body
+      title = (notificationDataObj.title as string) || '';
+      body = (notificationDataObj.body as string) || '';
+    }
+
+    // Приоритет: notificationObj > dataObj
+    if (notificationObj?.title && typeof notificationObj.title === 'string') {
+      title = notificationObj.title;
+    }
+    if (notificationObj?.body && typeof notificationObj.body === 'string') {
+      body = notificationObj.body;
+    }
+
+    const badge = dataObj?.badge ? parseInt(String(dataObj.badge), 10) : undefined;
+
+    return {
       title,
       body,
-      data: (notificationData as Record<string, string>) || {},
+      data: dataForPayload,
       messageId: (dataObj?.messageId as string) || Date.now().toString(),
-      platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
+      platform: Platform.OS as 'ios' | 'android' | undefined,
       isForeground,
       isSilent,
-      badge: dataObj?.badge ? parseInt(dataObj.badge as string, 10) : undefined,
+      badge,
       sound,
-    };
-
-    return payload;
+    } as NotificationPayload;
   }
 
   /**
@@ -504,8 +493,7 @@ class NotificationService {
   private async checkInitialNotification(): Promise<void> {
     if (!this.initialNotification) {
       try {
-        const remoteMessage = await messaging().getInitialNotification();
-        this.initialNotification = remoteMessage;
+        this.initialNotification = await messaging().getInitialNotification();
       } catch (error) {
         console.error('Ошибка при проверке initial notification:', error);
       }
@@ -525,11 +513,11 @@ class NotificationService {
   ): NotificationPayload {
     const { notification, data, messageId } = remoteMessage;
 
-    // Используем кастомный интерфейс для безопасного доступа к sound
-    const notificationWithSound = notification as FirebaseNotificationWithSound;
+    // Используем расширенный интерфейс для доступа к sound
+    const extendedNotification = notification as ExtendedNotification | undefined;
 
-    let title = notificationWithSound?.title;
-    let body = notificationWithSound?.body;
+    let title = extendedNotification?.title;
+    let body = extendedNotification?.body;
 
     if (!title && data?.title) {
       title = data.title as string;
@@ -538,14 +526,14 @@ class NotificationService {
       body = data.body as string;
     }
 
-    const badge = data?.badge ? parseInt(data.badge as string, 10) : undefined;
+    const badge = data?.badge ? parseInt(String(data.badge), 10) : undefined;
 
     // Безопасное получение sound с проверкой типа
     let sound: string | undefined = 'default';
 
-    // Проверяем notification.sound
-    const notificationSound = notificationWithSound?.sound;
-    if (notificationSound && typeof notificationSound === 'string') {
+    // Проверяем notification.sound через расширенный интерфейс
+    const notificationSound = extendedNotification?.sound;
+    if (notificationSound) {
       sound = notificationSound;
     }
     // Проверяем data.sound
@@ -554,25 +542,35 @@ class NotificationService {
         sound = data.sound;
       }
       // Если data.sound это объект, можно попытаться извлечь имя звука
-      else if (typeof data.sound === 'object' && data.sound !== null) {
-        const soundObj = data.sound as Record<string, any>;
+      else if (typeof data.sound === 'object') {
+        const soundObj = data.sound as Record<string, unknown>;
         if (soundObj.name && typeof soundObj.name === 'string') {
           sound = soundObj.name;
         }
       }
     }
 
-    const payload: NotificationPayload = {
+    const payloadData: Record<string, string> = {};
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        const value = data[key];
+        if (typeof value === 'string') {
+          payloadData[key] = value;
+        } else if (_.isNumber(value)) {
+          payloadData[key] = (value as number).toString(); // Type assertion
+        }
+      });
+    }
+
+    return {
       title: title || '',
       body: body || '',
-      data: data ? (data as Record<string, string>) : {},
+      data: payloadData,
       messageId: messageId || Date.now().toString(),
       badge,
       sound,
-      platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
-    };
-
-    return payload;
+      platform: Platform.OS as 'ios' | 'android' | undefined,
+    } as NotificationPayload;
   }
 
   /**
@@ -585,14 +583,7 @@ class NotificationService {
       platform: notification.platform,
     });
 
-    const handlers = [...NotificationService.notificationHandlers];
-    handlers.forEach((handler) => {
-      try {
-        handler(notification);
-      } catch (error) {
-        console.error(`[${Platform.OS}] Ошибка в обработчике уведомлений:`, error);
-      }
-    });
+    NotificationService.notifySubscribers(notification);
   }
 
   /**
@@ -628,30 +619,6 @@ class NotificationService {
       }
     } catch (error) {
       console.error('Ошибка при удалении FCM токена:', error);
-    }
-  }
-
-  /**
-   * Создание канала уведомлений (Android)
-   */
-  async createNotificationChannel(
-    channelId: string,
-    channelName: string,
-    _importance = 4,
-  ): Promise<void> {
-    if (Platform.OS === 'android') {
-      try {
-        const androidVersion = Platform.Version;
-        const versionNumber =
-          typeof androidVersion === 'string' ? parseInt(androidVersion, 10) : androidVersion;
-
-        if (versionNumber >= 26) {
-          console.log(`Создание канала уведомлений: ${channelName} (${channelId})`);
-          // Создание канала через notifee или другую библиотеку
-        }
-      } catch (error) {
-        console.error('Ошибка при создании канала уведомлений:', error);
-      }
     }
   }
 
@@ -705,23 +672,6 @@ class NotificationService {
     console.log(`[${Platform.OS}] Ресурсы NotificationService очищены`);
   }
 }
-
-// Добавляем метод hashCode к прототипу String для использования в NotifeeService
-declare global {
-  interface String {
-    hashCode(): number;
-  }
-}
-
-String.prototype.hashCode = function (): number {
-  let hash = 0;
-  for (let i = 0; i < this.length; i++) {
-    const char = this.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash;
-};
 
 // Экспортируем инстанс как дефолтный экспорт
 export default NotificationService.getInstance();

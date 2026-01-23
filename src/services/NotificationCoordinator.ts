@@ -17,6 +17,20 @@ interface NotificationCoordinatorProps {
   onNotificationReceived?: (notification: FirebaseMessagingTypes.RemoteMessage) => void;
 }
 
+interface NotifeeServiceExtended {
+  getDisplayedNotificationsCount?: () => Promise<number>;
+}
+
+interface NotificationServiceExtended {
+  notifySubscribers?: (notification: {
+    id: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+    timestamp: string;
+  }) => void;
+}
+
 /**
  * Координатор уведомлений - центральный компонент для управления
  * получением, обработкой и отображением push-уведомлений в приложении.
@@ -29,11 +43,15 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const nativeEventEmitter = useRef<NativeEventEmitter | null>(null);
   const isProcessingRef = useRef<Set<string>>(new Set());
   const setupCompleteRef = useRef(false);
+  const appStateSubscriptionRef = useRef<ReturnType<typeof AppState.addEventListener> | null>(null);
 
   console.log('🔔 NotificationCoordinator mounted');
 
   // Инициализация NativeEventEmitter для iOS
   useEffect(() => {
+    // Сохраняем ref в локальную переменную для безопасной очистки
+    const currentProcessingSet = isProcessingRef.current;
+
     if (Platform.OS === 'ios' && NativeModules.RCTDeviceEventEmitter) {
       nativeEventEmitter.current = new NativeEventEmitter(NativeModules.RCTDeviceEventEmitter);
     }
@@ -43,7 +61,8 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       if (nativeEventEmitter.current) {
         nativeEventEmitter.current.removeAllListeners('DataUpdated');
       }
-      isProcessingRef.current.clear();
+      // Используем локальную переменную для безопасной очистки
+      currentProcessingSet.clear();
     };
   }, []);
 
@@ -113,6 +132,27 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   }, [isAxiosInitialized]);
 
   /**
+   * Получение количества отображенных уведомлений через Notifee
+   */
+  const getDisplayedNotificationsCount = useCallback(async (): Promise<number> => {
+    try {
+      // Типизированный доступ к методу getDisplayedNotificationsCount
+      const notifeeService = NotifeeService as NotifeeServiceExtended;
+
+      if (typeof notifeeService.getDisplayedNotificationsCount === 'function') {
+        return await notifeeService.getDisplayedNotificationsCount();
+      }
+
+      // Альтернативный подход: если метод недоступен, возвращаем 0
+      console.warn('⚠️ Метод getDisplayedNotificationsCount не доступен в NotifeeService');
+      return 0;
+    } catch (error) {
+      console.warn('⚠️ Не удалось получить количество отображенных уведомлений:', error);
+      return 0;
+    }
+  }, []);
+
+  /**
    * Обновление бейджей для iOS
    */
   const updateBadgeCount = useCallback(async (): Promise<void> => {
@@ -122,10 +162,9 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
 
     try {
       // Получаем количество непрочитанных уведомлений
-      const displayedNotifications = await NotifeeService.getDisplayedNotifications();
-      const badgeCount = displayedNotifications.length;
+      const badgeCount = await getDisplayedNotificationsCount();
 
-      // Обновляем бейджи
+      // Обновляем бейджи через NotifeeService
       await NotifeeService.setBadgeCount(badgeCount);
       console.log(`📱 iOS: Бейджи обновлены: ${badgeCount}`);
 
@@ -136,7 +175,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     } catch (error: unknown) {
       console.warn('⚠️ Не удалось обновить бейджи на iOS:', error);
     }
-  }, [checkAxiosAvailability, logNotificationEvent]);
+  }, [checkAxiosAvailability, getDisplayedNotificationsCount, logNotificationEvent]);
 
   /**
    * Координация отображения уведомления из фонового сообщения
@@ -213,9 +252,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         console.error('Координатор: ошибка отображения уведомления из фона:', errorMessage);
         await logNotificationEvent('background_error', { error: errorMessage });
       } finally {
+        // Копируем messageId в локальную переменную для безопасного использования в setTimeout
+        const currentMessageId = messageId;
         // Очищаем через 10 секунд на случай ретраев
         setTimeout(() => {
-          isProcessingRef.current.delete(messageId);
+          isProcessingRef.current.delete(currentMessageId);
         }, 10000);
       }
     },
@@ -227,11 +268,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
    */
   const coordinateBackgroundMessage = useCallback(
     async (remoteMessage: FirebaseNotificationData): Promise<void> => {
-      const messageId = remoteMessage.messageId || `bgmsg_${Date.now()}`;
+      // Переменная используется только для логирования
+      const messageIdForLog = remoteMessage.messageId || `bgmsg_${Date.now()}`;
+      console.log('🌙 Координатор: получено фоновое сообщение:', messageIdForLog);
 
       try {
-        console.log('🌙 Координатор: получено фоновое сообщение:', remoteMessage.messageId);
-
         // Координируем отображение для фоновых сообщений
         if (remoteMessage.notification || remoteMessage.data) {
           await coordinateBackgroundNotification(remoteMessage);
@@ -267,9 +308,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
 
         // Для iOS уменьшаем счетчик бейджей при открытии уведомления
         if (Platform.OS === 'ios') {
-          const currentBadgeCount = await NotifeeService.getDisplayedNotifications().then(
-            (notifications) => notifications.length,
-          );
+          const currentBadgeCount = await getDisplayedNotificationsCount();
 
           if (currentBadgeCount > 0) {
             await NotifeeService.setBadgeCount(currentBadgeCount - 1);
@@ -280,9 +319,9 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         // Логируем взаимодействие пользователя
         await logNotificationEvent('notification_tap', {
           messageId: remoteMessage.messageId,
-          screen: notificationData.screen,
-          action: notificationData.action,
-          notificationId: notificationData.notificationId,
+          screen: notificationData.screen as string,
+          action: notificationData.action as string,
+          notificationId: notificationData.notificationId as string,
         });
 
         // TODO: Добавить навигацию через NavigationService
@@ -294,12 +333,14 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
         console.error('Координатор: ошибка обработки тапа по уведомлению:', errorMessage);
         await logNotificationEvent('tap_error', { error: errorMessage });
       } finally {
+        // Копируем messageId в локальную переменную для безопасного использования в setTimeout
+        const currentMessageId = messageId;
         setTimeout(() => {
-          isProcessingRef.current.delete(messageId);
+          isProcessingRef.current.delete(currentMessageId);
         }, 5000);
       }
     },
-    [logNotificationEvent],
+    [getDisplayedNotificationsCount, logNotificationEvent],
   );
 
   /**
@@ -307,8 +348,8 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
    */
   const coordinatePendingNotificationsCheck = useCallback(async (): Promise<void> => {
     try {
-      const displayedNotifications = await NotifeeService.getDisplayedNotifications();
-      console.log('Координатор: текущие отображенные уведомления:', displayedNotifications.length);
+      const displayedCount = await getDisplayedNotificationsCount();
+      console.log('Координатор: текущие отображенные уведомления:', displayedCount);
 
       // Обновляем бейджи для iOS
       if (Platform.OS === 'ios') {
@@ -316,16 +357,21 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       }
 
       // Координируем сбор статистики
-      if (checkAxiosAvailability() && displayedNotifications.length > 0) {
+      if (checkAxiosAvailability() && displayedCount > 0) {
         await logNotificationEvent('notifications_check', {
-          displayedCount: displayedNotifications.length,
+          displayedCount,
         });
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
       console.error('Координатор: ошибка проверки уведомлений:', errorMessage);
     }
-  }, [checkAxiosAvailability, logNotificationEvent, updateBadgeCount]);
+  }, [
+    checkAxiosAvailability,
+    getDisplayedNotificationsCount,
+    logNotificationEvent,
+    updateBadgeCount,
+  ]);
 
   /**
    * Координация обработки изменения состояния приложения
@@ -376,7 +422,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const coordinateForegroundMessageHandler = useCallback((): (() => void) => {
     console.log('🔔 Координатор: настройка обработчика foreground сообщений');
 
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+    const unsubscribeFromMessages = messaging().onMessage(async (remoteMessage) => {
       const messageId = remoteMessage.messageId || `fg_${Date.now()}`;
 
       console.log('🔔 Координатор: уведомление получено в активном приложении:', messageId);
@@ -429,9 +475,18 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
           });
         }
 
-        // Координируем трансформацию и уведомление подписчиков
-        const notification = NotificationService.transformFirebaseMessage(remoteMessage);
-        NotificationService.notifySubscribers(notification);
+        // Координируем уведомление подписчиков через NotificationService
+        const notificationService = NotificationService as NotificationServiceExtended;
+
+        if (typeof notificationService.notifySubscribers === 'function') {
+          notificationService.notifySubscribers({
+            id: remoteMessage.messageId || `notif_${Date.now()}`,
+            title: firebaseData.notification?.title || 'Новое уведомление',
+            body: firebaseData.notification?.body || '',
+            data: firebaseData.data,
+            timestamp: new Date().toISOString(),
+          });
+        }
 
         // Логируем успешную обработку
         await logNotificationEvent('foreground_processed', {
@@ -448,14 +503,16 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
           error: errorMessage,
         });
       } finally {
+        // Копируем messageId в локальную переменную для безопасного использования в setTimeout
+        const currentMessageId = messageId;
         // Очищаем через 10 секунд
         setTimeout(() => {
-          isProcessingRef.current.delete(messageId);
+          isProcessingRef.current.delete(currentMessageId);
         }, 10000);
       }
     });
 
-    return unsubscribe;
+    return unsubscribeFromMessages;
   }, [logNotificationEvent, onNotificationReceived, updateBadgeCount]);
 
   /**
@@ -524,7 +581,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const coordinateNotifeeEventHandlers = useCallback((): (() => void) => {
     console.log('🎯 Координатор: настройка обработчиков событий Notifee');
 
-    const unsubscribe = NotifeeService.onNotificationEvent(({ type, detail }) => {
+    const unsubscribeFromNotifeeEvents = NotifeeService.onNotificationEvent(({ type, detail }) => {
       console.log(`🎯 Координатор: событие Notifee: ${type}`, detail.notification?.id);
 
       // Координируем логирование событий Notifee
@@ -572,7 +629,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       }
     });
 
-    return unsubscribe;
+    return unsubscribeFromNotifeeEvents;
   }, [checkAxiosAvailability, logNotificationEvent, updateBadgeCount]);
 
   /**
@@ -581,11 +638,11 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const coordinateNotifeeSubscription = useCallback((): (() => void) => {
     console.log('📨 Координатор: настройка подписки на Notifee');
 
-    const unsubscribe = NotifeeService.subscribe((notification) => {
+    const unsubscribeFromNotifee = NotifeeService.subscribe((notification) => {
       console.log('📨 Координатор: новое уведомление через Notifee:', notification.id);
     });
 
-    return unsubscribe;
+    return unsubscribeFromNotifee;
   }, []);
 
   /**
@@ -629,7 +686,9 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
   const coordinateNotificationHandlers = useCallback((): (() => void) => {
     if (setupCompleteRef.current) {
       console.warn('⚠️ Обработчики уведомлений уже настроены!');
-      return () => {};
+      return () => {
+        // Пустая функция очистки
+      };
     }
 
     console.log('🚀 Координатор: настройка всех обработчиков уведомлений...');
@@ -754,6 +813,9 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     let iosSilentPushCleanup: (() => void) | undefined;
     let isMounted = true;
 
+    // Сохраняем ref в локальную переменную для безопасной очистки
+    const currentProcessingSet = isProcessingRef.current;
+
     const setupNotificationCoordinator = async (): Promise<void> => {
       try {
         if (!isMounted) {
@@ -789,7 +851,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
     });
 
     // Координируем мониторинг изменений состояния приложения
-    const appStateSubscription = AppState.addEventListener('change', coordinateAppStateChange);
+    appStateSubscriptionRef.current = AppState.addEventListener('change', coordinateAppStateChange);
 
     return (): void => {
       isMounted = false;
@@ -798,8 +860,13 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = (
       // Координируем очистку всех подписок
       cleanupHandlers?.();
       iosSilentPushCleanup?.();
-      appStateSubscription.remove();
-      isProcessingRef.current.clear();
+
+      if (appStateSubscriptionRef.current) {
+        appStateSubscriptionRef.current.remove();
+      }
+
+      // Используем локальную переменную для безопасной очистки
+      currentProcessingSet.clear();
     };
   }, [
     coordinateNotificationServices,
