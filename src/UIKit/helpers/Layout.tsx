@@ -20,6 +20,7 @@ interface BlockStyleProps {
   borderRadius?: number;
   backgroundColor?: string;
   overflow?: boolean;
+  gap?: number;
 }
 
 export type BlockProps = BlockStyleProps &
@@ -28,21 +29,36 @@ export type BlockProps = BlockStyleProps &
     children?: React.ReactNode;
   };
 
-// Простые стилизованные компоненты без forwardRef
+// Вспомогательная функция для обработки числовых значений gap
+const getGapStyle = (gap?: number) => {
+  if (gap === undefined) {
+    return '';
+  }
+  return css`
+    gap: ${gap}px;
+  `;
+};
+
 export const Block = styled.View<BlockProps>`
-  overflow: ${({ overflow }) => (overflow ? 'hidden' : 'visible')};
+  ${({ overflow }) => overflow && 'overflow: hidden;'}
   align-items: ${({ alignItems }) => alignItems ?? 'stretch'};
   align-self: ${({ alignSelf }) => alignSelf ?? 'auto'};
   background-color: ${({ backgroundColor }) => backgroundColor ?? 'transparent'};
   justify-content: ${({ justifyContent }) => justifyContent ?? 'flex-start'};
   elevation: ${({ elevation }) => elevation ?? 0};
+  border-radius: ${({ borderRadius }) => borderRadius ?? 0}px;
 
   ${({ flex }) =>
     flex &&
     css`
       flex: ${flex};
     `}
-
+  ${({ flexShrink }) =>
+    flexShrink !== undefined &&
+    css`
+      flex-shrink: ${flexShrink};
+    `}
+  ${({ gap }) => getGapStyle(gap)}
   ${(props) => spacings(props)}
 `;
 

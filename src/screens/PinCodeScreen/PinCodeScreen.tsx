@@ -3,219 +3,223 @@ import { RoundLogoAppImage } from '@assets/images';
 import { useLogOut } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Colors, ESize, Icon, IconNames } from '@UIKit';
-import React, { JSX, memo } from 'react';
+import {
+  Block,
+  Colors,
+  ERounding,
+  ESize,
+  ESpacings,
+  Icon,
+  IconNames,
+  Row,
+  Typography,
+} from '@UIKit';
+import React, { JSX, memo, useState } from 'react';
 import { Platform } from 'react-native';
 import styled from 'styled-components/native';
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum PinMode {
+  ENTER = 'enter',
+  SET = 'set',
+  CONFIRM = 'confirm',
+}
 
 // ============================================
 // STYLED COMPONENTS
 // ============================================
 
-const Container = styled.View`
-  flex: 1;
-  background-color: #1a1a2e;
-`;
+const Container = styled(Block)({
+  flex: 1,
+  backgroundColor: Colors.black,
+});
 
-const LogoContainer = styled.View`
-  align-items: center;
-  margin-top: 80px;
-  margin-bottom: 20px;
-`;
+const MainContent = styled(Block)({
+  flex: 1,
+  backgroundColor: Colors.black,
+  justifyContent: 'space-between',
+  padding: ESpacings.s16,
+});
 
-const StyledImage = styled.Image`
-  width: 120px;
-  height: 120px;
-  border-radius: 60px;
-`;
+const LogoContainer = styled(Block)({
+  alignItems: 'center',
+  marginTop: 40,
+  marginBottom: ESpacings.s20,
+});
 
-const MainContainer = styled.View`
-  flex: 1;
-  padding: 20px;
-  align-items: center;
-`;
+const StyledImage = styled.Image({
+  width: 120,
+  height: 120,
+});
 
-const TitleContainer = styled.View`
-  align-items: center;
-  margin-bottom: 40px;
-`;
+const ContentContainer = styled(Block)({
+  flex: 1,
+  padding: ESpacings.s20,
+  alignItems: 'center',
+  justifyContent: 'center',
+});
 
-const Title24 = styled.Text`
-  font-size: 24px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 8px;
-`;
+const TitleContainer = styled(Block)({
+  alignItems: 'center',
+  marginBottom: 40,
+});
 
-const Subtitle = styled.Text`
-  font-size: 16px;
-  color: #a0a0c0;
-  text-align: center;
-  line-height: 22px;
-`;
-
-const PinDotsContainer = styled.View`
-  flex-direction: row;
-  justify-content: center;
-  margin-bottom: 40px;
-  gap: 16px;
-`;
+const PinDotsContainer = styled(Row)({
+  justifyContent: 'center',
+  marginBottom: 40,
+  gap: ESpacings.s16,
+});
 
 interface PinDotProps {
   filled: boolean;
 }
 
-const PinDot = styled.View<PinDotProps>`
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
-  background-color: ${(props) => (props.filled ? '#4a6fa5' : '#2d2d4a')};
-  border: 2px solid ${(props) => (props.filled ? '#4a6fa5' : '#3d3d5e')};
-`;
+const PinDot = styled(Block)<PinDotProps>((props) => ({
+  width: ESize.s20,
+  height: ESize.s20,
+  borderRadius: ERounding.r100,
+  backgroundColor: props.filled ? Colors.white : 'transparent',
+  borderWidth: 2,
+  borderColor: Colors.white,
+}));
 
-const KeyboardContainer = styled.View`
-  width: 100%;
-  max-width: 320px;
-  margin-top: 20px;
-`;
+const KeyboardContainer = styled(Block)({
+  width: '100%',
+  alignSelf: 'center',
+  alignItems: 'center',
+  marginTop: 'auto',
+  marginBottom: 40,
+});
 
-const KeyboardRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 20px;
-`;
+const KeyboardRow = styled(Row)({
+  justifyContent: 'center',
+  marginBottom: ESpacings.s16,
+  gap: ESpacings.s32,
+});
 
 interface KeyButtonProps {
   disabled: boolean;
 }
 
-const KeyButton = styled.TouchableOpacity<KeyButtonProps>`
-  width: 75px;
-  height: 75px;
-  border-radius: 37.5px;
-  background-color: #2d2d4a;
-  justify-content: center;
-  align-items: center;
-  opacity: ${(props) => (props.disabled ? 0.3 : 1)};
-`;
+const KeyButton = styled.TouchableOpacity<KeyButtonProps>((props) => ({
+  width: ESize.s72,
+  height: ESize.s72,
+  borderRadius: ERounding.r100,
+  backgroundColor: 'transparent',
+  justifyContent: 'center',
+  alignItems: 'center',
+  opacity: props.disabled ? 0.3 : 1,
+  borderWidth: 2,
+  borderColor: Colors.white,
+}));
 
-const KeyText = styled.Text<KeyButtonProps>`
-  font-size: 28px;
-  font-weight: 500;
-  color: ${(props) => (props.disabled ? '#666666' : '#ffffff')};
-`;
-
-const EmptyButton = styled.View`
-  width: 75px;
-  height: 75px;
-`;
+const KeyText = styled.Text<KeyButtonProps>((props) => ({
+  fontSize: ESize.s28,
+  fontWeight: '500',
+  color: props.disabled ? Colors.gray : Colors.white,
+}));
 
 interface BiometricIconProps {
   disabled: boolean;
 }
 
-const BiometricIcon = styled.View<BiometricIconProps>`
-  opacity: ${(props) => (props.disabled ? 0.5 : 1)};
-`;
+const BiometricIcon = styled(Block)<BiometricIconProps>((props) => ({
+  opacity: props.disabled ? 0.5 : 1,
+}));
 
-const BiometricKeyButton = styled.TouchableOpacity<KeyButtonProps>`
-  width: 75px;
-  height: 75px;
-  border-radius: 37.5px;
-  background-color: #2d2d4a;
-  justify-content: center;
-  align-items: center;
-  opacity: ${(props) => (props.disabled ? 0.3 : 1)};
-`;
+const BiometricKeyButton = styled.TouchableOpacity<KeyButtonProps>((props) => ({
+  width: ESize.s72,
+  height: ESize.s72,
+  borderRadius: ERounding.r100,
+  backgroundColor: 'transparent',
+  justifyContent: 'center',
+  alignItems: 'center',
+  opacity: props.disabled ? 0.3 : 1,
+  borderWidth: 2,
+  borderColor: Colors.white,
+}));
 
-const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>`
-  width: 75px;
-  height: 75px;
-  border-radius: 37.5px;
-  background-color: #2d2d4a;
-  justify-content: center;
-  align-items: center;
-  opacity: ${(props) => (props.disabled ? 0.3 : 1)};
-`;
+const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>((props) => ({
+  width: ESize.s72,
+  height: ESize.s72,
+  borderRadius: ERounding.r100,
+  backgroundColor: 'transparent',
+  justifyContent: 'center',
+  alignItems: 'center',
+  opacity: props.disabled ? 0.3 : 1,
+  borderWidth: 2,
+  borderColor: Colors.white,
+}));
 
-const DeleteIcon = styled.Text<KeyButtonProps>`
-  font-size: 32px;
-  color: ${(props) => (props.disabled ? '#666666' : '#ffffff')};
-`;
+const DeleteIcon = styled.Text<KeyButtonProps>((props) => ({
+  fontSize: ESize.s32,
+  color: props.disabled ? Colors.gray : Colors.white,
+}));
 
-const ExitButton = styled.TouchableOpacity`
-  width: 75px;
-  height: 75px;
-  border-radius: 37.5px;
-  background-color: #2d2d4a;
-  justify-content: center;
-  align-items: center;
-`;
+const ExitButton = styled.TouchableOpacity({
+  width: ESize.s72,
+  height: ESize.s72,
+  borderRadius: ERounding.r100,
+  backgroundColor: 'transparent',
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderWidth: 2,
+  borderColor: Colors.white,
+});
 
-const ExitIcon = styled.View`
-  transform: rotate(180deg);
-`;
-
-const ResetButton = styled.TouchableOpacity`
-  margin-bottom: 30px;
-  padding: 12px 24px;
-`;
-
-const ResetButtonText = styled.Text`
-  font-size: 16px;
-  color: #4a6fa5;
-  text-decoration-line: underline;
-`;
-
-const ErrorText = styled.Text`
-  font-size: 14px;
-  color: #ff6b6b;
-  text-align: center;
-  margin-bottom: 20px;
-  padding: 0 20px;
-`;
-
-const LoadingContainer = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  background-color: #1a1a2e;
-`;
-
-const LoadingText = styled.Text`
-  font-size: 16px;
-  color: #ffffff;
-  margin-top: 20px;
-`;
+const ResetButton = styled.TouchableOpacity({
+  marginBottom: ESpacings.s32,
+  paddingVertical: ESpacings.s12,
+  paddingHorizontal: ESpacings.s24,
+});
 
 /**
  * Экран авторизации по PIN-коду с поддержкой биометрии
  */
 export const PinCodeScreen: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
-> = memo(({ navigation }) => {
+> = memo(() => {
   // ============================================
-  // СОСТОЯНИЕ КОМПОНЕНТА (заглушки)
+  // СОСТОЯНИЕ КОМПОНЕНТА
   // ============================================
-  const pinMode: 'enter' | 'set' | 'confirm' = 'enter';
-  const currentPin = '';
-  const confirmPin = '';
-  const isLocked = false;
-  const hasEnteredSymbols = false;
-  const errorMessage = '';
+  const [pinMode, setPinMode] = useState<PinMode>(PinMode.ENTER);
+  const [currentPin, setCurrentPin] = useState<string>('');
+  const [confirmPin, setConfirmPin] = useState<string>('');
+  const [isLocked] = useState<boolean>(false);
+  const [errorMessage] = useState<string>('');
+
   const biometricAvailable = true;
   const isBiometricLocked = false;
   const savedPin = undefined;
 
   // ============================================
-  // ОБРАБОТЧИКИ (заглушки)
+  // ОБРАБОТЧИКИ
   // ============================================
   const handleNumberPress = (number: string): void => {
     console.log('Нажата цифра:', number);
+
+    if (pinMode === PinMode.CONFIRM) {
+      if (confirmPin.length < 4) {
+        setConfirmPin((prev) => prev + number);
+      }
+    } else {
+      if (currentPin.length < 4) {
+        setCurrentPin((prev) => prev + number);
+      }
+    }
   };
 
   const handleDeletePress = (): void => {
     console.log('Удаление символа');
+
+    if (pinMode === PinMode.CONFIRM) {
+      setConfirmPin((prev) => prev.slice(0, -1));
+    } else {
+      setCurrentPin((prev) => prev.slice(0, -1));
+    }
   };
 
   const handleBiometricAuthWithVibration = (): void => {
@@ -228,13 +232,16 @@ export const PinCodeScreen: React.FC<
 
   const { logOutHandler } = useLogOut();
 
-  const handleExitAppWithVibration = async (): void => {
+  const handleExitAppWithVibration = async (): Promise<void> => {
     console.log('Выход из приложения');
     await logOutHandler();
   };
 
   const handleResetPinWithVibration = (): void => {
     console.log('Сброс PIN-кода');
+    setPinMode(PinMode.SET);
+    setCurrentPin('');
+    setConfirmPin('');
   };
 
   // ============================================
@@ -245,12 +252,14 @@ export const PinCodeScreen: React.FC<
       return 'Повторите через 30 секунд';
     }
 
-    if (pinMode === 'set') {
-      return 'Установите новый PIN-код для защиты приложения';
-    } else if (pinMode === 'confirm') {
-      return 'Повторите PIN-код для подтверждения';
-    } else {
-      return 'Введите PIN-код для входа в приложение';
+    switch (pinMode) {
+      case PinMode.SET:
+        return 'Установите новый PIN-код для защиты приложения';
+      case PinMode.CONFIRM:
+        return 'Повторите PIN-код для подтверждения';
+      case PinMode.ENTER:
+      default:
+        return 'Введите PIN-код для входа в приложение';
     }
   };
 
@@ -259,29 +268,30 @@ export const PinCodeScreen: React.FC<
       return 'Доступ заблокирован';
     }
 
-    if (pinMode === 'set') {
-      return 'Установите PIN-код';
-    } else if (pinMode === 'confirm') {
-      return 'Подтвердите PIN-код';
-    } else {
-      return 'Введите PIN-код';
+    switch (pinMode) {
+      case PinMode.SET:
+        return 'Установите PIN-код';
+      case PinMode.CONFIRM:
+        return 'Подтвердите PIN-код';
+      case PinMode.ENTER:
+      default:
+        return 'Введите PIN-код';
     }
   };
 
   const renderPinDots = (): JSX.Element => {
-    // При блокировке всегда показываем пустые точки
     if (isLocked) {
       const dots: JSX.Element[] = [];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 4; i++) {
         dots.push(<PinDot key={i} filled={false} />);
       }
       return <PinDotsContainer>{dots}</PinDotsContainer>;
     }
 
-    const length = pinMode === 'confirm' ? confirmPin.length : currentPin.length;
+    const length = pinMode === PinMode.CONFIRM ? confirmPin.length : currentPin.length;
     const dots: JSX.Element[] = [];
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 4; i++) {
       const isFilled = i < length;
       dots.push(<PinDot key={i} filled={isFilled} />);
     }
@@ -290,7 +300,6 @@ export const PinCodeScreen: React.FC<
   };
 
   const getActionButton = (): JSX.Element => {
-    // На заблокированном экране показываем кнопку биометрии
     if (isLocked) {
       return (
         <BiometricKeyButton
@@ -307,6 +316,10 @@ export const PinCodeScreen: React.FC<
         </BiometricKeyButton>
       );
     } else {
+      // Определяем, есть ли введенные символы
+      const hasEnteredSymbols =
+        pinMode === PinMode.CONFIRM ? confirmPin.length > 0 : currentPin.length > 0;
+
       if (hasEnteredSymbols) {
         return (
           <DeleteButtonInRow onPress={handleDeletePress} disabled={false}>
@@ -337,82 +350,98 @@ export const PinCodeScreen: React.FC<
   // ============================================
   return (
     <Container>
-      <>
+      <MainContent>
         <LogoContainer>
           <StyledImage source={RoundLogoAppImage} />
         </LogoContainer>
 
-        <MainContainer>
+        <ContentContainer>
           <TitleContainer>
-            <Title24>{getTitle()}</Title24>
-            <Subtitle>{getSubtitle()}</Subtitle>
+            <Typography.R24 color={Colors.white} textAlign="center" marginBottom={ESpacings.s8}>
+              {getTitle()}
+            </Typography.R24>
+            <Typography.R14 color={Colors.textSecondary} textAlign="center">
+              {getSubtitle()}
+            </Typography.R14>
           </TitleContainer>
 
-          {errorMessage ? <ErrorText>{errorMessage}</ErrorText> : null}
+          {errorMessage && (
+            <Typography.R14 color={Colors.error} textAlign="center" marginBottom={ESpacings.s20}>
+              {errorMessage}
+            </Typography.R14>
+          )}
 
-          {isBiometricLocked && <ErrorText>Биометрия заблокирована</ErrorText>}
+          {isBiometricLocked && (
+            <Typography.R14 color={Colors.error} textAlign="center">
+              Биометрия заблокирована
+            </Typography.R14>
+          )}
 
           {renderPinDots()}
 
-          {pinMode === 'enter' && savedPin && !isLocked && (
+          {pinMode === PinMode.ENTER && savedPin && !isLocked && (
             <ResetButton onPress={handleResetPinWithVibration}>
-              <ResetButtonText>Забыли PIN?</ResetButtonText>
+              <Typography.R14 color={Colors.primary}>Забыли PIN?</Typography.R14>
             </ResetButton>
           )}
+        </ContentContainer>
 
-          <KeyboardContainer>
-            <KeyboardRow>
-              <KeyButton onPress={() => handleNumberPress('1')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>1</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('2')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>2</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('3')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>3</KeyText>
-              </KeyButton>
-            </KeyboardRow>
+        <KeyboardContainer>
+          {/* Первый ряд: 1 2 3 */}
+          <KeyboardRow>
+            <KeyButton onPress={() => handleNumberPress('1')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>1</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('2')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>2</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('3')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>3</KeyText>
+            </KeyButton>
+          </KeyboardRow>
 
-            <KeyboardRow>
-              <KeyButton onPress={() => handleNumberPress('4')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>4</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('5')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>5</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('6')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>6</KeyText>
-              </KeyButton>
-            </KeyboardRow>
+          {/* Второй ряд: 4 5 6 */}
+          <KeyboardRow>
+            <KeyButton onPress={() => handleNumberPress('4')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>4</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('5')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>5</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('6')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>6</KeyText>
+            </KeyButton>
+          </KeyboardRow>
 
-            <KeyboardRow>
-              <KeyButton onPress={() => handleNumberPress('7')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>7</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('8')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>8</KeyText>
-              </KeyButton>
-              <KeyButton onPress={() => handleNumberPress('9')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>9</KeyText>
-              </KeyButton>
-            </KeyboardRow>
+          {/* Третий ряд: 7 8 9 */}
+          <KeyboardRow>
+            <KeyButton onPress={() => handleNumberPress('7')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>7</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('8')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>8</KeyText>
+            </KeyButton>
+            <KeyButton onPress={() => handleNumberPress('9')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>9</KeyText>
+            </KeyButton>
+          </KeyboardRow>
 
-            <KeyboardRow>
-              <EmptyButton />
-              <ExitButton onPress={handleExitAppWithVibration}>
-                <ExitIcon>
-                  <Icon size={ESize.s28} color={Colors.white} name={IconNames.signOut} />
-                </ExitIcon>
-              </ExitButton>
-              <KeyButton onPress={() => handleNumberPress('0')} disabled={isLocked}>
-                <KeyText disabled={isLocked}>0</KeyText>
-              </KeyButton>
-              {getActionButton()}
-              <EmptyButton />
-            </KeyboardRow>
-          </KeyboardContainer>
-        </MainContainer>
-      </>
+          {/* Четвертый ряд: Выход 0 Биометрия/Удаление */}
+          <KeyboardRow>
+            <ExitButton onPress={handleExitAppWithVibration}>
+              <Block>
+                <Icon size={ESize.s28} color={Colors.white} name={IconNames.signOut} />
+              </Block>
+            </ExitButton>
+
+            <KeyButton onPress={() => handleNumberPress('0')} disabled={isLocked}>
+              <KeyText disabled={isLocked}>0</KeyText>
+            </KeyButton>
+
+            {getActionButton()}
+          </KeyboardRow>
+        </KeyboardContainer>
+      </MainContent>
     </Container>
   );
 });

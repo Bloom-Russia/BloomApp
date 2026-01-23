@@ -3,7 +3,7 @@ export const Colors = {
   black: '#000000',
   ripple: '#C0C1C6',
   transparent: 'transparent',
-  systemDark: '#000000', //'#303030',
+  systemDark: '#000000',
   blue: '#312187FF',
   primary: '#007AFF',
   error: '#ff3b30',
