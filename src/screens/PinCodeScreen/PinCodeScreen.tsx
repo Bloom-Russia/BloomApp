@@ -83,7 +83,7 @@ const PinDot = styled(Block)<PinDotProps>((props) => ({
   borderRadius: ERounding.r100,
   backgroundColor: props.filled ? Colors.white : 'transparent',
   borderWidth: 2,
-  borderColor: Colors.white,
+  borderColor: 'rgba(255, 255, 255, 0.5)',
 }));
 
 const KeyboardContainer = styled(Block)({
@@ -113,7 +113,7 @@ const KeyButton = styled.TouchableOpacity<KeyButtonProps>((props) => ({
   alignItems: 'center',
   opacity: props.disabled ? 0.3 : 1,
   borderWidth: 2,
-  borderColor: Colors.white,
+  borderColor: 'rgba(255, 255, 255, 0.5)',
 }));
 
 const KeyText = styled.Text<KeyButtonProps>((props) => ({
@@ -139,7 +139,7 @@ const BiometricKeyButton = styled.TouchableOpacity<KeyButtonProps>((props) => ({
   alignItems: 'center',
   opacity: props.disabled ? 0.3 : 1,
   borderWidth: 2,
-  borderColor: Colors.white,
+  borderColor: 'rgba(255, 255, 255, 0.5)',
 }));
 
 const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>((props) => ({
@@ -167,7 +167,7 @@ const ExitButton = styled.TouchableOpacity({
   justifyContent: 'center',
   alignItems: 'center',
   borderWidth: 2,
-  borderColor: Colors.white,
+  borderColor: 'rgba(255, 255, 255, 0.5)',
 });
 
 const ResetButton = styled.TouchableOpacity({
