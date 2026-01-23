@@ -26,6 +26,7 @@ class NotifeeServiceClass {
   private notificationHandlers: NotificationCallback[] = [];
   private eventHandlers: NotificationEventHandler[] = [];
   private backgroundMessageHandler?: BackgroundMessageHandler;
+  private lastNotificationShownTime: Map<string, number> = new Map();
 
   // Приватный статический экземпляр для Singleton
   private static instance: NotifeeServiceClass | null = null;
@@ -206,7 +207,7 @@ class NotifeeServiceClass {
    */
   public async handleBackgroundMessage(remoteMessage: FirebaseNotificationData): Promise<void> {
     try {
-      console.log('Получено фоновое сообщение:', remoteMessage);
+      console.log('Получено фоновое сообщение:', remoteMessage.messageId);
 
       // Для iOS требуется особая обработка
       if (Platform.OS === 'ios') {
@@ -385,7 +386,51 @@ class NotifeeServiceClass {
   }
 
   /**
-   * Показать уведомление
+   * Проверка дедупликации уведомлений
+   */
+  private shouldShowNotification(
+    title: string,
+    body: string,
+    data: Record<string, unknown>,
+  ): boolean {
+    try {
+      // Создаем ключ дедупликации
+      const dedupeKey =
+        (data.messageId as string) ||
+        (data.notificationId as string) ||
+        `${title}_${body}_${JSON.stringify(data).hashCode()}`;
+
+      const currentTime = Date.now();
+      const lastShownTime = this.lastNotificationShownTime.get(dedupeKey);
+
+      // Если такое уведомление показывалось менее 5 секунд назад - пропускаем
+      if (lastShownTime && currentTime - lastShownTime < 5000) {
+        console.log(
+          `⚠️ Дедупликация: уведомление "${title}" уже показывалось ${
+            currentTime - lastShownTime
+          }мс назад`,
+        );
+        return false;
+      }
+
+      // Сохраняем время показа
+      this.lastNotificationShownTime.set(dedupeKey, currentTime);
+
+      // Ограничиваем размер Map (очищаем старые записи)
+      if (this.lastNotificationShownTime.size > 100) {
+        const oldestKey = this.lastNotificationShownTime.keys().next().value;
+        this.lastNotificationShownTime.delete(oldestKey);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Ошибка дедупликации уведомления:', error);
+      return true; // В случае ошибки показываем уведомление
+    }
+  }
+
+  /**
+   * Показать уведомление с дедупликацией
    */
   public async showNotification(options: NotifeeOptions): Promise<string> {
     try {
@@ -402,6 +447,12 @@ class NotifeeServiceClass {
         actions = [],
       } = options;
 
+      // Проверка дедупликации
+      if (!this.shouldShowNotification(title, body, data)) {
+        console.log(`⚠️ Уведомление "${title}" пропущено из-за дедупликации`);
+        return `deduped_${Date.now()}`;
+      }
+
       // Получаем channelId (только для Android)
       const channelId = this.getChannelIdByType(type, priority);
 
@@ -414,6 +465,8 @@ class NotifeeServiceClass {
           ...data,
           // Добавляем timestamp для отслеживания
           timestamp: Date.now().toString(),
+          // Добавляем платформу
+          platform: Platform.OS,
         },
         android: {
           channelId,

@@ -1,8 +1,12 @@
 // NotificationService.ts
-import messaging, {FirebaseMessagingTypes} from '@react-native-firebase/messaging';
-import {NativeEventEmitter, NativeModules, PermissionsAndroid, Platform} from 'react-native';
-import {SecureStorageKeys, SecureStorageResult, SecureStorageService,} from '../SecureStorageService';
-import {LocalNotification, NotificationHandler, NotificationPayload} from './types';
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { NativeEventEmitter, NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import {
+  SecureStorageKeys,
+  SecureStorageResult,
+  SecureStorageService,
+} from '../SecureStorageService';
+import { LocalNotification, NotificationHandler, NotificationPayload } from './types';
 
 // Кастомный интерфейс для Notification со свойством sound
 interface FirebaseNotificationWithSound extends FirebaseMessagingTypes.Notification {
@@ -15,6 +19,8 @@ class NotificationService {
   private initialNotification: FirebaseMessagingTypes.RemoteMessage | null = null;
   private nativeEventEmitter: NativeEventEmitter | null = null;
   private isInitialized = false;
+  private isProcessingForeground = new Set<string>();
+  private lastNotificationTime = new Map<string, number>();
 
   private constructor() {
     // Инициализируем NativeEventEmitter для iOS
@@ -101,7 +107,7 @@ class NotificationService {
       // Получаем FCM токен
       await this.getFCMToken();
 
-      // Настраиваем обработчики сообщений
+      // Настраиваем обработчики сообщений (только подписчики, не показ уведомлений)
       this.setupMessageHandlers();
 
       // Проверяем, было ли приложение открыто по тапу на уведомление
@@ -206,6 +212,43 @@ class NotificationService {
   }
 
   /**
+   * Проверка дедупликации уведомлений
+   */
+  private shouldProcessNotification(messageId: string, title: string): boolean {
+    const currentTime = Date.now();
+    const dedupeKey = messageId || `${title}_${currentTime}`;
+
+    // Проверяем, обрабатывается ли уже это уведомление
+    if (this.isProcessingForeground.has(dedupeKey)) {
+      console.log(`[${Platform.OS}] Уведомление уже обрабатывается: ${dedupeKey}`);
+      return false;
+    }
+
+    // Проверяем время последнего показа похожего уведомления
+    const lastTime = this.lastNotificationTime.get(title);
+    if (lastTime && currentTime - lastTime < 5000) {
+      console.log(`[${Platform.OS}] Похожее уведомление показывалось недавно: ${title}`);
+      return false;
+    }
+
+    this.isProcessingForeground.add(dedupeKey);
+    this.lastNotificationTime.set(title, currentTime);
+
+    // Очищаем старые записи
+    setTimeout(() => {
+      this.isProcessingForeground.delete(dedupeKey);
+    }, 10000);
+
+    // Ограничиваем размер Map
+    if (this.lastNotificationTime.size > 50) {
+      const oldestKey = this.lastNotificationTime.keys().next().value;
+      this.lastNotificationTime.delete(oldestKey);
+    }
+
+    return true;
+  }
+
+  /**
    * Настройка обработчиков сообщений
    */
   private setupMessageHandlers(): void {
@@ -220,18 +263,28 @@ class NotificationService {
    * Настройка обработчиков для Android
    */
   private setupAndroidMessageHandlers(): void {
-    console.log('[Android] Настройка обработчиков сообщений');
+    console.log('[Android] Настройка обработчиков сообщений (только подписчики)');
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-      console.log('[Android] Уведомление получено в foreground:', remoteMessage);
+      const messageId = remoteMessage.messageId || `android_fg_${Date.now()}`;
+      const title = remoteMessage.notification?.title || '';
 
+      console.log('[Android] Уведомление получено в foreground:', messageId);
+
+      // Проверка дедупликации
+      if (!this.shouldProcessNotification(messageId, title)) {
+        return;
+      }
+
+      // Только преобразуем и уведомляем подписчиков
+      // Показ уведомления будет обрабатываться NotifeeService
       const notification = this.transformMessageToNotification(remoteMessage);
       this.notifyHandlersFromInstance(notification);
     });
 
     messaging().setBackgroundMessageHandler(
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('[Android] Уведомление обработано в background:', remoteMessage);
+        console.log('[Android] Уведомление обработано в background:', remoteMessage.messageId);
 
         const notification = this.transformMessageToNotification(remoteMessage);
         this.notifyHandlersFromInstance(notification);
@@ -241,7 +294,7 @@ class NotificationService {
     );
 
     messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-      console.log('[Android] Приложение открыто по уведомлению:', remoteMessage);
+      console.log('[Android] Приложение открыто по уведомлению:', remoteMessage.messageId);
 
       const notification = this.transformMessageToNotification(remoteMessage);
       this.notifyHandlersFromInstance(notification);
@@ -251,7 +304,7 @@ class NotificationService {
       .getInitialNotification()
       .then((remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
         if (remoteMessage) {
-          console.log('[Android] Первоначальное уведомление:', remoteMessage);
+          console.log('[Android] Первоначальное уведомление:', remoteMessage.messageId);
           this.initialNotification = remoteMessage;
 
           const notification = this.transformMessageToNotification(remoteMessage);
@@ -305,14 +358,22 @@ class NotificationService {
   private setupIOSFirebaseHandlers(): void {
     try {
       messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('[iOS] Уведомление получено через FCM (foreground):', remoteMessage);
+        const messageId = remoteMessage.messageId || `ios_fg_${Date.now()}`;
+        const title = remoteMessage.notification?.title || '';
+
+        console.log('[iOS] Уведомление получено через FCM (foreground):', messageId);
+
+        // Проверка дедупликации
+        if (!this.shouldProcessNotification(messageId, title)) {
+          return;
+        }
 
         const notification = this.transformMessageToNotification(remoteMessage);
         this.notifyHandlersFromInstance(notification);
       });
 
       messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('[iOS] Приложение открыто по уведомлению (FCM):', remoteMessage);
+        console.log('[iOS] Приложение открыто по уведомлению (FCM):', remoteMessage.messageId);
 
         const notification = this.transformMessageToNotification(remoteMessage);
         this.notifyHandlersFromInstance(notification);
@@ -322,7 +383,7 @@ class NotificationService {
         .getInitialNotification()
         .then((remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
           if (remoteMessage) {
-            console.log('[iOS] Первоначальное уведомление (FCM):', remoteMessage);
+            console.log('[iOS] Первоначальное уведомление (FCM):', remoteMessage.messageId);
             this.initialNotification = remoteMessage;
 
             const notification = this.transformMessageToNotification(remoteMessage);
@@ -335,7 +396,7 @@ class NotificationService {
 
       messaging().setBackgroundMessageHandler(
         async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-          console.log('[iOS] Фоновое сообщение получено (FCM):', remoteMessage);
+          console.log('[iOS] Фоновое сообщение получено (FCM):', remoteMessage.messageId);
 
           const isSilent = !remoteMessage.notification && remoteMessage.data;
           if (isSilent) {
@@ -638,10 +699,29 @@ class NotificationService {
     }
 
     this.isInitialized = false;
+    this.isProcessingForeground.clear();
+    this.lastNotificationTime.clear();
 
     console.log(`[${Platform.OS}] Ресурсы NotificationService очищены`);
   }
 }
+
+// Добавляем метод hashCode к прототипу String для использования в NotifeeService
+declare global {
+  interface String {
+    hashCode(): number;
+  }
+}
+
+String.prototype.hashCode = function (): number {
+  let hash = 0;
+  for (let i = 0; i < this.length; i++) {
+    const char = this.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash;
+};
 
 // Экспортируем инстанс как дефолтный экспорт
 export default NotificationService.getInstance();
