@@ -6,6 +6,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
+    "start:home": "ENVFILE=.env.home react-native start",
+    "start:job": "ENVFILE=.env.job react-native start",
     "test": "jest",
     "tsc": "tsc --noEmit",
     "reverse": "adb reverse tcp:8081 tcp:8081",

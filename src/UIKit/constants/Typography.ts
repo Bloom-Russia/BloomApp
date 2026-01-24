@@ -77,6 +77,11 @@ const B20 = styled(bold)`
   line-height: 25px;
 `;
 
+const B28 = styled(bold)`
+  font-size: 28px;
+  line-height: 32px;
+`;
+
 /**
  * Regular 14px - обычный текст, размер 14px, высота строки 18px
  */
@@ -134,6 +139,7 @@ export const Typography = {
   B14,
   B16,
   B20,
+  B28,
   R14,
   R16,
   R24,
