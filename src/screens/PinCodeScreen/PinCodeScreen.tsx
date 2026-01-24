@@ -33,11 +33,15 @@ const VIBRATION_DURATION = {
   ERROR: 300, // Вибрация для ошибок
 };
 
-// Таймаут для автоматического скрытия ошибки (5 секунд)
+// Таймаут для автоматического скрытия ошибки
 const ERROR_TIMEOUT = 3000;
 
-// Задержка после ввода PIN-кода перед обработкой (500 миллисекунд)
+// Задержка после ввода PIN-кода перед обработкой
 const PIN_INPUT_DELAY = 300;
+
+// Константы для блокировки
+const MAX_ATTEMPTS = 3; // Максимальное количество попыток
+const LOCK_DURATION = 30000; // Время блокировки в миллисекундах (30 секунд)
 
 // ============================================
 // ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВИБРАЦИИ
@@ -56,10 +60,6 @@ const vibrate = (durationOrPattern: number | number[]) => {
     Vibration.vibrate(durationOrPattern);
   }
 };
-
-// ============================================
-// ENUMS
-// ============================================
 
 // ============================================
 // STYLED COMPONENTS
@@ -155,17 +155,20 @@ export const PinCodeScreen: React.FC<
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.ENTER);
   const [currentPin, setCurrentPin] = useState<string>('');
   const [confirmPin, setConfirmPin] = useState<string>('');
-  const [isLocked] = useState<boolean>(false);
+  const [isLocked, setIsLocked] = useState<boolean>(false); // Состояние блокировки
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [savedPin, setSavedPin] = useState<string | undefined>(undefined); // В реальном приложении это должно быть из хранилища
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // Флаг для отслеживания обработки PIN-кода
+  const [failedAttempts, setFailedAttempts] = useState<number>(0); // Счетчик неудачных попыток
+  const [isBiometricLocked, setIsBiometricLocked] = useState<boolean>(false); // Блокировка биометрии
 
   // Рефы для хранения таймеров
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pinProcessingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lockTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lockIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const biometricAvailable = true;
-  const isBiometricLocked = false;
   const { logOutHandler } = useLogOut();
 
   const { AlertComponent, showAlert } = useCustomAlert();
@@ -185,11 +188,17 @@ export const PinCodeScreen: React.FC<
     // Устанавливаем новое сообщение об ошибке
     setErrorMessage(message);
 
-    // Устанавливаем таймер для автоматического скрытия ошибки через 5 секунд
+    // Устанавливаем таймер для автоматического скрытия ошибки
     errorTimeoutRef.current = setTimeout(() => {
       setErrorMessage('');
       errorTimeoutRef.current = null;
     }, ERROR_TIMEOUT);
+  }, []);
+
+  // Функция для установки сообщения об ошибке блокировки с таймером
+  const setLockErrorMessage = useCallback((secondsLeft: number) => {
+    const message = `Доступ заблокирован. Повторите через ${secondsLeft} секунд`;
+    setErrorMessage(message);
   }, []);
 
   // Функция для очистки ошибки
@@ -212,6 +221,93 @@ export const PinCodeScreen: React.FC<
       clearTimeout(pinProcessingTimeoutRef.current);
       pinProcessingTimeoutRef.current = null;
     }
+
+    if (lockTimerRef.current) {
+      clearTimeout(lockTimerRef.current);
+      lockTimerRef.current = null;
+    }
+
+    if (lockIntervalRef.current) {
+      clearInterval(lockIntervalRef.current);
+      lockIntervalRef.current = null;
+    }
+  }, []);
+
+  // ============================================
+  // ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ БЛОКИРОВКОЙ
+  // ============================================
+
+  // Функция для запуска блокировки
+  const startLockTimer = useCallback(() => {
+    setIsLocked(true);
+    setIsBiometricLocked(true); // Блокируем биометрию тоже
+
+    // Устанавливаем начальное сообщение об ошибке
+    const initialSecondsLeft = Math.ceil(LOCK_DURATION / 1000);
+    setLockErrorMessage(initialSecondsLeft);
+
+    let currentTimeLeft = LOCK_DURATION;
+
+    // Запускаем таймер обратного отсчета
+    lockIntervalRef.current = setInterval(() => {
+      currentTimeLeft -= 1000;
+
+      if (currentTimeLeft <= 0) {
+        // Таймер завершен
+        if (lockIntervalRef.current) {
+          clearInterval(lockIntervalRef.current);
+          lockIntervalRef.current = null;
+        }
+
+        setIsLocked(false);
+        setIsBiometricLocked(false); // Разблокируем биометрию
+        setFailedAttempts(0); // Сбрасываем счетчик попыток
+        clearErrorMessage(); // Сбрасываем сообщение об ошибке
+        return;
+      }
+
+      const secondsLeft = Math.ceil(currentTimeLeft / 1000);
+      setLockErrorMessage(secondsLeft);
+    }, 1000);
+
+    // Основной таймер блокировки
+    lockTimerRef.current = setTimeout(() => {
+      if (lockIntervalRef.current) {
+        clearInterval(lockIntervalRef.current);
+        lockIntervalRef.current = null;
+      }
+
+      setIsLocked(false);
+      setIsBiometricLocked(false); // Разблокируем биометрию
+      setFailedAttempts(0); // Сбрасываем счетчик попыток
+      clearErrorMessage(); // Сбрасываем сообщение об ошибке
+    }, LOCK_DURATION);
+  }, [clearErrorMessage, setLockErrorMessage]);
+
+  // Функция для обработки неудачной попытки
+  const handleFailedAttempt = useCallback(() => {
+    const newFailedAttempts = failedAttempts + 1;
+    setFailedAttempts(newFailedAttempts);
+
+    // Проверяем, достигли ли мы максимального количества попыток
+    if (newFailedAttempts >= MAX_ATTEMPTS) {
+      // Запускаем блокировку
+      startLockTimer();
+
+      // Вибрация для блокировки
+      vibrate([0, VIBRATION_DURATION.ERROR, VIBRATION_DURATION.MEDIUM, VIBRATION_DURATION.ERROR]);
+    } else {
+      setErrorMessageWithTimeout('Неверный PIN-код');
+
+      // Вибрация ошибки
+      vibrate(VIBRATION_DURATION.ERROR);
+    }
+  }, [failedAttempts, startLockTimer, setErrorMessageWithTimeout]);
+
+  // Функция для сброса счетчика неудачных попыток
+  const resetFailedAttempts = useCallback(() => {
+    setFailedAttempts(0);
+    setIsBiometricLocked(false); // Сбрасываем блокировку биометрии при сбросе попыток
   }, []);
 
   // ============================================
@@ -222,7 +318,10 @@ export const PinCodeScreen: React.FC<
     // Определяем начальный режим
     const initialMode = savedPin ? PinMode.ENTER : PinMode.SET;
     setPinMode(initialMode);
-  }, [savedPin]);
+
+    // Сбрасываем счетчик неудачных попыток при изменении режима
+    resetFailedAttempts();
+  }, [savedPin, resetFailedAttempts]);
 
   const handleEnterPin = useCallback(() => {
     setIsProcessing(true);
@@ -231,8 +330,13 @@ export const PinCodeScreen: React.FC<
       // Правильный PIN-код - вибрация успеха
       console.log('Вход успешен');
       clearErrorMessage();
+      resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
+
       // В реальном приложении здесь навигация к основному экрану
       Alert.alert('Успех', 'Вход выполнен успешно!');
+
+      // Вибрация успеха
+      vibrate(VIBRATION_DURATION.LONG);
 
       // Сброс состояния с небольшой задержкой для лучшего UX
       setTimeout(() => {
@@ -240,12 +344,11 @@ export const PinCodeScreen: React.FC<
         setIsProcessing(false);
       }, PIN_INPUT_DELAY);
     } else {
-      // Неправильный PIN-код - вибрация ошибки
+      // Неправильный PIN-код
       console.log('Неверный PIN-код');
-      setErrorMessageWithTimeout('Неверный PIN-код. Попробуйте снова.');
 
-      // Вибрация ошибки
-      vibrate(VIBRATION_DURATION.ERROR);
+      // Обрабатываем неудачную попытку
+      handleFailedAttempt();
 
       // Сброс текущего ввода с задержкой
       setTimeout(() => {
@@ -253,7 +356,7 @@ export const PinCodeScreen: React.FC<
         setIsProcessing(false);
       }, PIN_INPUT_DELAY);
     }
-  }, [currentPin, savedPin, setErrorMessageWithTimeout, clearErrorMessage]);
+  }, [currentPin, savedPin, clearErrorMessage, resetFailedAttempts, handleFailedAttempt]);
 
   const handleConfirmPin = useCallback(() => {
     setIsProcessing(true);
@@ -263,6 +366,7 @@ export const PinCodeScreen: React.FC<
       console.log('PIN-код успешно установлен:', currentPin);
       setSavedPin(currentPin); // Сохраняем PIN (в реальном приложении - в хранилище)
       clearErrorMessage();
+      resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
 
       // Вибрация успеха
       vibrate(VIBRATION_DURATION.LONG);
@@ -293,7 +397,7 @@ export const PinCodeScreen: React.FC<
         setCurrentPin('');
       }, PIN_INPUT_DELAY);
     }
-  }, [confirmPin, currentPin, setErrorMessageWithTimeout, clearErrorMessage]);
+  }, [confirmPin, currentPin, setErrorMessageWithTimeout, clearErrorMessage, resetFailedAttempts]);
 
   useEffect(() => {
     // Очищаем все таймеры при размонтировании компонента
@@ -320,8 +424,8 @@ export const PinCodeScreen: React.FC<
       pinProcessingTimeoutRef.current = setTimeout(() => {
         handleConfirmPin();
       }, PIN_INPUT_DELAY);
-    } else if (pinMode === PinMode.ENTER && currentPin.length === 4 && !isProcessing) {
-      // PIN введен в режиме входа с задержкой
+    } else if (pinMode === PinMode.ENTER && currentPin.length === 4 && !isProcessing && !isLocked) {
+      // PIN введен в режиме входа с задержкой (только если не заблокировано)
       setIsProcessing(true);
 
       pinProcessingTimeoutRef.current = setTimeout(() => {
@@ -336,38 +440,42 @@ export const PinCodeScreen: React.FC<
     handleEnterPin,
     clearErrorMessage,
     isProcessing,
+    isLocked,
   ]);
 
   // ============================================
   // ОБРАБОТЧИКИ С ВИБРАЦИЕЙ
   // ============================================
 
-  const handleNumberPress = (number: string): void => {
-    if (isLocked || isProcessing) {
+  const handleNumberPress = useCallback(
+    (number: string): void => {
+      if (isLocked || isProcessing) {
+        return;
+      }
+
+      // При вводе новой цифры сбрасываем ошибку
+      clearErrorMessage();
+
+      if (pinMode === PinMode.CONFIRM) {
+        if (confirmPin.length < 4) {
+          setConfirmPin((prev) => prev + number);
+          // Короткая вибрация при вводе цифры
+          vibrate(VIBRATION_DURATION.SHORT);
+        }
+      } else {
+        if (currentPin.length < 4) {
+          setCurrentPin((prev) => prev + number);
+          // Короткая вибрация при вводе цифры
+          vibrate(VIBRATION_DURATION.SHORT);
+        }
+      }
+
       return;
-    }
+    },
+    [isLocked, isProcessing, clearErrorMessage, pinMode, confirmPin, currentPin],
+  );
 
-    // При вводе новой цифры сбрасываем ошибку
-    clearErrorMessage();
-
-    if (pinMode === PinMode.CONFIRM) {
-      if (confirmPin.length < 4) {
-        setConfirmPin((prev) => prev + number);
-        // Короткая вибрация при вводе цифры
-        vibrate(VIBRATION_DURATION.SHORT);
-      }
-    } else {
-      if (currentPin.length < 4) {
-        setCurrentPin((prev) => prev + number);
-        // Короткая вибрация при вводе цифры
-        vibrate(VIBRATION_DURATION.SHORT);
-      }
-    }
-
-    return;
-  };
-
-  const handleDeletePress = (): void => {
+  const handleDeletePress = useCallback((): void => {
     if (isLocked || isProcessing) {
       return;
     }
@@ -385,10 +493,10 @@ export const PinCodeScreen: React.FC<
     } else {
       setCurrentPin((prev) => prev.slice(0, -1));
     }
-  };
+  }, [clearErrorMessage, isLocked, isProcessing, pinMode]);
 
-  const handleBiometricAuthWithVibration = (): void => {
-    if (isProcessing) {
+  const handleBiometricAuthWithVibration = useCallback((): void => {
+    if (isProcessing || isLocked || isBiometricLocked) {
       return;
     }
 
@@ -396,16 +504,17 @@ export const PinCodeScreen: React.FC<
 
     // При попытке биометрии сбрасываем ошибку
     clearErrorMessage();
+    resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток при успешной биометрии
 
     // Вибрация при попытке биометрии
     vibrate(VIBRATION_DURATION.MEDIUM);
 
     // В реальном приложении здесь вызов биометрической аутентификации
     Alert.alert('Биометрия', 'Биометрическая аутентификация выполнена успешно!');
-  };
+  }, [isProcessing, isLocked, isBiometricLocked, clearErrorMessage, resetFailedAttempts]);
 
-  const handleBiometricAuthWhenLockedWithVibration = (): void => {
-    if (isProcessing) {
+  const handleBiometricAuthWhenLockedWithVibration = useCallback((): void => {
+    if (isProcessing || isBiometricLocked) {
       return;
     }
 
@@ -416,10 +525,13 @@ export const PinCodeScreen: React.FC<
 
     // Вибрация при попытке биометрии в заблокированном состоянии
     vibrate(VIBRATION_DURATION.MEDIUM);
-  };
 
-  const handleResetPinWithVibration = (): void => {
-    if (isProcessing) {
+    // В реальном приложении здесь можно разрешить биометрию даже при блокировке
+    // Alert.alert('Биометрия', 'Биометрическая аутентификация выполнена успешно даже при блокировке!');
+  }, [isProcessing, isBiometricLocked, clearErrorMessage]);
+
+  const handleResetPinWithVibration = useCallback((): void => {
+    if (isProcessing || isLocked) {
       return;
     }
 
@@ -427,6 +539,7 @@ export const PinCodeScreen: React.FC<
 
     // При сбросе PIN-кода сбрасываем ошибку
     clearErrorMessage();
+    resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
 
     // Вибрация при нажатии на сброс
     vibrate(VIBRATION_DURATION.MEDIUM);
@@ -455,18 +568,19 @@ export const PinCodeScreen: React.FC<
             setPinMode(PinMode.SET);
             setCurrentPin('');
             setConfirmPin('');
+            resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
             clearErrorMessage();
           },
         },
       ],
     });
-  };
+  }, [isProcessing, isLocked, clearErrorMessage, resetFailedAttempts, showAlert]);
 
   // ============================================
   // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ОТОБРАЖЕНИЯ
   // ============================================
 
-  const getSubtitle = (): string => {
+  const getSubtitle = useCallback((): string => {
     if (isLocked) {
       return 'Повторите через 30 секунд';
     }
@@ -480,9 +594,9 @@ export const PinCodeScreen: React.FC<
       default:
         return 'Введите PIN-код для входа в приложение';
     }
-  };
+  }, [isLocked, pinMode]);
 
-  const getTitle = (): string => {
+  const getTitle = useCallback((): string => {
     if (isLocked) {
       return 'Доступ заблокирован';
     }
@@ -496,9 +610,9 @@ export const PinCodeScreen: React.FC<
       default:
         return 'Введите PIN-код';
     }
-  };
+  }, [isLocked, pinMode]);
 
-  const renderPinDots = (): JSX.Element => {
+  const renderPinDots = useCallback((): JSX.Element => {
     if (isLocked) {
       const dots: JSX.Element[] = [];
       for (let i = 0; i < 4; i++) {
@@ -516,9 +630,9 @@ export const PinCodeScreen: React.FC<
     }
 
     return <PinDotsContainer>{dots}</PinDotsContainer>;
-  };
+  }, [isLocked, pinMode, confirmPin, currentPin]);
 
-  const getActionButton = (): JSX.Element => {
+  const getActionButton = useCallback((): JSX.Element => {
     if (isLocked) {
       return (
         <BiometricKeyButton
@@ -570,13 +684,24 @@ export const PinCodeScreen: React.FC<
         );
       }
     }
-  };
+  }, [
+    isLocked,
+    handleBiometricAuthWhenLockedWithVibration,
+    biometricAvailable,
+    isBiometricLocked,
+    isProcessing,
+    pinMode,
+    confirmPin,
+    currentPin,
+    handleDeletePress,
+    handleBiometricAuthWithVibration,
+  ]);
 
   // ============================================
   // ОСНОВНОЙ РЕНДЕРИНГ
   // ============================================
 
-  const handleExitApp = async (): Promise<void> => {
+  const handleExitApp = useCallback(async (): Promise<void> => {
     Vibration.vibrate(VIBRATION_DURATION.SHORT);
     showAlert({
       title: 'Выход из приложения',
@@ -602,7 +727,7 @@ export const PinCodeScreen: React.FC<
         },
       ],
     });
-  };
+  }, [showAlert, logOutHandler]);
 
   return (
     <ScreenContainer scrollEnabled={false}>
