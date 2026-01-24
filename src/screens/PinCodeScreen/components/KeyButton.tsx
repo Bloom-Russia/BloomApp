@@ -2,6 +2,7 @@ import { Colors, ERounding, ESize, Typography } from '@UIKit';
 import React, { useCallback } from 'react';
 import { Vibration } from 'react-native';
 import styled from 'styled-components/native';
+import { KEY_BUTTON_VIBRATION } from '../constants';
 
 type Props = {
   number: string;
@@ -12,9 +13,6 @@ type Props = {
 type KeyButtonProps = {
   disabled: boolean;
 };
-
-// Константа для вибрации кнопок
-const KEY_BUTTON_VIBRATION = 50; // ms
 
 export const KeyButton: React.FC<Props> = ({ isLocked, number, onPress }) => {
   const onPressHandler = useCallback(() => {

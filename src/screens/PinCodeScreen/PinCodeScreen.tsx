@@ -1,6 +1,6 @@
 // PinCodeScreen.tsx
 import { RoundLogoAppImage } from '@assets/images';
-import { useLogOut } from '@hooks';
+import { useCustomAlert, useLogOut } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -18,7 +18,10 @@ import {
 import React, { JSX, memo, useCallback, useEffect, useState } from 'react';
 import { Alert, Image, Platform, Pressable, Vibration } from 'react-native';
 import styled from 'styled-components/native';
+import { ExitButton } from './components';
 import { KeyButton } from './components/KeyButton';
+import { KEY_BUTTON_VIBRATION } from './constants';
+import { KeyButtonProps, PinMode } from './types';
 
 // ============================================
 // КОНСТАНТЫ ВИБРАЦИИ
@@ -52,16 +55,6 @@ const vibrate = (durationOrPattern: number | number[]) => {
 // ============================================
 // ENUMS
 // ============================================
-
-enum PinMode {
-  ENTER = 'enter',
-  SET = 'set',
-  CONFIRM = 'confirm',
-}
-
-type KeyButtonProps = {
-  disabled: boolean;
-};
 
 // ============================================
 // STYLED COMPONENTS
@@ -136,17 +129,6 @@ const DeleteIcon = styled.Text<KeyButtonProps>((props) => ({
   color: props.disabled ? Colors.gray : Colors.white,
 }));
 
-const ExitButton = styled.TouchableOpacity<KeyButtonProps>(() => ({
-  width: ESize.s72,
-  height: ESize.s72,
-  borderRadius: ERounding.r100,
-  backgroundColor: 'transparent',
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderWidth: 2,
-  borderColor: 'rgba(255, 255, 255, 0.5)',
-}));
-
 const ResetButton = styled(Pressable).attrs(() => ({
   android_ripple: {
     borderless: false,
@@ -174,6 +156,9 @@ export const PinCodeScreen: React.FC<
 
   const biometricAvailable = true;
   const isBiometricLocked = false;
+  const { logOutHandler } = useLogOut();
+
+  const { AlertComponent, showAlert } = useCustomAlert();
 
   // ============================================
   // ЭФФЕКТЫ
@@ -310,16 +295,6 @@ export const PinCodeScreen: React.FC<
     vibrate(VIBRATION_DURATION.MEDIUM);
   };
 
-  const { logOutHandler } = useLogOut();
-
-  const handleExitAppWithVibration = async (): Promise<void> => {
-    console.log('Выход из приложения');
-
-    // Вибрация при выходе
-    vibrate(VIBRATION_DURATION.LONG);
-    await logOutHandler();
-  };
-
   const handleResetPinWithVibration = (): void => {
     console.log('Сброс PIN-кода');
 
@@ -448,6 +423,34 @@ export const PinCodeScreen: React.FC<
   // ============================================
   // ОСНОВНОЙ РЕНДЕРИНГ
   // ============================================
+
+  const handleExitApp = async (): Promise<void> => {
+    Vibration.vibrate(KEY_BUTTON_VIBRATION);
+    showAlert({
+      title: 'Выход из приложения',
+      message: 'Вы уверены, что хотите выйти из приложения?',
+      type: 'error',
+      theme: 'dark',
+      showIcon: true,
+      buttons: [
+        {
+          text: 'Отмена',
+          style: 'cancel',
+          showButtonIcon: true,
+          buttonIconName: IconNames.cancel,
+        },
+        {
+          text: 'Выйти',
+          style: 'default',
+          showButtonIcon: true,
+          buttonIconName: IconNames.signOut,
+          onPress: async () => {
+            await logOutHandler();
+          },
+        },
+      ],
+    });
+  };
   return (
     <ScreenContainer scrollEnabled={false}>
       <Block flex={1}>
@@ -508,19 +511,12 @@ export const PinCodeScreen: React.FC<
 
         {/* Четвертый ряд: Выход 0 Биометрия/Удаление */}
         <KeyboardRow>
-          <ExitButton
-            disabled={false}
-            onPress={handleExitAppWithVibration}
-            onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
-          >
-            <Block>
-              <Icon size={ESize.s28} color={Colors.white} name={IconNames.signOut} />
-            </Block>
-          </ExitButton>
+          <ExitButton handleExitApp={handleExitApp} />
           <KeyButton onPress={handleNumberPress} number={'0'} isLocked={isLocked} />
           {getActionButton()}
         </KeyboardRow>
       </KeyboardContainer>
+      <AlertComponent />
     </ScreenContainer>
   );
 });
