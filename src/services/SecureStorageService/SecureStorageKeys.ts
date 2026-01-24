@@ -10,6 +10,8 @@ export enum SecureStorageKeys {
   ACCESS_TOKEN = 'access_token',
   /** Refresh токен для обновления access токена */
   REFRESH_TOKEN = 'refresh_token',
+  //Номер телефона пользователя
+  PHONE_NUMBER = 'refresh_token',
 
   // ===== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ =====
   /** Идентификатор пользователя */

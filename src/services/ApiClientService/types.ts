@@ -21,6 +21,12 @@ export type VerifyCoderParams = {
   setIsVerified: (value: boolean) => Promise<void>;
 };
 
+// Параметры для сохраненния PIN
+export type SavePinParams = {
+  phoneNumber: string;
+  pinCode: string;
+};
+
 export type RequestCodeParams = {
   phone: string;
 };

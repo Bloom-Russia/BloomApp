@@ -3,6 +3,7 @@ import { RoundLogoAppImage } from '@assets/images';
 import { useCustomAlert, useLogOut } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import {
   Block,
   Colors,
@@ -372,14 +373,20 @@ export const PinCodeScreen: React.FC<
       vibrate(VIBRATION_DURATION.LONG);
 
       // Сброс состояния с задержкой
-      setTimeout(() => {
+      setTimeout(async () => {
         setCurrentPin('');
         setConfirmPin('');
         setIsProcessing(false);
-
+        const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+        if (!phone?.data) {
+          return;
+        }
+        await ApiClientService.savePinCode({
+          phoneNumber: phone.data,
+          pinCode: currentPin,
+        });
         // Переходим в режим ввода для проверки
         setPinMode(PinMode.ENTER);
-        Alert.alert('Успех', 'PIN-код успешно установлен!');
       }, PIN_INPUT_DELAY);
     } else {
       // PIN-коды не совпадают - вибрация ошибки

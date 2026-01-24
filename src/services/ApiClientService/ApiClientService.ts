@@ -1,5 +1,10 @@
 import { EScreens } from '@navigation';
-import { AuthResponseDataVerifyCode, AuthTokens, VerifyCoderParams } from '../ApiClientService';
+import {
+  AuthResponseDataVerifyCode,
+  AuthTokens,
+  SavePinParams,
+  VerifyCoderParams,
+} from '@services';
 import AxiosService, { ApiResponse } from '../AxiosService';
 import NavigationService from '../NavigationService';
 import NotificationService from '../NotificationService';
@@ -46,7 +51,7 @@ class ApiClientService {
         {
           phoneNumber: phone,
           fcmToken,
-        } as VerificationCodeRequest,
+        },
       );
       return response.data;
     } catch (error: unknown) {
@@ -72,12 +77,31 @@ class ApiClientService {
 
       // Явно приводим тип через unknown или используем утверждение типа
       const responseData = response.data.data as unknown as AuthTokens;
-      const { accessToken, refreshToken, isVerified, userId } = responseData;
+      const { accessToken, refreshToken, isVerified, userId, phoneNumber } = responseData;
 
       await SecureStorageService.saveTokens(accessToken, refreshToken);
       await SecureStorageService.saveValue(SecureStorageKeys.IS_VERIFIED, isVerified);
       await SecureStorageService.saveUserUserId(userId);
+      await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
       await setIsVerified(isVerified);
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка верификации кода ', error);
+      return undefined;
+    }
+  }
+
+  // Сохранение PIN кода
+  static async savePinCode({
+    pinCode,
+    phoneNumber,
+  }: SavePinParams): Promise<ApiResponse<AuthResponseDataVerifyCode> | undefined> {
+    try {
+      const response = await AxiosService.post<AuthResponseDataVerifyCode>('/api/auth/save-pin', {
+        phoneNumber,
+        pinCode,
+      });
+
       return response.data;
     } catch (error) {
       console.error('Ошибка верификации кода ', error);
