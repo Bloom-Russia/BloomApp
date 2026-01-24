@@ -16,9 +16,38 @@ import {
   Typography,
 } from '@UIKit';
 import React, { JSX, memo, useCallback, useEffect, useState } from 'react';
-import { Alert, Image, Platform, Pressable } from 'react-native';
+import { Alert, Image, Platform, Pressable, Vibration } from 'react-native';
 import styled from 'styled-components/native';
 import { KeyButton } from './components/KeyButton';
+
+// ============================================
+// КОНСТАНТЫ ВИБРАЦИИ
+// ============================================
+
+const VIBRATION_DURATION = {
+  SHORT: 50, // Короткая вибрация для кнопок
+  MEDIUM: 100, // Средняя вибрация для особых действий
+  LONG: 200, // Длинная вибрация для важных событий
+  ERROR: 300, // Вибрация для ошибок
+};
+
+// ============================================
+// ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВИБРАЦИИ
+// ============================================
+
+const vibrate = (durationOrPattern: number | number[]) => {
+  if (Platform.OS === 'ios') {
+    // iOS поддерживает только предопределенные паттерны или кастомные
+    if (typeof durationOrPattern === 'number') {
+      Vibration.vibrate(durationOrPattern);
+    } else {
+      Vibration.vibrate(durationOrPattern, false);
+    }
+  } else {
+    // Android поддерживает и продолжительность и паттерны
+    Vibration.vibrate(durationOrPattern);
+  }
+};
 
 // ============================================
 // ENUMS
@@ -158,7 +187,7 @@ export const PinCodeScreen: React.FC<
 
   const handleEnterPin = useCallback(() => {
     if (currentPin === savedPin) {
-      // Правильный PIN-код
+      // Правильный PIN-код - вибрация успеха
       console.log('Вход успешен');
       setErrorMessage('');
 
@@ -170,7 +199,7 @@ export const PinCodeScreen: React.FC<
         setCurrentPin('');
       }, 500);
     } else {
-      // Неправильный PIN-код
+      // Неправильный PIN-код - вибрация ошибки
       console.log('Неверный PIN-код');
       setErrorMessage('Неверный PIN-код. Попробуйте снова.');
 
@@ -183,7 +212,7 @@ export const PinCodeScreen: React.FC<
 
   const handleConfirmPin = useCallback(() => {
     if (currentPin === confirmPin) {
-      // PIN-коды совпадают
+      // PIN-коды совпадают - вибрация успеха
       console.log('PIN-код успешно установлен:', currentPin);
       setSavedPin(currentPin); // Сохраняем PIN (в реальном приложении - в хранилище)
       setCurrentPin('');
@@ -195,7 +224,7 @@ export const PinCodeScreen: React.FC<
 
       Alert.alert('Успех', 'PIN-код успешно установлен!');
     } else {
-      // PIN-коды не совпадают
+      // PIN-коды не совпадают - вибрация ошибки
       console.log('PIN-коды не совпадают');
       setErrorMessage('PIN-коды не совпадают. Попробуйте снова.');
       setConfirmPin('');
@@ -226,12 +255,10 @@ export const PinCodeScreen: React.FC<
   }, [currentPin, confirmPin, pinMode, handleConfirmPin, handleEnterPin]);
 
   // ============================================
-  // ОБРАБОТЧИКИ
+  // ОБРАБОТЧИКИ С ВИБРАЦИЕЙ
   // ============================================
 
   const handleNumberPress = (number: string): void => {
-    console.log('Нажата цифра:', number);
-
     if (isLocked) {
       return;
     }
@@ -252,6 +279,9 @@ export const PinCodeScreen: React.FC<
   const handleDeletePress = (): void => {
     console.log('Удаление символа');
 
+    // Вибрация при удалении
+    vibrate(VIBRATION_DURATION.SHORT);
+
     if (isLocked) {
       return;
     }
@@ -265,29 +295,44 @@ export const PinCodeScreen: React.FC<
 
   const handleBiometricAuthWithVibration = (): void => {
     console.log('Биометрическая аутентификация');
+
+    // Вибрация при попытке биометрии
+    vibrate(VIBRATION_DURATION.MEDIUM);
+
     // В реальном приложении здесь вызов биометрической аутентификации
     Alert.alert('Биометрия', 'Биометрическая аутентификация выполнена успешно!');
   };
 
   const handleBiometricAuthWhenLockedWithVibration = (): void => {
     console.log('Биометрическая аутентификация при блокировке');
+
+    // Вибрация при попытке биометрии в заблокированном состоянии
+    vibrate(VIBRATION_DURATION.MEDIUM);
   };
 
   const { logOutHandler } = useLogOut();
 
   const handleExitAppWithVibration = async (): Promise<void> => {
     console.log('Выход из приложения');
+
+    // Вибрация при выходе
+    vibrate(VIBRATION_DURATION.LONG);
     await logOutHandler();
   };
 
   const handleResetPinWithVibration = (): void => {
     console.log('Сброс PIN-кода');
+
+    // Вибрация при нажатии на сброс
+    vibrate(VIBRATION_DURATION.MEDIUM);
+
     Alert.alert('Сброс PIN-кода', 'Вы уверены, что хотите сбросить PIN-код?', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Сбросить',
         style: 'destructive',
         onPress: () => {
+          // Вибрация при подтверждении сброса
           setSavedPin(undefined);
           setPinMode(PinMode.SET);
           setCurrentPin('');
@@ -428,7 +473,10 @@ export const PinCodeScreen: React.FC<
           )}
           {renderPinDots()}
           {pinMode === PinMode.ENTER && savedPin && !isLocked && (
-            <ResetButton onPress={handleResetPinWithVibration}>
+            <ResetButton
+              onPress={handleResetPinWithVibration}
+              onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
+            >
               <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
             </ResetButton>
           )}
@@ -460,7 +508,11 @@ export const PinCodeScreen: React.FC<
 
         {/* Четвертый ряд: Выход 0 Биометрия/Удаление */}
         <KeyboardRow>
-          <ExitButton disabled={false} onPress={handleExitAppWithVibration}>
+          <ExitButton
+            disabled={false}
+            onPress={handleExitAppWithVibration}
+            onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
+          >
             <Block>
               <Icon size={ESize.s28} color={Colors.white} name={IconNames.signOut} />
             </Block>

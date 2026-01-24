@@ -1,5 +1,6 @@
 import { Colors, ERounding, ESize, Typography } from '@UIKit';
 import React, { useCallback } from 'react';
+import { Vibration } from 'react-native';
 import styled from 'styled-components/native';
 
 type Props = {
@@ -12,13 +13,23 @@ type KeyButtonProps = {
   disabled: boolean;
 };
 
+// Константа для вибрации кнопок
+const KEY_BUTTON_VIBRATION = 50; // ms
+
 export const KeyButton: React.FC<Props> = ({ isLocked, number, onPress }) => {
   const onPressHandler = useCallback(() => {
+    if (!isLocked) {
+      Vibration.vibrate(KEY_BUTTON_VIBRATION);
+    }
     onPress(number);
-  }, [onPress, number]);
+  }, [onPress, number, isLocked]);
 
   return (
-    <StyledKeyButton onPress={onPressHandler} disabled={isLocked}>
+    <StyledKeyButton
+      onPress={onPressHandler}
+      disabled={isLocked}
+      activeOpacity={0.7} // Эффект нажатия
+    >
       <Typography.B28 color={isLocked ? Colors.gray : Colors.white}>{number}</Typography.B28>
     </StyledKeyButton>
   );
