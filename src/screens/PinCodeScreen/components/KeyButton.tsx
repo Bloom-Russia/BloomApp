@@ -2,7 +2,7 @@ import { Colors, ERounding, ESize, Typography } from '@UIKit';
 import React, { useCallback } from 'react';
 import { Vibration } from 'react-native';
 import styled from 'styled-components/native';
-import { KEY_BUTTON_VIBRATION } from '../constants';
+import { VIBRATION_DURATION } from '../constants';
 
 type Props = {
   number: string;
@@ -17,7 +17,7 @@ type KeyButtonProps = {
 export const KeyButton: React.FC<Props> = ({ isLocked, number, onPress }) => {
   const onPressHandler = useCallback(() => {
     if (!isLocked) {
-      Vibration.vibrate(KEY_BUTTON_VIBRATION);
+      Vibration.vibrate(VIBRATION_DURATION.SHORT);
     }
     onPress(number);
   }, [onPress, number, isLocked]);

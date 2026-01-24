@@ -301,7 +301,7 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
         textColor: COLORS.WHITE,
         borderColor: '#16213e',
         iconColor: '#9d4edd',
-        iconName: IconNames.help, // Иконка вопроса
+        iconName: IconNames.warning, // Иконка вопроса
       },
     };
 
