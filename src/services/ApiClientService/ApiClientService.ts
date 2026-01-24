@@ -102,6 +102,7 @@ class ApiClientService {
       });
 
       if (response.data.success) {
+        await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
         NavigationService.navigate(EScreens.TABS_STACK as any);
       }
 

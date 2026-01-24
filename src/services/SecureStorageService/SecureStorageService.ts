@@ -199,28 +199,6 @@ class SecureStorageService {
   // ===== МЕТОДЫ ДЛЯ РАБОТЫ С PIN-КОДОМ =====
 
   /**
-   * Сохранение PIN-кода
-   * @param pin - PIN-код
-   */
-  public async savePin(pin: string): Promise<SecureStorageResult> {
-    return this.saveValue(SecureStorageKeys.PIN_CODE, pin);
-  }
-
-  /**
-   * Получение PIN-кода
-   */
-  public async loadPin(): Promise<SecureStorageResult<string | null>> {
-    return this.getValue(SecureStorageKeys.PIN_CODE);
-  }
-
-  /**
-   * Удаление PIN-кода
-   */
-  public async removePin(): Promise<SecureStorageResult> {
-    return this.removeValue(SecureStorageKeys.PIN_CODE);
-  }
-
-  /**
    * Сохранение количества попыток ввода PIN-кода
    * @param attempts - Количество попыток
    */
@@ -303,32 +281,6 @@ class SecureStorageService {
       data: result.data === 'true',
       error: result.error,
     };
-  }
-
-  /**
-   * Проверка доступности Keychain (метод экземпляра)
-   */
-  private async instanceIsKeychainAvailable(): Promise<boolean> {
-    try {
-      // Простая проверка записи/чтения тестового значения
-      const testKey = '__test_keychain_availability__';
-      const testValue = 'test';
-
-      await this.instanceSaveValue(testKey, testValue);
-      const result = await this.instanceGetValue(testKey);
-      await this.instanceRemoveValue(testKey);
-
-      return result.success && result.data === testValue;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Проверка доступности Keychain
-   */
-  public async isKeychainAvailable(): Promise<boolean> {
-    return this.instanceIsKeychainAvailable();
   }
 
   // ===== ПРИВАТНЫЕ МЕТОДЫ ЭКЗЕМПЛЯРА =====

@@ -7,142 +7,39 @@ import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@serv
 import {
   Block,
   Colors,
-  ERounding,
   ESize,
   ESpacings,
   Icon,
   IconNames,
-  Row,
   ScreenContainer,
   Typography,
 } from '@UIKit';
 import React, { JSX, memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Image, Platform, Pressable, Vibration } from 'react-native';
-import styled from 'styled-components/native';
-import { ExitButton } from './components';
-import { KeyButton } from './components/KeyButton';
-import { KeyButtonProps, PinMode } from './types';
+import { Alert, Platform, Vibration } from 'react-native';
 
-// ============================================
-// КОНСТАНТЫ ВИБРАЦИИ И ТАЙМАУТЫ
-// ============================================
-
-const VIBRATION_DURATION = {
-  SHORT: 50, // Короткая вибрация для кнопок
-  MEDIUM: 100, // Средняя вибрация для особых действий
-  LONG: 200, // Длинная вибрация для важных событий
-  ERROR: 300, // Вибрация для ошибок
-};
-
-// Таймаут для автоматического скрытия ошибки
-const ERROR_TIMEOUT = 3000;
-
-// Задержка после ввода PIN-кода перед обработкой
-const PIN_INPUT_DELAY = 300;
-
-// Константы для блокировки
-const MAX_ATTEMPTS = 3; // Максимальное количество попыток
-const LOCK_DURATION = 30000; // Время блокировки в миллисекундах (30 секунд)
-
-// ============================================
-// ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВИБРАЦИИ
-// ============================================
-
-const vibrate = (durationOrPattern: number | number[]) => {
-  if (Platform.OS === 'ios') {
-    // iOS поддерживает только предопределенные паттерны или кастомные
-    if (typeof durationOrPattern === 'number') {
-      Vibration.vibrate(durationOrPattern);
-    } else {
-      Vibration.vibrate(durationOrPattern, false);
-    }
-  } else {
-    // Android поддерживает и продолжительность и паттерны
-    Vibration.vibrate(durationOrPattern);
-  }
-};
-
-// ============================================
-// STYLED COMPONENTS
-// ============================================
-
-const StyledImage = styled(Image)({
-  width: 120,
-  height: 120,
-});
-
-const PinDotsContainer = styled(Row)({
-  justifyContent: 'center',
-  marginBottom: 40,
-  gap: ESpacings.s16,
-});
-
-interface PinDotProps {
-  filled: boolean;
-}
-
-const PinDot = styled(Block)<PinDotProps>((props) => ({
-  width: ESize.s20,
-  height: ESize.s20,
-  borderRadius: ERounding.r100,
-  backgroundColor: props.filled ? Colors.white : 'transparent',
-  borderWidth: 2,
-  borderColor: 'rgba(255, 255, 255, 0.5)',
-}));
-
-const KeyboardContainer = styled(Block)({
-  width: '100%',
-  alignSelf: 'center',
-  alignItems: 'center',
-});
-
-const KeyboardRow = styled(Row)({
-  justifyContent: 'center',
-  marginBottom: ESpacings.s16,
-  gap: ESpacings.s32,
-});
-
-const BiometricIcon = styled(Block)<KeyButtonProps>((props) => ({
-  opacity: props.disabled ? 0.5 : 1,
-}));
-
-const BiometricKeyButton = styled.TouchableOpacity<KeyButtonProps>((props) => ({
-  width: ESize.s72,
-  height: ESize.s72,
-  borderRadius: ERounding.r100,
-  backgroundColor: 'transparent',
-  justifyContent: 'center',
-  alignItems: 'center',
-  opacity: props.disabled ? 0.3 : 1,
-  borderWidth: 2,
-  borderColor: 'rgba(255, 255, 255, 0.5)',
-}));
-
-const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>((props) => ({
-  width: ESize.s72,
-  height: ESize.s72,
-  borderRadius: ERounding.r100,
-  backgroundColor: 'transparent',
-  justifyContent: 'center',
-  alignItems: 'center',
-  opacity: props.disabled ? 0.3 : 1,
-  borderWidth: 2,
-  borderColor: Colors.white,
-}));
-
-const DeleteIcon = styled.Text<KeyButtonProps>((props) => ({
-  fontSize: ESize.s32,
-  color: props.disabled ? Colors.gray : Colors.white,
-}));
-
-const ResetButton = styled(Pressable).attrs(() => ({
-  android_ripple: {
-    borderless: false,
-    color: Colors.ripple,
-  },
-}))({
-  marginBottom: ESpacings.s32,
-});
+import {
+  BiometricIcon,
+  BiometricKeyButton,
+  DeleteButtonInRow,
+  DeleteIcon,
+  ExitButton,
+  KeyboardContainer,
+  KeyboardRow,
+  KeyButton,
+  PinDot,
+  PinDotsContainer,
+  ResetButton,
+  StyledImage,
+} from './components';
+import {
+  ERROR_TIMEOUT,
+  LOCK_DURATION,
+  MAX_ATTEMPTS,
+  PIN_INPUT_DELAY,
+  VIBRATION_DURATION,
+} from './constants';
+import { PinMode } from './types';
+import { vibrate } from './utils';
 
 /**
  * Экран авторизации по PIN-коду с поддержкой биометрии
@@ -158,10 +55,12 @@ export const PinCodeScreen: React.FC<
   const [confirmPin, setConfirmPin] = useState<string>('');
   const [isLocked, setIsLocked] = useState<boolean>(false); // Состояние блокировки
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [savedPin, setSavedPin] = useState<string | undefined>(undefined); // В реальном приложении это должно быть из хранилища
+  const [savedPin, setSavedPin] = useState<string | undefined>(undefined); // Сохраненный PIN-код
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // Флаг для отслеживания обработки PIN-кода
   const [failedAttempts, setFailedAttempts] = useState<number>(0); // Счетчик неудачных попыток
   const [isBiometricLocked, setIsBiometricLocked] = useState<boolean>(false); // Блокировка биометрии
+  const [isPinCodeSet, setIsPinCodeSet] = useState<boolean>(false); // Флаг, установлен ли PIN-код
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Флаг загрузки данных
 
   // Рефы для хранения таймеров
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -311,18 +210,50 @@ export const PinCodeScreen: React.FC<
     setIsBiometricLocked(false); // Сбрасываем блокировку биометрии при сбросе попыток
   }, []);
 
+  // Функция для загрузки данных о PIN-коде
+  const loadPinCodeData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+
+      // Проверяем, установлен ли PIN-код
+      const isPinSet = await SecureStorageService.getValue(SecureStorageKeys.PIN_CODE_IS_SET);
+
+      setIsPinCodeSet(isPinSet?.data === true);
+
+      if (isPinSet) {
+        // Проверяем что PIN-код установлен
+        await SecureStorageService.getValue(SecureStorageKeys.PIN_CODE_IS_SET);
+        setPinMode(PinMode.ENTER);
+      } else {
+        // Если PIN-код не установлен
+        setPinMode(PinMode.SET);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке данных PIN-кода:', error);
+      // По умолчанию показываем экран установки PIN-кода
+      setPinMode(PinMode.SET);
+      setIsPinCodeSet(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // ============================================
   // ЭФФЕКТЫ
   // ============================================
 
+  // Эффект для загрузки данных при монтировании компонента
   useEffect(() => {
-    // Определяем начальный режим
-    const initialMode = savedPin ? PinMode.ENTER : PinMode.SET;
-    setPinMode(initialMode);
+    loadPinCodeData();
+  }, [loadPinCodeData]);
 
-    // Сбрасываем счетчик неудачных попыток при изменении режима
-    resetFailedAttempts();
-  }, [savedPin, resetFailedAttempts]);
+  // Эффект для определения начального режима
+  useEffect(() => {
+    if (!isLoading) {
+      // Сбрасываем счетчик неудачных попыток при изменении режима
+      resetFailedAttempts();
+    }
+  }, [isLoading, resetFailedAttempts]);
 
   const handleEnterPin = useCallback(() => {
     setIsProcessing(true);
@@ -359,36 +290,52 @@ export const PinCodeScreen: React.FC<
     }
   }, [currentPin, savedPin, clearErrorMessage, resetFailedAttempts, handleFailedAttempt]);
 
-  const handleConfirmPin = useCallback(() => {
+  const handleConfirmPin = useCallback(async () => {
     setIsProcessing(true);
-
     if (currentPin === confirmPin) {
-      // PIN-коды совпадают - вибрация успеха
-      console.log('PIN-код успешно установлен:', currentPin);
-      setSavedPin(currentPin); // Сохраняем PIN (в реальном приложении - в хранилище)
       clearErrorMessage();
       resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
 
       // Вибрация успеха
       vibrate(VIBRATION_DURATION.LONG);
 
-      // Сброс состояния с задержкой
-      setTimeout(async () => {
-        setCurrentPin('');
-        setConfirmPin('');
+      // Сохраняем PIN-код
+      const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+      if (!phone?.data) {
+        setErrorMessageWithTimeout('Ошибка: номер телефона не найден');
         setIsProcessing(false);
-        const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
-        if (!phone?.data) {
-          return;
-        }
+        return;
+      }
+
+      try {
+        // Сохраняем PIN-код на сервере
         await ApiClientService.savePinCode({
           phoneNumber: phone.data,
           pinCode: currentPin,
         });
-      }, PIN_INPUT_DELAY);
+
+        // Устанавливаем флаг, что PIN-код установлен
+        await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
+
+        // Обновляем состояние
+        setSavedPin(currentPin);
+        setIsPinCodeSet(true);
+        setPinMode(PinMode.ENTER);
+
+        // Показываем сообщение об успехе
+        Alert.alert('Успех', 'PIN-код успешно установлен!');
+
+        // Сброс состояния
+        setCurrentPin('');
+        setConfirmPin('');
+      } catch (error) {
+        console.error('Ошибка при сохранении PIN-кода:', error);
+        setErrorMessageWithTimeout('Ошибка при сохранении PIN-кода');
+      } finally {
+        setIsProcessing(false);
+      }
     } else {
       // PIN-коды не совпадают - вибрация ошибки
-      console.log('PIN-коды не совпадают');
       setErrorMessageWithTimeout('PIN-коды не совпадают. Попробуйте снова.');
 
       // Вибрация ошибки
@@ -569,12 +516,23 @@ export const PinCodeScreen: React.FC<
           showButtonIcon: true,
           buttonIconName: IconNames.signOut,
           onPress: async () => {
-            setSavedPin(undefined);
-            setPinMode(PinMode.SET);
-            setCurrentPin('');
-            setConfirmPin('');
-            resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
-            clearErrorMessage();
+            try {
+              await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, false);
+
+              // Сбрасываем состояние
+              setSavedPin(undefined);
+              setIsPinCodeSet(false);
+              setPinMode(PinMode.SET);
+              setCurrentPin('');
+              setConfirmPin('');
+              resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
+              clearErrorMessage();
+
+              Alert.alert('Успех', 'PIN-код успешно сброшен. Установите новый PIN-код.');
+            } catch (error) {
+              console.error('Ошибка при сбросе PIN-кода:', error);
+              Alert.alert('Ошибка', 'Не удалось сбросить PIN-код');
+            }
           },
         },
       ],
@@ -702,10 +660,6 @@ export const PinCodeScreen: React.FC<
     handleBiometricAuthWithVibration,
   ]);
 
-  // ============================================
-  // ОСНОВНОЙ РЕНДЕРИНГ
-  // ============================================
-
   const handleExitApp = useCallback(async (): Promise<void> => {
     Vibration.vibrate(VIBRATION_DURATION.SHORT);
     showAlert({
@@ -734,6 +688,24 @@ export const PinCodeScreen: React.FC<
     });
   }, [showAlert, logOutHandler]);
 
+  // ============================================
+  // ОТОБРАЖЕНИЕ ЗАГРУЗКИ
+  // ============================================
+
+  if (isLoading) {
+    return (
+      <ScreenContainer scrollEnabled={false}>
+        <Block flex={1} justifyContent="center" alignItems="center">
+          <Typography.R16 color={Colors.white}>Загрузка...</Typography.R16>
+        </Block>
+      </ScreenContainer>
+    );
+  }
+
+  // ============================================
+  // РЕНДЕРИНГ
+  // ============================================
+
   return (
     <ScreenContainer scrollEnabled={false}>
       <Block flex={1}>
@@ -749,9 +721,7 @@ export const PinCodeScreen: React.FC<
               {getSubtitle()}
             </Typography.R14>
           </Block>
-
           {renderPinDots()}
-
           {errorMessage && (
             <Block marginBottom={ESpacings.s24}>
               <Typography.R14 color={Colors.error} textAlign="center">
@@ -759,15 +729,18 @@ export const PinCodeScreen: React.FC<
               </Typography.R14>
             </Block>
           )}
-
-          {!errorMessage && pinMode === PinMode.ENTER && savedPin && !isLocked && !isProcessing && (
-            <ResetButton
-              onPress={handleResetPinWithVibration}
-              onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
-            >
-              <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
-            </ResetButton>
-          )}
+          {!errorMessage &&
+            pinMode === PinMode.ENTER &&
+            isPinCodeSet &&
+            !isLocked &&
+            !isProcessing && (
+              <ResetButton
+                onPress={handleResetPinWithVibration}
+                onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
+              >
+                <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
+              </ResetButton>
+            )}
         </Block>
       </Block>
       <KeyboardContainer>
@@ -780,23 +753,9 @@ export const PinCodeScreen: React.FC<
 
         {/* Второй ряд: 4 5 6 */}
         <KeyboardRow>
-          <KeyboardRow>
-            <KeyButton
-              onPress={handleNumberPress}
-              number={'4'}
-              isLocked={isLocked || isProcessing}
-            />
-            <KeyButton
-              onPress={handleNumberPress}
-              number={'5'}
-              isLocked={isLocked || isProcessing}
-            />
-            <KeyButton
-              onPress={handleNumberPress}
-              number={'6'}
-              isLocked={isLocked || isProcessing}
-            />
-          </KeyboardRow>
+          <KeyButton onPress={handleNumberPress} number={'4'} isLocked={isLocked || isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'5'} isLocked={isLocked || isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'6'} isLocked={isLocked || isProcessing} />
         </KeyboardRow>
 
         {/* Третий ряд: 7 8 9 */}

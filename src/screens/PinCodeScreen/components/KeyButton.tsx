@@ -3,15 +3,12 @@ import React, { useCallback } from 'react';
 import { Vibration } from 'react-native';
 import styled from 'styled-components/native';
 import { VIBRATION_DURATION } from '../constants';
+import { KeyButtonProps } from '../types';
 
 type Props = {
   number: string;
   isLocked: boolean;
   onPress: (value: string) => void;
-};
-
-type KeyButtonProps = {
-  disabled: boolean;
 };
 
 export const KeyButton: React.FC<Props> = ({ isLocked, number, onPress }) => {

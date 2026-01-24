@@ -11,7 +11,7 @@ export enum SecureStorageKeys {
   /** Refresh токен для обновления access токена */
   REFRESH_TOKEN = 'refresh_token',
   //Номер телефона пользователя
-  PHONE_NUMBER = 'refresh_token',
+  PHONE_NUMBER = 'phone_number',
 
   // ===== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ =====
   /** Идентификатор пользователя */
@@ -31,7 +31,7 @@ export enum SecureStorageKeys {
 
   // ===== PIN-КОД ДЛЯ ПРИЛОЖЕНИЯ =====
   /** PIN-код для входа в приложение */
-  PIN_CODE = 'pin_code',
+  PIN_CODE_IS_SET = 'pin_code_is_set',
   /** Количество неудачных попыток ввода PIN-кода */
   PIN_ATTEMPTS = 'pin_attempts',
   /** Время последней неудачной попытки ввода PIN-кода */
@@ -52,32 +52,12 @@ export enum SecureStorageKeys {
   NOTIFICATIONS_ENABLED = 'notifications_enabled',
   /** Флаг включения/отключения звука */
   SOUND_ENABLED = 'sound_enabled',
-  /** Флаг включения/отключения вибрации */
-  VIBRATION_ENABLED = 'vibration_enabled',
 
   // ===== НАСТРОЙКИ API =====
   /** Базовый URL API */
   API_BASE_URL = 'api_base_url',
   /** Таймаут запросов к API */
   API_TIMEOUT = 'api_timeout',
-
-  // ===== ДАННЫЕ СЕССИИ =====
-  /** Идентификатор сессии */
-  SESSION_ID = 'session_id',
-  /** Время истечения сессии */
-  SESSION_EXPIRY = 'session_expiry',
-
-  // ===== КЭШИРОВАНИЕ ДАННЫХ =====
-  /** Версия кэша */
-  CACHE_VERSION = 'cache_version',
-  /** Дата последней синхронизации */
-  LAST_SYNC_DATE = 'last_sync_date',
-
-  // ===== АНАЛИТИКА =====
-  /** Идентификатор аналитики */
-  ANALYTICS_ID = 'analytics_id',
-  /** Флаг включения/отключения аналитики */
-  ANALYTICS_ENABLED = 'analytics_enabled',
 
   // ===== КОНФИГУРАЦИЯ PIN =====
   MAX_ATTEMPTS = 3,
