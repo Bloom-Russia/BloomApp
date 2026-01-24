@@ -385,8 +385,6 @@ export const PinCodeScreen: React.FC<
           phoneNumber: phone.data,
           pinCode: currentPin,
         });
-        // Переходим в режим ввода для проверки
-        setPinMode(PinMode.ENTER);
       }, PIN_INPUT_DELAY);
     } else {
       // PIN-коды не совпадают - вибрация ошибки

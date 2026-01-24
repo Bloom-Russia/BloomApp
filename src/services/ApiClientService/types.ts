@@ -27,6 +27,15 @@ export type SavePinParams = {
   pinCode: string;
 };
 
+export type SavePinResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    phoneNumber: string;
+    hasPin: boolean;
+  };
+};
+
 export type RequestCodeParams = {
   phone: string;
 };

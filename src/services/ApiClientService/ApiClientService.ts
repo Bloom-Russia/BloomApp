@@ -3,6 +3,7 @@ import {
   AuthResponseDataVerifyCode,
   AuthTokens,
   SavePinParams,
+  SavePinResponse,
   VerifyCoderParams,
 } from '@services';
 import AxiosService, { ApiResponse } from '../AxiosService';
@@ -77,11 +78,9 @@ class ApiClientService {
 
       // Явно приводим тип через unknown или используем утверждение типа
       const responseData = response.data.data as unknown as AuthTokens;
-      const { accessToken, refreshToken, isVerified, userId, phoneNumber } = responseData;
+      const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
 
       await SecureStorageService.saveTokens(accessToken, refreshToken);
-      await SecureStorageService.saveValue(SecureStorageKeys.IS_VERIFIED, isVerified);
-      await SecureStorageService.saveUserUserId(userId);
       await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
       await setIsVerified(isVerified);
       return response.data;
@@ -95,12 +94,16 @@ class ApiClientService {
   static async savePinCode({
     pinCode,
     phoneNumber,
-  }: SavePinParams): Promise<ApiResponse<AuthResponseDataVerifyCode> | undefined> {
+  }: SavePinParams): Promise<ApiResponse<SavePinResponse> | undefined> {
     try {
-      const response = await AxiosService.post<AuthResponseDataVerifyCode>('/api/auth/save-pin', {
+      const response = await AxiosService.post<SavePinResponse>('/api/auth/save-pin', {
         phoneNumber,
         pinCode,
       });
+
+      if (response.data.success) {
+        NavigationService.navigate(EScreens.TABS_STACK as any);
+      }
 
       return response.data;
     } catch (error) {

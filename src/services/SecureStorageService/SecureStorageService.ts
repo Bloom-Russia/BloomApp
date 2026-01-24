@@ -196,54 +196,6 @@ class SecureStorageService {
     };
   }
 
-  // ===== МЕТОДЫ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЕМ =====
-
-  /**
-   * Сохранение идентификатора пользователя
-   * @param userId - ID пользователя
-   */
-  public async saveUserUserId(userId: string): Promise<SecureStorageResult> {
-    return this.saveValue(SecureStorageKeys.USER_ID, userId);
-  }
-
-  /**
-   * Загрузка данных пользователя
-   */
-  public async loadUserData(): Promise<SecureStorageResult<{ userId: string | null }>> {
-    const result = await this.getValue(SecureStorageKeys.USER_ID);
-    return {
-      success: result.success,
-      data: {
-        userId: result.data || null,
-      },
-      error: result.error,
-    };
-  }
-
-  // ===== МЕТОДЫ ДЛЯ РАБОТЫ С ОБЪЕКТАМИ =====
-
-  /**
-   * Сохранение объекта в виде JSON
-   * @param key - Ключ для сохранения
-   * @param value - Объект для сохранения
-   */
-  public async saveObject<T>(
-    key: string | SecureStorageKeys,
-    value: T,
-  ): Promise<SecureStorageResult> {
-    return this.instanceSaveObject<T>(key, value);
-  }
-
-  /**
-   * Получение объекта из JSON
-   * @param key - Ключ для получения
-   */
-  public async getObject<T>(
-    key: string | SecureStorageKeys,
-  ): Promise<SecureStorageResult<T | null>> {
-    return this.instanceGetObject<T>(key);
-  }
-
   // ===== МЕТОДЫ ДЛЯ РАБОТЫ С PIN-КОДОМ =====
 
   /**
@@ -351,6 +303,25 @@ class SecureStorageService {
       data: result.data === 'true',
       error: result.error,
     };
+  }
+
+  /**
+   * Проверка доступности Keychain (метод экземпляра)
+   */
+  private async instanceIsKeychainAvailable(): Promise<boolean> {
+    try {
+      // Простая проверка записи/чтения тестового значения
+      const testKey = '__test_keychain_availability__';
+      const testValue = 'test';
+
+      await this.instanceSaveValue(testKey, testValue);
+      const result = await this.instanceGetValue(testKey);
+      await this.instanceRemoveValue(testKey);
+
+      return result.success && result.data === testValue;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -605,93 +576,6 @@ class SecureStorageService {
       };
     }
   }
-
-  // ===== ПРИВАТНЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ОБЪЕКТАМИ =====
-
-  /**
-   * Сохранение объекта в виде JSON (метод экземпляра)
-   * @param key - Ключ для сохранения
-   * @param value - Объект для сохранения
-   */
-  private async instanceSaveObject<T>(
-    key: string | SecureStorageKeys,
-    value: T,
-  ): Promise<SecureStorageResult> {
-    try {
-      const stringValue = JSON.stringify(value);
-      return await this.instanceSaveValue(key, stringValue);
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error : new Error(String(error)),
-      };
-    }
-  }
-
-  /**
-   * Получение объекта из JSON (метод экземпляра)
-   * @param key - Ключ для получения
-   */
-  private async instanceGetObject<T>(
-    key: string | SecureStorageKeys,
-  ): Promise<SecureStorageResult<T | null>> {
-    try {
-      const result = await this.instanceGetValue(key);
-
-      if (!result.success || !result.data) {
-        return {
-          success: result.success,
-          data: null,
-          error: result.error,
-        };
-      }
-
-      const parsedData = JSON.parse(result.data) as T;
-      return {
-        success: true,
-        data: parsedData,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: null,
-        error: error instanceof Error ? error : new Error(String(error)),
-      };
-    }
-  }
-
-  /**
-   * Проверка доступности Keychain (метод экземпляра)
-   */
-  private async instanceIsKeychainAvailable(): Promise<boolean> {
-    try {
-      // Простая проверка записи/чтения тестового значения
-      const testKey = '__test_keychain_availability__';
-      const testValue = 'test';
-
-      await this.instanceSaveValue(testKey, testValue);
-      const result = await this.instanceGetValue(testKey);
-      await this.instanceRemoveValue(testKey);
-
-      return result.success && result.data === testValue;
-    } catch {
-      return false;
-    }
-  }
 }
 
 export default SecureStorageService.getInstance();
-
-// ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ:
-//
-// Импорт дефолтного экземпляра:
-// import SecureStorageService from './SecureStorageService';
-//
-// Примеры использования:
-// await SecureStorageService.savePin('1234');
-// await SecureStorageService.resetPinAttempts();
-// await SecureStorageService.saveTokens('access_token', 'refresh_token');
-//
-// Если нужен доступ к классу для создания нового экземпляра:
-// import { SecureStorageService as SecureStorageClass } from './SecureStorageService';
-// const customStorage = SecureStorageClass.getInstance({ service: 'custom' });
