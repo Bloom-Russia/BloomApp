@@ -1,5 +1,6 @@
 import { TransparentLogoAppImage } from '@assets/images';
 import { AuthProvider } from '@contexts';
+import { useCustomAlert } from '@hooks';
 import { AppNavigation } from '@navigation';
 import { AxiosService, NotificationCoordinator } from '@services';
 import { Block, Colors } from '@UIKit';
@@ -14,6 +15,7 @@ import styled from 'styled-components';
 const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { AlertComponent } = useCustomAlert();
 
   useEffect(() => {
     const initApp = async (): Promise<void> => {
@@ -49,6 +51,7 @@ const App: React.FC = () => {
         <SafeAreaProvider>
           <NotificationCoordinator />
           <AppNavigation />
+          <AlertComponent />
         </SafeAreaProvider>
       </KeyboardProvider>
     </AuthProvider>

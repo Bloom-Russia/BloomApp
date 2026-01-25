@@ -1,5 +1,6 @@
 export { KeyButton } from './KeyButton';
 export { ExitButton } from './ExitButton';
+export { Loading } from './Loading';
 export {
   StyledImage,
   BiometricIcon,

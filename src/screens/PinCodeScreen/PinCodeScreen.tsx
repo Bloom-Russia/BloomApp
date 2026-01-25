@@ -1,9 +1,8 @@
 // PinCodeScreen.tsx
 import { RoundLogoAppImage } from '@assets/images';
-import { useCustomAlert, useLogOut } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
+import { SecureStorageKeys, SecureStorageService } from '@services';
 import {
   Block,
   Colors,
@@ -15,7 +14,7 @@ import {
   Typography,
 } from '@UIKit';
 import React, { JSX, memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Platform, Vibration } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import {
   BiometricIcon,
@@ -26,6 +25,7 @@ import {
   KeyboardContainer,
   KeyboardRow,
   KeyButton,
+  Loading,
   PinDot,
   PinDotsContainer,
   ResetButton,
@@ -38,18 +38,18 @@ import {
   PIN_INPUT_DELAY,
   VIBRATION_DURATION,
 } from './constants';
+import {
+  useHandleConfirmPin,
+  useHandleExitApp,
+  useHandleNumberPress,
+  useHandleResetPin,
+} from './hooks';
 import { PinMode } from './types';
 import { vibrate } from './utils';
 
-/**
- * Экран авторизации по PIN-коду с поддержкой биометрии
- */
 export const PinCodeScreen: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
 > = memo(() => {
-  // ============================================
-  // СОСТОЯНИЕ КОМПОНЕНТА
-  // ============================================
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.ENTER);
   const [currentPin, setCurrentPin] = useState<string>('');
   const [confirmPin, setConfirmPin] = useState<string>('');
@@ -69,13 +69,6 @@ export const PinCodeScreen: React.FC<
   const lockIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const biometricAvailable = true;
-  const { logOutHandler } = useLogOut();
-
-  const { AlertComponent, showAlert } = useCustomAlert();
-
-  // ============================================
-  // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ОШИБКОЙ И ТАЙМЕРАМИ
-  // ============================================
 
   // Функция для установки ошибки с автоматическим скрытием
   const setErrorMessageWithTimeout = useCallback((message: string) => {
@@ -132,10 +125,6 @@ export const PinCodeScreen: React.FC<
       lockIntervalRef.current = null;
     }
   }, []);
-
-  // ============================================
-  // ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ БЛОКИРОВКОЙ
-  // ============================================
 
   // Функция для запуска блокировки
   const startLockTimer = useCallback(() => {
@@ -218,11 +207,10 @@ export const PinCodeScreen: React.FC<
       // Проверяем, установлен ли PIN-код
       const isPinSet = await SecureStorageService.getValue(SecureStorageKeys.PIN_CODE_IS_SET);
 
-      setIsPinCodeSet(isPinSet?.data === true);
+      setIsPinCodeSet(isPinSet.success);
 
-      if (isPinSet) {
-        // Проверяем что PIN-код установлен
-        await SecureStorageService.getValue(SecureStorageKeys.PIN_CODE_IS_SET);
+      if (isPinSet.success) {
+        // Если PIN-код установлен
         setPinMode(PinMode.ENTER);
       } else {
         // Если PIN-код не установлен
@@ -237,10 +225,6 @@ export const PinCodeScreen: React.FC<
       setIsLoading(false);
     }
   }, []);
-
-  // ============================================
-  // ЭФФЕКТЫ
-  // ============================================
 
   // Эффект для загрузки данных при монтировании компонента
   useEffect(() => {
@@ -290,66 +274,45 @@ export const PinCodeScreen: React.FC<
     }
   }, [currentPin, savedPin, clearErrorMessage, resetFailedAttempts, handleFailedAttempt]);
 
-  const handleConfirmPin = useCallback(async () => {
-    setIsProcessing(true);
-    if (currentPin === confirmPin) {
-      clearErrorMessage();
-      resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
+  const { handleExitApp } = useHandleExitApp();
 
-      // Вибрация успеха
-      vibrate(VIBRATION_DURATION.LONG);
+  const { handleConfirmPin } = useHandleConfirmPin({
+    setIsPinCodeSet,
+    pinProcessingTimeoutRef,
+    setIsProcessing,
+    currentPin,
+    setCurrentPin,
+    confirmPin,
+    setConfirmPin,
+    setPinMode,
+    clearErrorMessage,
+    resetFailedAttempts,
+    setErrorMessageWithTimeout,
+    setSavedPin,
+  });
 
-      // Сохраняем PIN-код
-      const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
-      if (!phone?.data) {
-        setErrorMessageWithTimeout('Ошибка: номер телефона не найден');
-        setIsProcessing(false);
-        return;
-      }
+  const { handleResetPin } = useHandleResetPin({
+    isLocked,
+    isProcessing,
+    clearErrorMessage,
+    resetFailedAttempts,
+    setIsPinCodeSet,
+    setSavedPin,
+    setConfirmPin,
+    setPinMode,
+    setCurrentPin,
+  });
 
-      try {
-        // Сохраняем PIN-код на сервере
-        await ApiClientService.savePinCode({
-          phoneNumber: phone.data,
-          pinCode: currentPin,
-        });
-
-        // Устанавливаем флаг, что PIN-код установлен
-        await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
-
-        // Обновляем состояние
-        setSavedPin(currentPin);
-        setIsPinCodeSet(true);
-        setPinMode(PinMode.ENTER);
-
-        // Показываем сообщение об успехе
-        Alert.alert('Успех', 'PIN-код успешно установлен!');
-
-        // Сброс состояния
-        setCurrentPin('');
-        setConfirmPin('');
-      } catch (error) {
-        console.error('Ошибка при сохранении PIN-кода:', error);
-        setErrorMessageWithTimeout('Ошибка при сохранении PIN-кода');
-      } finally {
-        setIsProcessing(false);
-      }
-    } else {
-      // PIN-коды не совпадают - вибрация ошибки
-      setErrorMessageWithTimeout('PIN-коды не совпадают. Попробуйте снова.');
-
-      // Вибрация ошибки
-      vibrate(VIBRATION_DURATION.ERROR);
-
-      // Сбрасываем в режим установки с задержкой
-      pinProcessingTimeoutRef.current = setTimeout(() => {
-        setConfirmPin('');
-        setIsProcessing(false);
-        setPinMode(PinMode.SET);
-        setCurrentPin('');
-      }, PIN_INPUT_DELAY);
-    }
-  }, [confirmPin, currentPin, setErrorMessageWithTimeout, clearErrorMessage, resetFailedAttempts]);
+  const { handleNumberPress } = useHandleNumberPress({
+    isProcessing,
+    setCurrentPin,
+    setConfirmPin,
+    pinMode,
+    confirmPin,
+    currentPin,
+    clearErrorMessage,
+    isLocked,
+  });
 
   useEffect(() => {
     // Очищаем все таймеры при размонтировании компонента
@@ -394,38 +357,6 @@ export const PinCodeScreen: React.FC<
     isProcessing,
     isLocked,
   ]);
-
-  // ============================================
-  // ОБРАБОТЧИКИ С ВИБРАЦИЕЙ
-  // ============================================
-
-  const handleNumberPress = useCallback(
-    (number: string): void => {
-      if (isLocked || isProcessing) {
-        return;
-      }
-
-      // При вводе новой цифры сбрасываем ошибку
-      clearErrorMessage();
-
-      if (pinMode === PinMode.CONFIRM) {
-        if (confirmPin.length < 4) {
-          setConfirmPin((prev) => prev + number);
-          // Короткая вибрация при вводе цифры
-          vibrate(VIBRATION_DURATION.SHORT);
-        }
-      } else {
-        if (currentPin.length < 4) {
-          setCurrentPin((prev) => prev + number);
-          // Короткая вибрация при вводе цифры
-          vibrate(VIBRATION_DURATION.SHORT);
-        }
-      }
-
-      return;
-    },
-    [isLocked, isProcessing, clearErrorMessage, pinMode, confirmPin, currentPin],
-  );
 
   const handleDeletePress = useCallback((): void => {
     if (isLocked || isProcessing) {
@@ -481,67 +412,6 @@ export const PinCodeScreen: React.FC<
     // В реальном приложении здесь можно разрешить биометрию даже при блокировке
     // Alert.alert('Биометрия', 'Биометрическая аутентификация выполнена успешно даже при блокировке!');
   }, [isProcessing, isBiometricLocked, clearErrorMessage]);
-
-  const handleResetPinWithVibration = useCallback((): void => {
-    if (isProcessing || isLocked) {
-      return;
-    }
-
-    console.log('Сброс PIN-кода');
-
-    // При сбросе PIN-кода сбрасываем ошибку
-    clearErrorMessage();
-    resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
-
-    // Вибрация при нажатии на сброс
-    vibrate(VIBRATION_DURATION.MEDIUM);
-
-    Vibration.vibrate(VIBRATION_DURATION.SHORT);
-    showAlert({
-      title: 'Сброс PIN-кода',
-      message: 'Вы уверены, что хотите сбросить PIN-код?',
-      type: 'question',
-      theme: 'dark',
-      showIcon: true,
-      buttons: [
-        {
-          text: 'Отмена',
-          style: 'cancel',
-          showButtonIcon: true,
-          buttonIconName: IconNames.cancel,
-        },
-        {
-          text: 'Сбросить',
-          style: 'default',
-          showButtonIcon: true,
-          buttonIconName: IconNames.signOut,
-          onPress: async () => {
-            try {
-              await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, false);
-
-              // Сбрасываем состояние
-              setSavedPin(undefined);
-              setIsPinCodeSet(false);
-              setPinMode(PinMode.SET);
-              setCurrentPin('');
-              setConfirmPin('');
-              resetFailedAttempts(); // Сбрасываем счетчик неудачных попыток
-              clearErrorMessage();
-
-              Alert.alert('Успех', 'PIN-код успешно сброшен. Установите новый PIN-код.');
-            } catch (error) {
-              console.error('Ошибка при сбросе PIN-кода:', error);
-              Alert.alert('Ошибка', 'Не удалось сбросить PIN-код');
-            }
-          },
-        },
-      ],
-    });
-  }, [isProcessing, isLocked, clearErrorMessage, resetFailedAttempts, showAlert]);
-
-  // ============================================
-  // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ОТОБРАЖЕНИЯ
-  // ============================================
 
   const getSubtitle = useCallback((): string => {
     if (isLocked) {
@@ -660,51 +530,9 @@ export const PinCodeScreen: React.FC<
     handleBiometricAuthWithVibration,
   ]);
 
-  const handleExitApp = useCallback(async (): Promise<void> => {
-    Vibration.vibrate(VIBRATION_DURATION.SHORT);
-    showAlert({
-      title: 'Выход из приложения',
-      message: 'Вы уверены, что хотите выйти из приложения?',
-      type: 'error',
-      theme: 'dark',
-      showIcon: true,
-      buttons: [
-        {
-          text: 'Отмена',
-          style: 'cancel',
-          showButtonIcon: true,
-          buttonIconName: IconNames.cancel,
-        },
-        {
-          text: 'Выйти',
-          style: 'default',
-          showButtonIcon: true,
-          buttonIconName: IconNames.signOut,
-          onPress: async () => {
-            await logOutHandler();
-          },
-        },
-      ],
-    });
-  }, [showAlert, logOutHandler]);
-
-  // ============================================
-  // ОТОБРАЖЕНИЕ ЗАГРУЗКИ
-  // ============================================
-
   if (isLoading) {
-    return (
-      <ScreenContainer scrollEnabled={false}>
-        <Block flex={1} justifyContent="center" alignItems="center">
-          <Typography.R16 color={Colors.white}>Загрузка...</Typography.R16>
-        </Block>
-      </ScreenContainer>
-    );
+    return <Loading />;
   }
-
-  // ============================================
-  // РЕНДЕРИНГ
-  // ============================================
 
   return (
     <ScreenContainer scrollEnabled={false}>
@@ -734,10 +562,7 @@ export const PinCodeScreen: React.FC<
             isPinCodeSet &&
             !isLocked &&
             !isProcessing && (
-              <ResetButton
-                onPress={handleResetPinWithVibration}
-                onPressIn={() => vibrate(VIBRATION_DURATION.SHORT)}
-              >
+              <ResetButton onPress={handleResetPin}>
                 <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
               </ResetButton>
             )}
@@ -772,7 +597,6 @@ export const PinCodeScreen: React.FC<
           {getActionButton()}
         </KeyboardRow>
       </KeyboardContainer>
-      <AlertComponent />
     </ScreenContainer>
   );
 });
