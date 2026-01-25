@@ -5,7 +5,7 @@ export enum PinMode {
 }
 
 export type KeyButtonProps = {
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 export type PinDotProps = {

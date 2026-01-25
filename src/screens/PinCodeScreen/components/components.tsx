@@ -67,11 +67,6 @@ export const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>((props)
   borderColor: Colors.white,
 }));
 
-export const DeleteIcon = styled.Text<KeyButtonProps>((props) => ({
-  fontSize: ESize.s32,
-  color: props.disabled ? Colors.gray : Colors.white,
-}));
-
 export const ResetButton = styled(Pressable).attrs(() => ({
   android_ripple: {
     borderless: false,
@@ -79,4 +74,12 @@ export const ResetButton = styled(Pressable).attrs(() => ({
   },
 }))({
   marginBottom: ESpacings.s32,
+});
+
+export const StyledDots = styled(Block)({
+  width: 20,
+  height: 20,
+  borderRadius: 100,
+  borderWidth: 2,
+  borderColor: 'rgba(255, 255, 255, 0.5)',
 });

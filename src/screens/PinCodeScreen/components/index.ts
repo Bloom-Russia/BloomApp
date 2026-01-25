@@ -4,7 +4,6 @@ export { Loading } from './Loading';
 export {
   StyledImage,
   BiometricIcon,
-  DeleteIcon,
   BiometricKeyButton,
   DeleteButtonInRow,
   KeyboardRow,
@@ -12,4 +11,5 @@ export {
   PinDot,
   PinDotsContainer,
   ResetButton,
+  StyledDots,
 } from './components';

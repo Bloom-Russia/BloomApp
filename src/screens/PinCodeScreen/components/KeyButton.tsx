@@ -7,7 +7,7 @@ import { KeyButtonProps } from '../types';
 
 type Props = {
   number: string;
-  isLocked: boolean;
+  isLocked?: boolean;
   onPress: (value: string) => void;
 };
 
