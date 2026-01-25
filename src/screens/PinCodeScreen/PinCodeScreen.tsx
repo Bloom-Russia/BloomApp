@@ -151,8 +151,8 @@ export const PinCodeScreen: React.FC<
 
         // Автоматическая обработка после ввода 4 цифр
         if (newPin.length === 4) {
-          setTimeout(() => {
-            handlePinComplete(newPin);
+          setTimeout(async () => {
+            await handlePinComplete(newPin);
           }, 100);
         }
       }
@@ -211,9 +211,9 @@ export const PinCodeScreen: React.FC<
   }, []);
 
   // Обработчик сброса PIN-кода
-  const handleReset = useCallback(async () => {
+  const handleReset = useCallback(() => {
     try {
-      await handleResetPin();
+      handleResetPin();
       // После успешного сброса обновляем состояние
       setPinMode(PinMode.SET);
       setIsPinCodeSet(false);
