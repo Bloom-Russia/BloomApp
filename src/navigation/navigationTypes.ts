@@ -7,8 +7,11 @@ export type RootStackParamList = {
 };
 
 export type AuthorizationStackProps = NativeStackScreenProps<RootStackParamList>;
-
 export type UnAuthorizationStackProps = NativeStackScreenProps<RootStackParamList>;
+export type HomeStackProps = NativeStackScreenProps<HomeStackParamList>;
+export type ChatStackProps = NativeStackScreenProps<ChatStackParamList>;
+export type MyWorksStackProps = NativeStackScreenProps<MyWorksStackParamList>;
+export type ProfileStackProps = NativeStackScreenProps<ProfileStackParamList>;
 
 export type UnAuthStackParamList = {
   [EScreens.BOOT_SPLASH_SCREEN]: undefined;
@@ -29,6 +32,22 @@ export type RootTabParamList = {
   [EScreens.CHAT_STACK]: undefined;
   [EScreens.MY_WORKS_STACK]: undefined;
   [EScreens.PROFILE_STACK]: undefined;
+};
+
+export type HomeStackParamList = {
+  [EScreens.HOME_SCREEN]: undefined;
+};
+
+export type ChatStackParamList = {
+  [EScreens.CHAT_SCREEN]: undefined;
+};
+
+export type MyWorksStackParamList = {
+  [EScreens.MY_WORKS_SCREEN]: undefined;
+};
+
+export type ProfileStackParamList = {
+  [EScreens.PROFILE_SCREEN]: undefined;
 };
 
 // export type RootModalsStackParamList = {

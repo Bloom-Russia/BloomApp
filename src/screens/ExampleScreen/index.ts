@@ -1,1 +1,0 @@
-export { ExampleScreen } from './ExampleScreen';

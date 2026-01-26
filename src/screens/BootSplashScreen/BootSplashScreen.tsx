@@ -1,7 +1,8 @@
 import { EScreens, UnAuthStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Block, Colors, FocusAwareStatusBar } from '@UIKit';
-import React from 'react';
+import React, { memo } from 'react';
+import isEqual from 'react-fast-compare';
 import { AnimatedSplash } from './components/AnimatedSplash';
 
 type BootSplashScreenProps = NativeStackScreenProps<
@@ -9,7 +10,7 @@ type BootSplashScreenProps = NativeStackScreenProps<
   EScreens.BOOT_SPLASH_SCREEN
 >;
 
-const BootSplashScreen: React.FC<BootSplashScreenProps> = () => {
+const BootSplashScreenComponent: React.FC<BootSplashScreenProps> = () => {
   return (
     <Block flex={1} backgroundColor={Colors.black}>
       <FocusAwareStatusBar barStyle={'dark-content'} translucent animated={true} />
@@ -18,4 +19,4 @@ const BootSplashScreen: React.FC<BootSplashScreenProps> = () => {
   );
 };
 
-export default BootSplashScreen;
+export const BootSplashScreen = memo(BootSplashScreenComponent, isEqual);

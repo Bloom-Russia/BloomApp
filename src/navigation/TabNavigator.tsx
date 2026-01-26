@@ -1,8 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ExampleScreen } from '@screens';
 import { Colors, ESize, ESpacings, Icon, IconNames, TAB_BAR_HEIGHT, Typography } from '@UIKit';
 import React, { memo, useMemo } from 'react';
 import isEqual from 'react-fast-compare';
+import { ProfileStack } from 'src/navigation/ProfileStack';
+import { ChatStack } from './ChatStack';
+import { HomeStack } from './HomeStack';
+import { MyWorksStack } from './MyWorksStack';
 import { RootTabParamList } from './navigationTypes';
 import { EScreens } from './types';
 
@@ -32,25 +35,25 @@ const SCREEN_OPTIONS = {
 const TAB_CONFIGS = [
   {
     name: EScreens.HOME_STACK as const,
-    component: ExampleScreen,
+    component: HomeStack,
     icon: IconNames.success,
     label: 'Главная',
   },
   {
     name: EScreens.CHAT_STACK as const,
-    component: ExampleScreen,
+    component: ChatStack,
     icon: IconNames.warning,
     label: 'Чат',
   },
   {
     name: EScreens.MY_WORKS_STACK as const,
-    component: ExampleScreen,
+    component: MyWorksStack,
     icon: IconNames.reload,
     label: 'Записи',
   },
   {
     name: EScreens.PROFILE_STACK as const,
-    component: ExampleScreen,
+    component: ProfileStack,
     icon: IconNames.info,
     label: 'Профиль',
   },
@@ -65,9 +68,11 @@ const TabBarNavigatorComponent: React.FC = () => {
         name: config.name,
         component: config.component,
         options: {
+          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarLabel: ({ color }: { color: string }) => (
             <Typography.R14 color={color}>{config.label}</Typography.R14>
           ),
+          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color }: { color: string }) => (
             <Icon size={ESize.s20} color={color} name={config.icon} />
           ),

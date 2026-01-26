@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import { Block, Colors, ESpacings, Row, ScreenContainer, Typography } from '@UIKit';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import isEqual from 'react-fast-compare';
 
 import {
   ExitButton,
@@ -27,7 +28,7 @@ import { useTitle } from './hooks/useTitle';
 import { PinMode } from './types';
 import { vibrate } from './utils';
 
-export const PinCodeScreen: React.FC<
+const PinCodeScreenComponent: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
 > = memo(({ navigation }) => {
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.SET);
@@ -302,3 +303,5 @@ export const PinCodeScreen: React.FC<
     </ScreenContainer>
   );
 });
+
+export const PinCodeScreen = memo(PinCodeScreenComponent, isEqual);

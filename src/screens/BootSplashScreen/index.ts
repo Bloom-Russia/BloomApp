@@ -1,1 +1,1 @@
-export { default as BootSplashScreen } from './BootSplashScreen';
+export { BootSplashScreen } from './BootSplashScreen';
