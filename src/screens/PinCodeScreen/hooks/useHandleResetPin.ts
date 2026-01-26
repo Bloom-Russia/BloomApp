@@ -1,6 +1,6 @@
 // useHandleResetPin.ts
 import { CustomAlertConfig } from '@hooks';
-import { SecureStorageService } from '@services';
+import { SecureStorageKeys, SecureStorageService } from '@services';
 import { IconNames } from '@UIKit';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
@@ -40,7 +40,7 @@ export const useHandleResetPin = ({ clearErrorMessage, showAlert }: PinProps) =>
           buttonIconName: IconNames.signOut,
           onPress: async () => {
             try {
-              await SecureStorageService.removeValue('PIN_CODE_IS_SET');
+              await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
               Alert.alert('Успех', 'PIN-код успешно сброшен. Установите новый PIN-код.');
               // Дополнительные действия можно выполнить через колбэк
             } catch (error) {

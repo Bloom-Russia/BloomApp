@@ -3,6 +3,7 @@ import { RoundLogoAppImage } from '@assets/images';
 import { useCustomAlert } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import { Block, Colors, ESpacings, Row, ScreenContainer, Typography } from '@UIKit';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 
@@ -28,7 +29,7 @@ import { vibrate } from './utils';
 
 export const PinCodeScreen: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
-> = memo(() => {
+> = memo(({ navigation }) => {
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.SET);
   const [currentPin, setCurrentPin] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -67,36 +68,40 @@ export const PinCodeScreen: React.FC<
   }, []);
 
   // Функция ввода PIN-кода для входа
-  const handleEnterPin = useCallback(async (pin: string) => {
-    // TODO: Реализовать проверку PIN-кода
-    console.log('Проверка PIN:', pin);
+  const handleEnterPin = useCallback(
+    async (pin: string) => {
+      // TODO: Реализовать проверку PIN-кода
+      console.log('Проверка PIN:', pin);
 
-    // Временная заглушка - всегда успешно
-    vibrate(VIBRATION_DURATION.LONG);
-    setCurrentPin('');
+      // Временная заглушка - всегда успешно
+      vibrate(VIBRATION_DURATION.LONG);
+      setCurrentPin('');
 
-    // TODO: Навигация на главный экран после успешного ввода
-  }, []);
+      // TODO: Навигация на главный экран после успешного ввода
+      navigation.navigate(EScreens.TABS_STACK);
+    },
+    [navigation],
+  );
 
   // Функция подтверждения установки PIN-кода
-  const handleConfirmPin = useCallback(
-    async (pin: string) => {
-      // TODO: Реализовать сохранение PIN-кода
-      console.log('Сохранение PIN:', pin);
+  const handleConfirmPin = useCallback(async () => {
+    const { success, data } = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+    if (!success || !data) {
+      // Показываем сообщение об ошибке
+      setErrorMessageWithTimeout('Номер телефона не найден!');
+      return;
+    }
+    vibrate(VIBRATION_DURATION.LONG);
 
-      vibrate(VIBRATION_DURATION.LONG);
-
-      // Показываем успешное сообщение
-      setErrorMessageWithTimeout('PIN-код успешно установлен!');
-
-      // Переходим в режим ввода
-      setPinMode(PinMode.ENTER);
-      setCurrentPin('');
-      setConfirmPin('');
-      setIsPinCodeSet(true);
-    },
-    [setErrorMessageWithTimeout],
-  );
+    // Сбрасываем состояние PIN
+    setCurrentPin('');
+    setConfirmPin('');
+    setIsPinCodeSet(true);
+    await ApiClientService.savePinCode({
+      phoneNumber: data,
+      pinCode: confirmPin,
+    });
+  }, [confirmPin, setErrorMessageWithTimeout]);
 
   // Функция обработки завершенного PIN-кода
   const handlePinComplete = useCallback(
@@ -113,7 +118,7 @@ export const PinCodeScreen: React.FC<
           case PinMode.CONFIRM:
             // Проверяем совпадение PIN-кодов
             if (pin === confirmPin) {
-              await handleConfirmPin(pin);
+              await handleConfirmPin();
             } else {
               setErrorMessageWithTimeout('PIN-коды не совпадают');
               vibrate(VIBRATION_DURATION.ERROR);
