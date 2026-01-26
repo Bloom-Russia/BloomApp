@@ -14,8 +14,6 @@ export enum SecureStorageKeys {
   PHONE_NUMBER = 'phone_number',
 
   // ===== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ =====
-  /** Идентификатор пользователя */
-  USER_ID = 'user_id',
   /** Флаг верификации пользователя */
   IS_VERIFIED = 'isVerified',
 
@@ -38,31 +36,4 @@ export enum SecureStorageKeys {
   PIN_LAST_FAILED = 'pin_last_failed',
   /** Время последней успешной аутентификации */
   PIN_LAST_SUCCESS = 'pin_last_success',
-
-  // ===== НАСТРОЙКИ ПРИЛОЖЕНИЯ =====
-  /** Язык приложения */
-  APP_LANGUAGE = 'app_language',
-  /** Тема приложения (светлая/темная) */
-  APP_THEME = 'app_theme',
-  /** Флаг первого запуска приложения */
-  FIRST_LAUNCH = 'first_launch',
-
-  // ===== НАСТРОЙКИ ПОВЕДЕНИЯ ПРИЛОЖЕНИЯ =====
-  /** Флаг включения/отключения уведомлений */
-  NOTIFICATIONS_ENABLED = 'notifications_enabled',
-  /** Флаг включения/отключения звука */
-  SOUND_ENABLED = 'sound_enabled',
-
-  // ===== НАСТРОЙКИ API =====
-  /** Базовый URL API */
-  API_BASE_URL = 'api_base_url',
-  /** Таймаут запросов к API */
-  API_TIMEOUT = 'api_timeout',
-
-  // ===== КОНФИГУРАЦИЯ PIN =====
-  MAX_ATTEMPTS = 3,
-  LOCK_DURATION = 30000,
-  PIN_LENGTH = '4',
-  RETRY_DELAY = 1000,
-  BIOMETRIC_KEY = 'biometric_auth_key',
 }

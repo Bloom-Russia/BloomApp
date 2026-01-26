@@ -25,6 +25,7 @@ export const useTitle = (pinMode: PinMode) => {
         return 'Введите PIN-код';
     }
   }, [pinMode]);
+
   return {
     getTitle,
     getSubtitle,

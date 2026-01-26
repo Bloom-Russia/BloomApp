@@ -1,5 +1,5 @@
 // SecureStorageService.ts
-import { ACCESSIBLE } from 'react-native-keychain';
+import Keychain, { ACCESSIBLE } from 'react-native-keychain';
 import { SecureStorageKeys } from './SecureStorageKeys';
 import { SecureStorageOptions, SecureStorageResult, Tokens } from './types';
 
@@ -295,9 +295,6 @@ class SecureStorageService {
     value?: string | null | number | boolean,
   ): Promise<SecureStorageResult> {
     try {
-      // Импортируем react-native-keychain только когда нужно
-      const Keychain = await import('react-native-keychain');
-
       // Если значение undefined или null, удаляем ключ
       if (value === undefined || value === null) {
         return await this.instanceRemoveValue(key);
@@ -339,10 +336,7 @@ class SecureStorageService {
     key: string | SecureStorageKeys,
   ): Promise<SecureStorageResult<string | null>> {
     try {
-      const Keychain = await import('react-native-keychain');
-
       const credentials = await Keychain.getInternetCredentials(key.toString());
-
       if (credentials && credentials.password) {
         return {
           success: true,
@@ -370,8 +364,6 @@ class SecureStorageService {
    */
   private async instanceRemoveValue(key: string | SecureStorageKeys): Promise<SecureStorageResult> {
     try {
-      const Keychain = await import('react-native-keychain');
-
       // Удаляем через resetGenericPassword с сервисом
       await Keychain.resetGenericPassword({
         service: key.toString(),
@@ -394,8 +386,6 @@ class SecureStorageService {
    */
   private async instanceClearAll(): Promise<SecureStorageResult> {
     try {
-      const Keychain = await import('react-native-keychain');
-
       // Получаем все ключи, которые мы могли сохранить
       const keys = Object.values(SecureStorageKeys);
 

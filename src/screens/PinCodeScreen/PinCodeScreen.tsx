@@ -16,8 +16,12 @@ import {
   StyledImage,
 } from './components';
 import { ERROR_TIMEOUT, VIBRATION_DURATION } from './constants';
-import { useGetActionButton, useHandleExitApp, useHandleResetPin } from './hooks';
-import { useLoadPinCodeData } from './hooks/useLoadPinCodeData';
+import {
+  useGetActionButton,
+  useHandleExitApp,
+  useHandleResetPin,
+  useLoadPinCodeData,
+} from './hooks';
 import { useTitle } from './hooks/useTitle';
 import { PinMode } from './types';
 import { vibrate } from './utils';
@@ -25,7 +29,7 @@ import { vibrate } from './utils';
 export const PinCodeScreen: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
 > = memo(() => {
-  const [pinMode, setPinMode] = useState<PinMode>(PinMode.ENTER);
+  const [pinMode, setPinMode] = useState<PinMode>(PinMode.SET);
   const [currentPin, setCurrentPin] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isPinCodeSet, setIsPinCodeSet] = useState<boolean>(false);
@@ -35,6 +39,9 @@ export const PinCodeScreen: React.FC<
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { AlertComponent, showAlert } = useCustomAlert();
+
+  // Хук для загрузки данных о PIN-коде
+  const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
 
   // Функция для установки ошибки с автоматическим скрытием
   const setErrorMessageWithTimeout = useCallback((message: string) => {
@@ -189,9 +196,6 @@ export const PinCodeScreen: React.FC<
     handleDeletePress,
     hasEnteredSymbols: currentPin.length > 0,
   });
-
-  // Хук для загрузки данных о PIN-коде
-  const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
 
   // Эффект для загрузки данных о PIN-коде
   useEffect(() => {
