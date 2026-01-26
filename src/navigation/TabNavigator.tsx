@@ -2,11 +2,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Colors, ESize, ESpacings, Icon, IconNames, TAB_BAR_HEIGHT, Typography } from '@UIKit';
 import React, { memo, useMemo } from 'react';
 import isEqual from 'react-fast-compare';
-import { ProfileStack } from 'src/navigation/ProfileStack';
 import { ChatStack } from './ChatStack';
 import { HomeStack } from './HomeStack';
 import { MyWorksStack } from './MyWorksStack';
 import { RootTabParamList } from './navigationTypes';
+import { ProfileStack } from './ProfileStack';
 import { EScreens } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
