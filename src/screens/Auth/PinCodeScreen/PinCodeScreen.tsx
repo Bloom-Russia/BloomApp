@@ -69,46 +69,52 @@ const PinCodeScreenComponent: React.FC<
   }, []);
 
   // Функция ввода PIN-кода для входа
-  const handleEnterPin = useCallback(async () => {
-    const { success, data: phoneNumber } = await SecureStorageService.getValue(
-      SecureStorageKeys.PHONE_NUMBER,
-    );
-    if (!success || !phoneNumber) {
-      // Показываем сообщение об ошибке
-      setErrorMessageWithTimeout('Номер телефона не найден!');
-      return;
-    }
-    // Сбрасываем состояние PIN
-    setCurrentPin('');
-    setConfirmPin('');
-    setIsPinCodeSet(true);
+  const handleEnterPin = useCallback(
+    async (pin: string) => {
+      const { success, data: phoneNumber } = await SecureStorageService.getValue(
+        SecureStorageKeys.PHONE_NUMBER,
+      );
+      if (!success || !phoneNumber) {
+        // Показываем сообщение об ошибке
+        setErrorMessageWithTimeout('Номер телефона не найден!');
+        return;
+      }
+      // Сбрасываем состояние PIN
+      setCurrentPin('');
+      setConfirmPin('');
+      setIsPinCodeSet(true);
 
-    await ApiClientService.verifyPinCode({
-      phoneNumber,
-      pinCode: confirmPin,
-    });
-  }, [confirmPin, setErrorMessageWithTimeout]);
+      await ApiClientService.verifyPinCode({
+        phoneNumber,
+        pinCode: pin,
+      });
+    },
+    [setErrorMessageWithTimeout],
+  );
 
   // Функция подтверждения установки PIN-кода
-  const handleConfirmPin = useCallback(async () => {
-    const { success, data: phoneNumber } = await SecureStorageService.getValue(
-      SecureStorageKeys.PHONE_NUMBER,
-    );
-    if (!success || !phoneNumber) {
-      // Показываем сообщение об ошибке
-      setErrorMessageWithTimeout('Номер телефона не найден!');
-      return;
-    }
-    // Сбрасываем состояние PIN
-    setCurrentPin('');
-    setConfirmPin('');
-    setIsPinCodeSet(true);
+  const handleConfirmPin = useCallback(
+    async (pin: string) => {
+      const { success, data: phoneNumber } = await SecureStorageService.getValue(
+        SecureStorageKeys.PHONE_NUMBER,
+      );
+      if (!success || !phoneNumber) {
+        // Показываем сообщение об ошибке
+        setErrorMessageWithTimeout('Номер телефона не найден!');
+        return;
+      }
+      // Сбрасываем состояние PIN
+      setCurrentPin('');
+      setConfirmPin('');
+      setIsPinCodeSet(true);
 
-    await ApiClientService.savePinCode({
-      phoneNumber,
-      pinCode: confirmPin,
-    });
-  }, [confirmPin, setErrorMessageWithTimeout]);
+      await ApiClientService.savePinCode({
+        phoneNumber,
+        pinCode: pin,
+      });
+    },
+    [setErrorMessageWithTimeout],
+  );
 
   // Функция обработки завершенного PIN-кода
   const handlePinComplete = useCallback(
@@ -125,7 +131,7 @@ const PinCodeScreenComponent: React.FC<
           case PinMode.CONFIRM:
             // Проверяем совпадение PIN-кодов
             if (pin === confirmPin) {
-              await handleConfirmPin();
+              await handleConfirmPin(pin);
             } else {
               setErrorMessageWithTimeout('PIN-коды не совпадают');
               vibrate(VIBRATION_DURATION.ERROR);
@@ -136,7 +142,9 @@ const PinCodeScreenComponent: React.FC<
             break;
 
           case PinMode.ENTER:
-            await handleEnterPin();
+            if (pin.length === 4) {
+              await handleEnterPin(pin);
+            }
             break;
         }
       } catch (error) {
