@@ -114,6 +114,9 @@
 
 //export const replacePhoneNumber = (phone: string) => phone.replace(/([!?\+() \-])/g, '');
 
+export { vibrate } from './vibrate';
+export { VIBRATION_DURATION } from './constans';
+
 // Вспомогательная функция для задержки
 export const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));

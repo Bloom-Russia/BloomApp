@@ -1,8 +1,8 @@
 import { Colors, ERounding, ESize, Typography } from '@UIKit';
+import { VIBRATION_DURATION } from '@utils';
 import React, { useCallback } from 'react';
 import { Vibration } from 'react-native';
 import styled from 'styled-components/native';
-import { VIBRATION_DURATION } from '../constants';
 import { KeyButtonProps } from '../types';
 
 type Props = {

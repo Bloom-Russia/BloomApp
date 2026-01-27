@@ -1,19 +1,19 @@
 import { EScreens } from '@navigation';
-import {
-  AuthResponseDataVerifyCode,
-  AuthTokens,
-  SavePinParams,
-  SavePinResponse,
-  VerifyCoderParams,
-} from '@services';
+import { vibrate, VIBRATION_DURATION } from '@utils';
 import AxiosService, { ApiResponse } from '../AxiosService';
 import NavigationService from '../NavigationService';
 import NotificationService from '../NotificationService';
 import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
 import {
   AuthResponseDataRequestVerificationCode,
+  AuthResponseDataVerifyCode,
+  AuthResponseDataVerifyPinCode,
+  AuthTokens,
   RequestCodeParams,
-  VerificationCodeRequest,
+  SavePinParams,
+  SavePinResponse,
+  VerifyCoderParams,
+  VerifyPinCoderParams,
 } from './types';
 
 class ApiClientService {
@@ -28,11 +28,14 @@ class ApiClientService {
         {
           phoneNumber: `+7${phone}`,
           fcmToken,
-        } as VerificationCodeRequest,
+        },
       );
-      NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
-        phone: `+7${phone}`,
-      });
+
+      if (response.data.success) {
+        NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
+          phone: `+7${phone}`,
+        });
+      }
 
       return response.data;
     } catch (error: unknown) {
@@ -76,13 +79,16 @@ class ApiClientService {
         },
       );
 
-      // Явно приводим тип через unknown или используем утверждение типа
-      const responseData = response.data.data as unknown as AuthTokens;
-      const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
+      if (response.data.success) {
+        // Явно приводим тип через unknown или используем утверждение типа
+        const responseData = response.data.data as unknown as AuthTokens;
+        const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
 
-      await SecureStorageService.saveTokens(accessToken, refreshToken);
-      await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
-      await setIsVerified(isVerified);
+        await SecureStorageService.saveTokens(accessToken, refreshToken);
+        await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
+        await setIsVerified(isVerified);
+      }
+
       return response.data;
     } catch (error) {
       console.error('Ошибка верификации кода ', error);
@@ -102,6 +108,7 @@ class ApiClientService {
       });
 
       if (response.data.success) {
+        vibrate(VIBRATION_DURATION.LONG);
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
         NavigationService.navigate(EScreens.TABS_STACK as any);
       }
@@ -109,6 +116,31 @@ class ApiClientService {
       return response.data;
     } catch (error) {
       console.error('Ошибка верификации кода ', error);
+      return undefined;
+    }
+  }
+  // Верификация PIN кода
+  static async verifyPinCode({
+    pinCode,
+    phoneNumber,
+  }: VerifyPinCoderParams): Promise<ApiResponse<AuthResponseDataVerifyPinCode> | undefined> {
+    try {
+      const response = await AxiosService.post<AuthResponseDataVerifyPinCode>(
+        '/api/auth/verify-pin',
+        {
+          phoneNumber,
+          pinCode,
+        },
+      );
+
+      if (response.data.success) {
+        vibrate(VIBRATION_DURATION.LONG);
+        NavigationService.navigate(EScreens.TABS_STACK as any);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка верификации PIN кода ', error);
       return undefined;
     }
   }

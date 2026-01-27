@@ -1,8 +1,8 @@
 import { CustomAlertConfig, useLogOut } from '@hooks';
 import { IconNames } from '@UIKit';
+import { VIBRATION_DURATION } from '@utils';
 import { useCallback } from 'react';
 import { Vibration } from 'react-native';
-import { VIBRATION_DURATION } from '../constants';
 
 export const useHandleExitApp = (showAlert: (config: CustomAlertConfig) => void) => {
   const { logOutHandler } = useLogOut();

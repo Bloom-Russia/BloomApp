@@ -2,10 +2,9 @@
 import { CustomAlertConfig } from '@hooks';
 import { SecureStorageKeys, SecureStorageService } from '@services';
 import { IconNames } from '@UIKit';
+import { vibrate, VIBRATION_DURATION } from '@utils';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import { VIBRATION_DURATION } from '../constants';
-import { vibrate } from '../utils';
 
 type PinProps = {
   clearErrorMessage: () => void;

@@ -1,9 +1,3 @@
-// Определяем интерфейсы для типизации запросов
-export interface VerificationCodeRequest {
-  phoneNumber: string;
-  fcmToken: string;
-}
-
 // Интерфейсы для ответов
 export interface AuthResponseDataRequestVerificationCode {
   success: boolean;
@@ -14,11 +8,17 @@ export interface AuthResponseDataRequestVerificationCode {
   };
 }
 
-// Параметры запрос кода подтверждения
+// Параметры запрос подтверждения кода
 export type VerifyCoderParams = {
   phone: string;
   code: string;
   setIsVerified: (value: boolean) => Promise<void>;
+};
+
+// Параметры запрос подтверждения pin кода
+export type VerifyPinCoderParams = {
+  phoneNumber: string;
+  pinCode: string;
 };
 
 // Параметры для сохраненния PIN
@@ -45,6 +45,16 @@ export interface AuthResponseDataVerifyCode {
   success: boolean;
   message: string;
   data: AuthTokens;
+}
+
+export interface AuthResponseDataVerifyPinCode {
+  success: boolean;
+  message: string;
+  data: {
+    phoneNumber: string;
+    userId: string;
+    isVerified: boolean;
+  };
 }
 
 export interface AuthTokens {
