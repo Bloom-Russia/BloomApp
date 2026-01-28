@@ -22,6 +22,12 @@ declare const __DEV__: boolean;
 class AxiosService {
   private static instance: AxiosInstance | null = null;
   private static isInitialized = false;
+  private static isRefreshing = false;
+  private static failedRequests: Array<{
+    resolve: (value: AxiosResponse) => void;
+    reject: (error: unknown) => void;
+    config: AxiosRequestConfig;
+  }> = [];
 
   // Константы для ключей событий
   private static readonly UNAUTHORIZED_EVENT = 'axios:unauthorized';
@@ -106,26 +112,39 @@ class AxiosService {
 
         return response;
       },
-      (error: AxiosError) => {
-        const timestamp = error.config?.headers?.['X-Request-Timestamp'];
+      async (error: AxiosError) => {
+        const originalRequest = error.config;
+        const timestamp = originalRequest?.headers?.['X-Request-Timestamp'];
         const duration = Date.now() - parseInt(timestamp || '0', 10);
 
         console.error('[Axios Ошибка Ответа]', {
           status: error.response?.status,
-          url: error.config?.url,
-          method: error.config?.method,
+          url: originalRequest?.url,
+          method: originalRequest?.method,
           message: error.message,
           duration: `${duration}мс`,
           data: error.response?.data,
         });
 
+        // Обработка ошибок аутентификации
+        if (error.response?.status === 401 && originalRequest) {
+          // Исключаем эндпоинт обновления токена из обработки
+          if (originalRequest.url?.includes('/api/auth/refresh')) {
+            this.handleUnauthorized();
+            return Promise.reject(error);
+          }
+
+          // Пробуем обновить токен и повторить запрос
+          try {
+            return await this.handleTokenRefresh(originalRequest);
+          } catch (refreshError) {
+            this.handleUnauthorized();
+            return Promise.reject(refreshError);
+          }
+        }
+
         // Отправка события ошибки сети
         this.emitNetworkError(error);
-
-        // Обработка ошибок аутентификации
-        if (error.response?.status === 401) {
-          this.handleUnauthorized();
-        }
 
         // Обработка ошибок сервера
         if (error.response?.status && error.response.status >= 500) {
@@ -143,6 +162,112 @@ class AxiosService {
         baseURL: this.instance.defaults.baseURL,
         timeout: this.instance.defaults.timeout,
       });
+    }
+  }
+
+  /**
+   * Обработка обновления токена
+   */
+  private static async handleTokenRefresh(
+    originalRequest: AxiosRequestConfig,
+  ): Promise<AxiosResponse> {
+    // Если уже обновляем токен, добавляем запрос в очередь
+    if (this.isRefreshing) {
+      return new Promise((resolve, reject) => {
+        this.failedRequests.push({ resolve, reject, config: originalRequest });
+      });
+    }
+
+    this.isRefreshing = true;
+
+    try {
+      // Пробуем обновить токен
+      const refreshSuccess = await this.tryRefreshToken();
+
+      if (!refreshSuccess) {
+        throw new Error('Не удалось обновить токен');
+      }
+
+      // Обновляем заголовок авторизации в оригинальном запросе
+      const newToken = await this.getAuthToken();
+      if (newToken && originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      }
+
+      // Повторяем оригинальный запрос
+      const response = await this.instance!.request(originalRequest);
+
+      // Выполняем все ожидающие запросы
+      this.failedRequests.forEach((request) => {
+        const token = this.getAuthToken();
+        if (token && request.config.headers) {
+          request.config.headers.Authorization = `Bearer ${token}`;
+        }
+        this.instance!.request(request.config).then(request.resolve).catch(request.reject);
+      });
+
+      // Очищаем очередь
+      this.failedRequests = [];
+
+      return response;
+    } catch (error) {
+      // Обрабатываем ошибки для всех ожидающих запросов
+      this.failedRequests.forEach((request) => request.reject(error));
+      this.failedRequests = [];
+      throw error;
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  /**
+   * Попытка обновления токена
+   */
+  private static async tryRefreshToken(): Promise<boolean> {
+    try {
+      const refreshTokenResult = await SecureStorageService.loadRefreshToken();
+
+      if (!refreshTokenResult.success || !refreshTokenResult.data) {
+        console.warn('[AxiosService] Refresh токен не найден');
+        return false;
+      }
+
+      // Создаем временный экземпляр axios без интерцепторов для обновления токена
+      const refreshAxios = axios.create({
+        baseURL: CONFIG.API_URL,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await refreshAxios.post('/api/auth/refresh', {
+        refreshToken: refreshTokenResult.data,
+      });
+
+      if (response.data.success && response.data.data?.accessToken) {
+        // Сохраняем новый токен
+        await SecureStorageService.saveAccessToken(response.data.data.accessToken);
+
+        // Если есть новый refresh токен, сохраняем его
+        if (response.data.data.refreshToken) {
+          await SecureStorageService.saveRefreshToken(response.data.data.refreshToken);
+        }
+
+        // Обновляем заголовок в основном экземпляре
+        this.setAuthHeader(response.data.data.accessToken);
+
+        if (__DEV__) {
+          console.log('[AxiosService] Токен успешно обновлен');
+        }
+
+        return true;
+      }
+
+      console.warn('[AxiosService] Не удалось обновить токен: некорректный ответ сервера');
+      return false;
+    } catch (error) {
+      console.error('[AxiosService] Ошибка обновления токена:', error);
+      return false;
     }
   }
 
@@ -519,6 +644,8 @@ class AxiosService {
       this.instance = null;
     }
     this.isInitialized = false;
+    this.isRefreshing = false;
+    this.failedRequests = [];
 
     if (__DEV__) {
       console.log('[AxiosService] Сброс выполнен');
