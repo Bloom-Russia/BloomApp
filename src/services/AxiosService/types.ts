@@ -36,31 +36,3 @@ export interface RequestCompletedEvent {
   status: number;
   duration: number;
 }
-
-// Тип для конфигурации
-export interface AxiosServiceConfig {
-  baseURL?: string;
-  timeout?: number;
-  headers?: Record<string, string>;
-  withCredentials?: boolean;
-}
-
-// Другие типы событий, если нужно
-export type AxiosServiceEvent =
-  | { type: 'unauthorized'; data: UnauthorizedEvent }
-  | { type: 'network_error'; data: { message: string } }
-  | { type: 'request_completed'; data: { url: string; duration: number } };
-
-// Тип для конфигурации
-export interface AxiosServiceConfig {
-  baseURL?: string;
-  timeout?: number;
-  headers?: Record<string, string>;
-  withCredentials?: boolean;
-}
-
-export interface UnauthorizedEvent {
-  timestamp: number;
-  message: string;
-  code?: string;
-}

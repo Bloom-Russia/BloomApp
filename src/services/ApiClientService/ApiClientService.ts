@@ -9,6 +9,8 @@ import {
   AuthResponseDataVerifyCode,
   AuthResponseDataVerifyPinCode,
   AuthTokens,
+  LogoutRequest,
+  LogoutResponse,
   RequestCodeParams,
   SavePinParams,
   SavePinResponse,
@@ -141,6 +143,27 @@ class ApiClientService {
       return response.data;
     } catch (error) {
       console.error('Ошибка верификации PIN кода ', error);
+      return undefined;
+    }
+  }
+
+  // Выход пользователя из системы
+  static async logOutWithToken({
+    phoneNumber,
+  }: LogoutRequest): Promise<ApiResponse<LogoutResponse> | undefined> {
+    try {
+      const response = await AxiosService.post<LogoutResponse>('/api/auth/logout', {
+        phoneNumber,
+      });
+
+      if (response.data.success) {
+        // Очищаем сохраненные токены и данные
+        await SecureStorageService.clearAll();
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка выхода из системы:', error);
       return undefined;
     }
   }

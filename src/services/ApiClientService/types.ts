@@ -27,6 +27,20 @@ export type SavePinParams = {
   pinCode: string;
 };
 
+// Тип для запроса на выход
+export interface LogoutRequest {
+  phoneNumber: string;
+}
+
+// Тип для ответа на выход
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    phoneNumber: string;
+  };
+}
+
 export type SavePinResponse = {
   success: boolean;
   message: string;
@@ -63,4 +77,5 @@ export interface AuthTokens {
   userId: string;
   isVerified: boolean;
   phoneNumber: string;
+  hasPin: boolean;
 }
