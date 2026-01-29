@@ -1,4 +1,5 @@
 import { CONFIG } from '@config';
+import { SecureStorageKeys } from '@services';
 import axios, {
   AxiosError,
   AxiosInstance,
@@ -422,21 +423,26 @@ class AxiosService {
   /**
    * Обработка ошибки 401 (Unauthorized)
    */
-  private static handleUnauthorized(): void {
-    SecureStorageService.clearAllTokens()
-      .then(() => {
-        console.warn('[AxiosService] Сессия истекла. Токены очищены.');
-      })
-      .catch((clearError: unknown) => {
-        console.error('[AxiosService] Ошибка очистки токенов:', clearError);
+  private static async handleUnauthorized(): Promise<void> {
+    const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+    if (phone.success && phone.data) {
+      await this.post('/api/auth/logout', {
+        phoneNumber: phone.data,
       });
-
-    // Отправка события истечения сессии
-    this.emitUnauthorized({
-      timestamp: Date.now(),
-      message: 'Сессия истекла',
-      code: 'SESSION_EXPIRED',
-    });
+      SecureStorageService.clearAll()
+        .then(() => {
+          console.warn('[AxiosService] Сессия истекла. Токены очищены.');
+        })
+        .catch((clearError: unknown) => {
+          console.error('[AxiosService] Ошибка очистки токенов:', clearError);
+        });
+      // Отправка события истечения сессии
+      this.emitUnauthorized({
+        timestamp: Date.now(),
+        message: 'Сессия истекла',
+        code: 'SESSION_EXPIRED',
+      });
+    }
   }
 
   /**
