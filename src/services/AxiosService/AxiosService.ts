@@ -131,7 +131,7 @@ class AxiosService {
         if (error.response?.status === 401 && originalRequest) {
           // Исключаем эндпоинт обновления токена из обработки
           if (originalRequest.url?.includes('/api/auth/refresh')) {
-            this.handleUnauthorized();
+            await this.handleUnauthorized();
             return Promise.reject(error);
           }
 
@@ -139,7 +139,7 @@ class AxiosService {
           try {
             return await this.handleTokenRefresh(originalRequest);
           } catch (refreshError) {
-            this.handleUnauthorized();
+            await this.handleUnauthorized();
             return Promise.reject(refreshError);
           }
         }
