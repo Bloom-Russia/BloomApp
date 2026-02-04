@@ -432,6 +432,7 @@ class AxiosService {
       SecureStorageService.clearAll()
         .then(() => {
           console.warn('[AxiosService] Сессия истекла. Токены очищены.');
+          // TODO выход из приложения
         })
         .catch((clearError: unknown) => {
           console.error('[AxiosService] Ошибка очистки токенов:', clearError);
