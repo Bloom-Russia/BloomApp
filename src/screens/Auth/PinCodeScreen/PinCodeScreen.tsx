@@ -36,6 +36,7 @@ const PinCodeScreenComponent: React.FC<
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isPinCodeSet, setIsPinCodeSet] = useState<boolean>(false);
   const [confirmPin, setConfirmPin] = useState<string>(''); // Для хранения PIN-кода при подтверждении
+  const [isProcessing, setIsProcessing] = useState<boolean>(false); // Флаг блокировки во время обработки
 
   // Рефы для хранения таймеров
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -72,23 +73,36 @@ const PinCodeScreenComponent: React.FC<
   // Функция ввода PIN-кода для входа
   const handleEnterPin = useCallback(
     async (pin: string) => {
-      const { success, data: phoneNumber } = await SecureStorageService.getValue(
-        SecureStorageKeys.PHONE_NUMBER,
-      );
-      if (!success || !phoneNumber) {
-        // Показываем сообщение об ошибке
-        setErrorMessageWithTimeout('Номер телефона не найден!');
-        return;
-      }
-      // Сбрасываем состояние PIN
-      setCurrentPin('');
-      setConfirmPin('');
-      setIsPinCodeSet(true);
+      setIsProcessing(true);
+      try {
+        const { success, data: phoneNumber } = await SecureStorageService.getValue(
+          SecureStorageKeys.PHONE_NUMBER,
+        );
+        if (!success || !phoneNumber) {
+          // Показываем сообщение об ошибке
+          setErrorMessageWithTimeout('Номер телефона не найден!');
+          setCurrentPin('');
+          setIsProcessing(false);
+          return;
+        }
 
-      await ApiClientService.verifyPinCode({
-        phoneNumber,
-        pinCode: pin,
-      });
+        await ApiClientService.verifyPinCode({
+          phoneNumber,
+          pinCode: pin,
+        });
+
+        // Успешная верификация - сбрасываем состояние
+        setCurrentPin('');
+        setConfirmPin('');
+        setIsPinCodeSet(true);
+        setIsProcessing(false);
+      } catch (error) {
+        console.error('Ошибка верификации PIN:', error);
+        setErrorMessageWithTimeout('Неверный PIN-код');
+        setCurrentPin(''); // Очищаем PIN при ошибке
+        setIsProcessing(false);
+        vibrate(VIBRATION_DURATION.ERROR);
+      }
     },
     [setErrorMessageWithTimeout],
   );
@@ -96,22 +110,36 @@ const PinCodeScreenComponent: React.FC<
   // Функция подтверждения установки PIN-кода
   const handleConfirmPin = useCallback(
     async (pin: string) => {
-      const { success, data: phoneNumber } = await SecureStorageService.getValue(
-        SecureStorageKeys.PHONE_NUMBER,
-      );
-      if (!success || !phoneNumber) {
-        setErrorMessageWithTimeout('Номер телефона не найден!');
-        return;
-      }
-      // Сбрасываем состояние PIN
-      setCurrentPin('');
-      setConfirmPin('');
-      setIsPinCodeSet(true);
+      setIsProcessing(true);
+      try {
+        const { success, data: phoneNumber } = await SecureStorageService.getValue(
+          SecureStorageKeys.PHONE_NUMBER,
+        );
+        if (!success || !phoneNumber) {
+          setErrorMessageWithTimeout('Номер телефона не найден!');
+          setIsProcessing(false);
+          return;
+        }
 
-      await ApiClientService.savePinCode({
-        phoneNumber,
-        pinCode: pin,
-      });
+        await ApiClientService.savePinCode({
+          phoneNumber,
+          pinCode: pin,
+        });
+
+        // Успешное сохранение - блокируем дальнейший ввод
+        setCurrentPin('');
+        setConfirmPin('');
+        setIsPinCodeSet(true);
+        // Не меняем pinMode, чтобы показать, что PIN установлен
+        setIsProcessing(false);
+      } catch (error) {
+        console.error('Ошибка сохранения PIN:', error);
+        setErrorMessageWithTimeout('Ошибка сохранения PIN-кода');
+        setCurrentPin('');
+        setConfirmPin('');
+        setPinMode(PinMode.SET); // Возвращаемся к установке PIN
+        setIsProcessing(false);
+      }
     },
     [setErrorMessageWithTimeout],
   );
@@ -119,6 +147,10 @@ const PinCodeScreenComponent: React.FC<
   // Функция обработки завершенного PIN-кода
   const handlePinComplete = useCallback(
     async (pin: string) => {
+      if (isProcessing) {
+        return;
+      } // Если уже обрабатывается, игнорируем
+
       try {
         switch (pinMode) {
           case PinMode.SET:
@@ -150,13 +182,26 @@ const PinCodeScreenComponent: React.FC<
       } catch (error) {
         console.error('Ошибка обработки PIN:', error);
         setErrorMessageWithTimeout('Ошибка обработки PIN-кода');
+        setCurrentPin('');
+        setIsProcessing(false);
       }
     },
-    [pinMode, confirmPin, handleEnterPin, handleConfirmPin, setErrorMessageWithTimeout],
+    [
+      pinMode,
+      confirmPin,
+      handleEnterPin,
+      handleConfirmPin,
+      setErrorMessageWithTimeout,
+      isProcessing,
+    ],
   );
 
   // Функция для обработки удаления символа
   const handleDeletePress = useCallback((): void => {
+    if (isProcessing) {
+      return;
+    } // Блокируем удаление во время обработки
+
     vibrate(VIBRATION_DURATION.SHORT);
 
     if (currentPin.length > 0) {
@@ -164,11 +209,15 @@ const PinCodeScreenComponent: React.FC<
     }
 
     clearErrorMessage();
-  }, [currentPin, clearErrorMessage]);
+  }, [currentPin, clearErrorMessage, isProcessing]);
 
   // Функция для обработки ввода цифры
   const handleNumberPress = useCallback(
     (number: string) => {
+      if (isProcessing) {
+        return;
+      } // Блокируем ввод во время обработки
+
       if (currentPin.length < 4) {
         const newPin = currentPin + number;
         setCurrentPin(newPin);
@@ -182,7 +231,7 @@ const PinCodeScreenComponent: React.FC<
         }
       }
     },
-    [currentPin, handlePinComplete],
+    [currentPin, handlePinComplete, isProcessing],
   );
 
   // Функция для отображения точек PIN-кода
@@ -234,6 +283,10 @@ const PinCodeScreenComponent: React.FC<
 
   // Обработчик сброса PIN-кода
   const handleReset = useCallback(() => {
+    if (isProcessing) {
+      return;
+    }
+
     try {
       handleResetPin();
       // После успешного сброса обновляем состояние
@@ -241,10 +294,11 @@ const PinCodeScreenComponent: React.FC<
       setIsPinCodeSet(false);
       setCurrentPin('');
       setConfirmPin('');
+      setIsProcessing(false);
     } catch (error) {
       console.error('Ошибка при сбросе PIN:', error);
     }
-  }, [handleResetPin]);
+  }, [handleResetPin, isProcessing]);
 
   return (
     <ScreenContainer scrollEnabled={false}>
@@ -272,7 +326,8 @@ const PinCodeScreenComponent: React.FC<
               </Typography.R14>
             </Block>
           ) : (
-            isPinCodeSet && (
+            isPinCodeSet &&
+            pinMode !== PinMode.ENTER && (
               <ResetButton onPress={handleReset}>
                 <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
               </ResetButton>
@@ -284,29 +339,29 @@ const PinCodeScreenComponent: React.FC<
       <KeyboardContainer>
         {/* Первый ряд: 1 2 3 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('1')} number={'1'} />
-          <KeyButton onPress={() => handleNumberPress('2')} number={'2'} />
-          <KeyButton onPress={() => handleNumberPress('3')} number={'3'} />
+          <KeyButton onPress={() => handleNumberPress('1')} number={'1'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('2')} number={'2'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('3')} number={'3'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Второй ряд: 4 5 6 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('4')} number={'4'} />
-          <KeyButton onPress={() => handleNumberPress('5')} number={'5'} />
-          <KeyButton onPress={() => handleNumberPress('6')} number={'6'} />
+          <KeyButton onPress={() => handleNumberPress('4')} number={'4'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('5')} number={'5'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('6')} number={'6'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Третий ряд: 7 8 9 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('7')} number={'7'} />
-          <KeyButton onPress={() => handleNumberPress('8')} number={'8'} />
-          <KeyButton onPress={() => handleNumberPress('9')} number={'9'} />
+          <KeyButton onPress={() => handleNumberPress('7')} number={'7'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('8')} number={'8'} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('9')} number={'9'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Четвертый ряд: Выход 0 Удаление/Биометрия */}
         <KeyboardRow>
-          <ExitButton handleExitApp={handleExitApp} />
-          <KeyButton onPress={() => handleNumberPress('0')} number={'0'} />
+          <ExitButton handleExitApp={handleExitApp} isLocked={isProcessing} />
+          <KeyButton onPress={() => handleNumberPress('0')} number={'0'} isLocked={isProcessing} />
           {getActionButton()}
         </KeyboardRow>
       </KeyboardContainer>

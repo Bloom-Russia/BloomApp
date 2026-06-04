@@ -4,11 +4,12 @@ import styled from 'styled-components/native';
 
 type Props = {
   handleExitApp: () => void;
+  isLocked?: boolean;
 };
 
-export const ExitButton: React.FC<Props> = ({ handleExitApp }) => {
+export const ExitButton: React.FC<Props> = ({ isLocked, handleExitApp }) => {
   return (
-    <StyledExitButton onPress={handleExitApp}>
+    <StyledExitButton disabled={isLocked} onPress={handleExitApp}>
       <Icon size={ESize.s28} color={Colors.white} name={IconNames.signOut} />
     </StyledExitButton>
   );
