@@ -339,29 +339,29 @@ const PinCodeScreenComponent: React.FC<
       <KeyboardContainer>
         {/* Первый ряд: 1 2 3 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('1')} number={'1'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('2')} number={'2'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('3')} number={'3'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'1'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'2'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'3'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Второй ряд: 4 5 6 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('4')} number={'4'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('5')} number={'5'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('6')} number={'6'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'4'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'5'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'6'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Третий ряд: 7 8 9 */}
         <KeyboardRow>
-          <KeyButton onPress={() => handleNumberPress('7')} number={'7'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('8')} number={'8'} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('9')} number={'9'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'7'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'8'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'9'} isLocked={isProcessing} />
         </KeyboardRow>
 
         {/* Четвертый ряд: Выход 0 Удаление/Биометрия */}
         <KeyboardRow>
           <ExitButton handleExitApp={handleExitApp} isLocked={isProcessing} />
-          <KeyButton onPress={() => handleNumberPress('0')} number={'0'} isLocked={isProcessing} />
+          <KeyButton onPress={handleNumberPress} number={'0'} isLocked={isProcessing} />
           {getActionButton()}
         </KeyboardRow>
       </KeyboardContainer>
