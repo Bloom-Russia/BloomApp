@@ -6,7 +6,14 @@ import { ApiClientService } from '@services';
 import { Block, Button, Colors, ESpacings, IconNames, Row, ScreenContainer } from '@UIKit';
 import React, { memo, useCallback, useEffect } from 'react';
 import isEqual from 'react-fast-compare';
-import { BackHandler, Image, PermissionsAndroid, PermissionStatus, Platform } from 'react-native';
+import {
+  BackHandler,
+  Image,
+  Keyboard,
+  PermissionsAndroid,
+  PermissionStatus,
+  Platform,
+} from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import styled from 'styled-components';
 import { MaskedInput } from './components/MaskInput';
@@ -18,6 +25,13 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
   const { loading, showLoader, hideLoader } = useLoading();
   const { showAlert, AlertComponent } = useCustomAlert();
+
+  const setPhoneHandler = useCallback((phone) => {
+    if (phone.length === 10) {
+      Keyboard.dismiss();
+    }
+    setPhone(phone);
+  }, []);
 
   useEffect(() => {
     const backAction = () => true;
@@ -133,7 +147,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />
         </Row>
-        <MaskedInput phone={phone} setPhone={setPhone} />
+        <MaskedInput phone={phone} setPhone={setPhoneHandler} />
         <Button
           loading={loading}
           disabled={isButtonDisabled}

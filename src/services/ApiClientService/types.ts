@@ -1,4 +1,5 @@
 // Интерфейсы для ответов
+
 export interface AuthResponseDataRequestVerificationCode {
   success: boolean;
   message: string;
@@ -13,6 +14,7 @@ export type VerifyCoderParams = {
   phone: string;
   code: string;
   setIsVerified: (value: boolean) => Promise<void>;
+  errorCodeCallBack: () => void;
 };
 
 // Параметры запрос подтверждения pin кода

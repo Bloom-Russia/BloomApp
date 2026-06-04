@@ -71,6 +71,7 @@ class ApiClientService {
     code,
     phone,
     setIsVerified,
+    errorCodeCallBack,
   }: VerifyCoderParams): Promise<ApiResponse<AuthResponseDataVerifyCode> | undefined> {
     try {
       const response = await AxiosService.post<AuthResponseDataVerifyCode>(
@@ -93,7 +94,8 @@ class ApiClientService {
 
       return response.data;
     } catch (error) {
-      console.error('Ошибка верификации кода ', error);
+      console.error('Ошибка верификации кода', error);
+      errorCodeCallBack();
       return undefined;
     }
   }

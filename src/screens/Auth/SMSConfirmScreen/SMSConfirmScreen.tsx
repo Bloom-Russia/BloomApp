@@ -1,5 +1,6 @@
 import { RoundLogoAppImage } from '@assets/images';
 import { useAuth } from '@contexts';
+import { useCustomAlert } from '@hooks';
 import { EScreens, UnAuthStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService } from '@services';
@@ -10,6 +11,7 @@ import {
   Colors,
   ESpacings,
   ICodeFieldComponent,
+  IconNames,
   ResendCodeButton,
   Row,
   ScreenContainer,
@@ -33,6 +35,35 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   const [code, setCode] = useState<string>('');
   const [startTime, setStartTime] = useState(Date.now());
   const { setIsVerified } = useAuth();
+  const { AlertComponent, showAlert } = useCustomAlert();
+
+  const errorCodeCallBack = useCallback(() => {
+    codeRef.current?.clear();
+    showAlert({
+      title: 'Ошибка верификации кода',
+      message: 'Запосить новый код?',
+      type: 'error',
+      theme: 'dark',
+      showIcon: true,
+      buttons: [
+        {
+          text: 'Отмена',
+          style: 'cancel',
+          showButtonIcon: true,
+          buttonIconName: IconNames.cancel,
+        },
+        {
+          text: 'Запросить',
+          style: 'default',
+          showButtonIcon: true,
+          buttonIconName: IconNames.signOut,
+          onPress: async () => {
+            await ApiClientService.resendCode({ phone });
+          },
+        },
+      ],
+    });
+  }, [phone, showAlert]);
 
   const verifyCodeHandler = useCallback(
     async (inputCode: string) => {
@@ -42,10 +73,11 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
           phone,
           code: inputCode,
           setIsVerified,
+          errorCodeCallBack,
         });
       }
     },
-    [phone, setIsVerified],
+    [errorCodeCallBack, phone, setIsVerified],
   );
 
   //Повторная отправка кода
@@ -90,6 +122,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
           textColor={Colors.black}
         />
       </Block>
+      <AlertComponent />
     </ScreenContainer>
   );
 };
