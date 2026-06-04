@@ -26,11 +26,11 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const { loading, showLoader, hideLoader } = useLoading();
   const { showAlert, AlertComponent } = useCustomAlert();
 
-  const setPhoneHandler = useCallback((phone) => {
-    if (phone.length === 10) {
+  const setPhoneHandler = useCallback((value: string) => {
+    if (value.length === 10) {
       Keyboard.dismiss();
     }
-    setPhone(phone);
+    setPhone(value);
   }, []);
 
   useEffect(() => {
