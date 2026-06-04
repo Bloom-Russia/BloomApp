@@ -45,10 +45,20 @@ const PinCodeScreenComponent: React.FC<
   // Хук для загрузки данных о PIN-коде
   const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
 
+  // Функция для очистки ошибки (только при удалении или размонтировании)
+  const clearErrorMessage = useCallback(() => {
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
+    setErrorMessage('');
+  }, []);
+
   // Функция для установки ошибки с автоматическим скрытием
   const setErrorMessageWithTimeout = useCallback((message: string) => {
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
     }
 
     setErrorMessage(message);
@@ -57,15 +67,6 @@ const PinCodeScreenComponent: React.FC<
       setErrorMessage('');
       errorTimeoutRef.current = null;
     }, ERROR_TIMEOUT);
-  }, []);
-
-  // Функция для очистки ошибки
-  const clearErrorMessage = useCallback(() => {
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
-    setErrorMessage('');
   }, []);
 
   // Функция ввода PIN-кода для входа
@@ -99,7 +100,6 @@ const PinCodeScreenComponent: React.FC<
         SecureStorageKeys.PHONE_NUMBER,
       );
       if (!success || !phoneNumber) {
-        // Показываем сообщение об ошибке
         setErrorMessageWithTimeout('Номер телефона не найден!');
         return;
       }
@@ -169,8 +169,6 @@ const PinCodeScreenComponent: React.FC<
   // Функция для обработки ввода цифры
   const handleNumberPress = useCallback(
     (number: string) => {
-      clearErrorMessage();
-
       if (currentPin.length < 4) {
         const newPin = currentPin + number;
         setCurrentPin(newPin);
@@ -184,7 +182,7 @@ const PinCodeScreenComponent: React.FC<
         }
       }
     },
-    [clearErrorMessage, currentPin, handlePinComplete],
+    [currentPin, handlePinComplete],
   );
 
   // Функция для отображения точек PIN-кода
@@ -220,7 +218,7 @@ const PinCodeScreenComponent: React.FC<
   // Эффект для загрузки данных о PIN-коде
   useEffect(() => {
     const loadData = async () => {
-      await loadPinCodeData(); // Правильный вызов
+      await loadPinCodeData();
     };
     loadData().then((result) => console.log(result));
   }, [loadPinCodeData]);
