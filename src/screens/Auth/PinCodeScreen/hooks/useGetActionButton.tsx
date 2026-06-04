@@ -14,7 +14,7 @@ export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Pro
     if (hasEnteredSymbols) {
       return (
         <DeleteButtonInRow disabled={false} onPress={handleDeletePress}>
-          <Icon size={ESize.s40} name={IconNames.cancel} color="white" />
+          <Icon size={ESize.s40} name={IconNames.backspace} color="white" />
         </DeleteButtonInRow>
       );
     } else {
