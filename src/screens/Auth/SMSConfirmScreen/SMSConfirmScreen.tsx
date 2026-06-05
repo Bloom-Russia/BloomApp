@@ -48,7 +48,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
       buttons: [
         {
           text: 'Закрыть',
-          style: 'cancel',
+          style: 'destructive',
           showButtonIcon: true,
           buttonIconName: IconNames.cancel,
         },
