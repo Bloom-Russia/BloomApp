@@ -15,6 +15,17 @@ import {
   NotificationPayload,
 } from './types';
 
+// Тип для Android конфигурации Notifee
+interface AndroidNotificationConfig {
+  channelId: string;
+  pressAction: { id: string };
+  importance: AndroidImportance;
+  autoCancel: boolean;
+  tag: string;
+  style?: string;
+  picture?: string;
+}
+
 class NotificationService {
   private static instance: NotificationService;
   private static notificationHandlers: NotificationHandler[] = [];
@@ -23,6 +34,10 @@ class NotificationService {
   private isInitialized = false;
   private isProcessingForeground = new Set<string>();
   private lastNotificationTime = new Map<string, number>();
+
+  // Кэш для обработанных событий Notifee
+  private processedNotifeeEvents = new Map<string, number>();
+  private readonly NOTIFEE_DEBOUNCE_MS = 3000;
 
   private constructor() {
     // Инициализируем NativeEventEmitter для iOS
@@ -53,6 +68,46 @@ class NotificationService {
         console.error('Ошибка в обработчике уведомлений:', error);
       }
     });
+  }
+
+  /**
+   * Проверка дедупликации для событий Notifee
+   */
+  private shouldProcessNotifeeEvent(
+    eventType: string,
+    notificationId: string | null | undefined,
+  ): boolean {
+    // Если нет ID, используем временную метку
+    const finalNotificationId = notificationId || `${eventType}_${Date.now()}`;
+    const eventKey = `${eventType}_${finalNotificationId}`;
+    const lastProcessed = this.processedNotifeeEvents.get(eventKey);
+    const currentTime = Date.now();
+
+    if (lastProcessed && currentTime - lastProcessed < this.NOTIFEE_DEBOUNCE_MS) {
+      console.log(
+        `⏭️ [Notifee] Пропускаем дублирующее событие ${eventType} для ${finalNotificationId}, прошло ${
+          currentTime - lastProcessed
+        }ms`,
+      );
+      return false;
+    }
+
+    this.processedNotifeeEvents.set(eventKey, currentTime);
+
+    // Очищаем старые записи
+    setTimeout(() => {
+      this.processedNotifeeEvents.delete(eventKey);
+    }, this.NOTIFEE_DEBOUNCE_MS);
+
+    // Очищаем кэш, если он слишком большой
+    if (this.processedNotifeeEvents.size > 100) {
+      const oldestKey = Array.from(this.processedNotifeeEvents.keys())[0];
+      if (oldestKey) {
+        this.processedNotifeeEvents.delete(oldestKey);
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -96,7 +151,7 @@ class NotificationService {
   }
 
   /**
-   * Инициализация Notifee
+   * Инициализация Notifee с улучшенной дедупликацией
    */
   private async initializeNotifee(): Promise<void> {
     // Создаем канал для уведомлений (Android)
@@ -124,24 +179,79 @@ class NotificationService {
       });
     }
 
-    // Настройка обработчика нажатий на уведомления
+    // Настройка обработчика нажатий на уведомления С ДЕДУПЛИКАЦИЕЙ
     notifee.onForegroundEvent(({ type, detail }) => {
+      // Получаем notificationId из разных возможных источников
+      let notificationId: string | null | undefined = detail.notification?.id;
+
+      if (!notificationId && detail.notification?.data) {
+        const data = detail.notification.data;
+        notificationId =
+          typeof data.notificationId === 'string'
+            ? data.notificationId
+            : typeof data.uniqueId === 'string'
+            ? data.uniqueId
+            : undefined;
+      }
+
       switch (type) {
         case EventType.PRESS:
-          console.log('[Notifee] Уведомление нажато:', detail.notification);
-          this.handleNotificationPress(detail.notification);
-          break;
-        case EventType.ACTION_PRESS:
-          console.log('[Notifee] Нажата кнопка действия:', detail.pressAction);
-          if (detail.pressAction) {
-            this.handleNotificationAction(detail.pressAction);
+          // Дедупликация для нажатий
+          if (this.shouldProcessNotifeeEvent('PRESS', notificationId)) {
+            console.log('[Notifee] Уведомление нажато:', detail.notification);
+            this.handleNotificationPress(detail.notification);
           }
           break;
+
+        case EventType.ACTION_PRESS:
+          // Дедупликация для действий
+          if (this.shouldProcessNotifeeEvent('ACTION_PRESS', notificationId)) {
+            console.log('[Notifee] Нажата кнопка действия:', detail.pressAction);
+            if (detail.pressAction) {
+              this.handleNotificationAction(detail.pressAction);
+            }
+          }
+          break;
+
         case EventType.DISMISSED:
-          console.log('[Notifee] Уведомление отклонено');
+          // Дедупликация для событий закрытия
+          if (this.shouldProcessNotifeeEvent('DISMISSED', notificationId)) {
+            console.log('[Notifee] Уведомление отклонено, ID:', notificationId);
+            this.handleNotificationDismiss(detail.notification);
+          } else {
+            console.log('[Notifee] Пропущен дублирующий DISMISS для:', notificationId);
+          }
           break;
       }
     });
+  }
+
+  /**
+   * Обработка закрытия уведомления
+   */
+  private handleNotificationDismiss(notification: unknown): void {
+    const notifeeNotification = notification as NotifeeNotificationDetail['notification'];
+    const data = notifeeNotification?.data;
+
+    if (data) {
+      const notificationId = data.notificationId;
+
+      console.log(`📱 [DISMISS] Уведомление закрыто: ${notificationId}`);
+
+      // Создаем payload для подписчиков
+      const payload: NotificationPayload = {
+        title: notifeeNotification?.title || '',
+        body: notifeeNotification?.body || '',
+        data: data,
+        messageId: notificationId || Date.now().toString(),
+        platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
+        isForeground: true,
+        eventType: 'dismissed',
+      };
+
+      // Уведомляем подписчиков о закрытии (если нужно)
+      this.notifyHandlersFromInstance(payload);
+    }
   }
 
   /**
@@ -155,9 +265,10 @@ class NotificationService {
         title: notifeeNotification?.title || '',
         body: notifeeNotification?.body || '',
         data: data,
-        messageId: data.messageId || Date.now().toString(),
+        messageId: data.messageId,
         platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
         isForeground: false,
+        eventType: 'press',
       };
       this.notifyHandlersFromInstance(payload);
     }
@@ -172,7 +283,7 @@ class NotificationService {
   }
 
   /**
-   * Показ локального уведомления
+   * Показ локального уведомления с уникальным ID
    */
   private async showLocalNotification(
     notification: NotificationPayload,
@@ -199,6 +310,24 @@ class NotificationService {
         channelId = 'silent';
       }
 
+      // Используем СТАБИЛЬНЫЙ ID уведомления на основе данных
+      let stableNotificationId =
+        typeof notification.data?.notificationId === 'string'
+          ? notification.data.notificationId
+          : typeof notification.data?.uniqueId === 'string'
+          ? notification.data.uniqueId
+          : undefined;
+
+      if (!stableNotificationId) {
+        // Создаем стабильный ID на основе содержимого
+        const contentHash = `${notification.type || 'default'}_${notification.title || ''}_${
+          notification.data?.code || ''
+        }`;
+        stableNotificationId = this.hashString(contentHash);
+      }
+
+      console.log(`[Notifee] Показ уведомления с ID: ${stableNotificationId}`);
+
       // Подготовка iOS конфигурации
       const iosConfig: {
         sound: string;
@@ -216,14 +345,15 @@ class NotificationService {
         iosConfig.badgeCount = notification.badge;
       }
 
-      // Настройка для Android - используем any для обхода проблемы с типами
-      const androidConfig =
+      // Настройка для Android
+      const androidConfig: AndroidNotificationConfig | undefined =
         Platform.OS === 'android'
           ? {
               channelId,
               pressAction: { id: 'default' },
               importance: AndroidImportance.HIGH,
               autoCancel: true,
+              tag: notification.data?.type || 'default',
               ...(notification.data?.image && {
                 style: 'bigpicture',
                 picture: notification.data.image,
@@ -231,19 +361,34 @@ class NotificationService {
             }
           : undefined;
 
-      // Показываем уведомление
+      // Показываем уведомление со СТАБИЛЬНЫМ ID
       await notifee.displayNotification({
+        id: stableNotificationId,
         title: notification.title,
         body: notification.body,
         data: notification.data,
-        android: androidConfig as any,
+        android: androidConfig as never,
         ios: Platform.OS === 'ios' ? iosConfig : undefined,
       });
 
-      console.log(`[Notifee] Уведомление показано: ${notification.title}`);
+      console.log(
+        `[Notifee] Уведомление показано: ${notification.title} (ID: ${stableNotificationId})`,
+      );
     } catch (error) {
       console.error('[NotificationService] Ошибка показа уведомления:', error);
     }
+  }
+
+  /**
+   * Вспомогательный метод для хеширования строки
+   */
+  private hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash - (hash << 5) + char) & 0xffffffff; // Convert to 32-bit integer using bitwise AND
+    }
+    return Math.abs(hash).toString(36);
   }
 
   /**
@@ -808,6 +953,7 @@ class NotificationService {
       title: notification.title,
       messageId: notification.messageId,
       platform: notification.platform,
+      eventType: notification.eventType,
     });
 
     NotificationService.notifySubscribers(notification);

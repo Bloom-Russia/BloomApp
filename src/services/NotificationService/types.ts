@@ -1,15 +1,17 @@
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 export interface NotificationPayload {
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
   data?: Record<string, string>;
-  messageId: string;
+  messageId?: string;
   platform?: 'ios' | 'android';
   isForeground?: boolean;
   isSilent?: boolean;
-  badge?: number;
   sound?: string;
+  badge?: number;
+  eventType?: 'press' | 'dismissed' | 'action'; // НОВЫЙ ПОЛЕ
+  type?: string;
 }
 
 // Тип для нативных событий iOS
@@ -29,6 +31,7 @@ export interface NotifeeNotificationDetail {
     title?: string;
     body?: string;
     data?: Record<string, string>;
+    id?: string;
   };
   pressAction?: {
     id: string;

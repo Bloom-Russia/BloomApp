@@ -26,6 +26,12 @@ module.exports = {
   },
   rules: {
     // СТРОГИЕ правила для хуков
+    'no-bitwise': [
+      'error',
+      {
+        allow: ['&', '<<'], // разрешить конкретные операторы
+      },
+    ],
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': [
       'error',
