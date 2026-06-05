@@ -1,16 +1,8 @@
-// UnifiedNotificationService.ts
+import { NotifeeImage } from '@assets/images';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
-
-export type NotificationPayload = {
-  id?: string;
-  title?: string;
-  body?: string;
-  data?: Record<string, string | number | object>;
-  messageId?: string;
-  eventType?: string;
-};
+import { NotificationPayload } from './types';
 
 class UnifiedNotificationService {
   private static instance: UnifiedNotificationService;
@@ -138,6 +130,7 @@ class UnifiedNotificationService {
         data: remoteMessage.data,
         android: {
           channelId: remoteMessage.data?.type === 'verification' ? 'verification' : 'default',
+          largeIcon: NotifeeImage,
         },
       });
     });
