@@ -42,29 +42,19 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
     codeRef.current?.clear();
     showAlert({
       title: 'Ошибка верификации кода',
-      message: 'Запосить новый код?',
       type: 'error',
       theme: 'dark',
       showIcon: true,
       buttons: [
         {
-          text: 'Отмена',
+          text: 'Закрыть',
           style: 'cancel',
           showButtonIcon: true,
           buttonIconName: IconNames.cancel,
         },
-        {
-          text: 'Запросить',
-          style: 'default',
-          showButtonIcon: true,
-          buttonIconName: IconNames.signOut,
-          onPress: async () => {
-            await ApiClientService.resendCode({ phone });
-          },
-        },
       ],
     });
-  }, [phone, showAlert]);
+  }, [showAlert]);
 
   const verifyCodeHandler = useCallback(
     async (inputCode: string) => {
@@ -101,12 +91,14 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
         <Typography.B14 marginBottom={ESpacings.s32} color={Colors.white} textAlign={'center'}>
           Введите код из пуш уведомления
         </Typography.B14>
-        <CodeFieldComponent
-          errorResponse={false}
-          value={code}
-          setValue={verifyCodeHandler}
-          ref={codeRef}
-        />
+        <Block marginBottom={ESpacings.s16}>
+          <CodeFieldComponent
+            errorResponse={false}
+            value={code}
+            setValue={verifyCodeHandler}
+            ref={codeRef}
+          />
+        </Block>
         <ResendCodeButton
           loading={false}
           startTimeInMillis={startTime}
