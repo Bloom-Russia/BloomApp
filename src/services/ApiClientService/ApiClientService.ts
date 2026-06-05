@@ -1,9 +1,10 @@
-import { EScreens } from '@navigation';
+// Импортируем типы навигации
+import { AuthStackParamList, EScreens, UnAuthStackParamList } from '@navigation';
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import AxiosService, { ApiResponse } from '../AxiosService';
 import NavigationService from '../NavigationService';
-import NotificationService from '../NotificationService';
 import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
+import UnifiedNotificationService from '../UnifiedNotificationService';
 import {
   AuthResponseDataRequestVerificationCode,
   AuthResponseDataVerifyCode,
@@ -23,7 +24,7 @@ class ApiClientService {
   static async requestVerificationCode({
     phone,
   }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode> | undefined> {
-    const fcmToken = await NotificationService.getFCMToken();
+    const fcmToken = await UnifiedNotificationService.getFCMToken();
     try {
       const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
         '/api/auth/send-code',
@@ -34,7 +35,8 @@ class ApiClientService {
       );
 
       if (response.data.success) {
-        NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
+        // Теперь без any - напрямую передаем параметры
+        NavigationService.navigate<keyof UnAuthStackParamList>(EScreens.SMS_CONFIRM_SCREEN, {
           phone: `+7${phone}`,
         });
       }
@@ -50,7 +52,7 @@ class ApiClientService {
   static async resendCode({
     phone,
   }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode> | undefined> {
-    const fcmToken = await NotificationService.getFCMToken();
+    const fcmToken = await UnifiedNotificationService.getFCMToken();
     try {
       const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
         '/api/auth/send-code',
@@ -66,7 +68,7 @@ class ApiClientService {
     }
   }
 
-  // Верификация кода подтверждения и если isVerified === true, значти авторизовались
+  // Верификация кода подтверждения и если isVerified === true, значит авторизовались
   static async verifyCode({
     code,
     phone,
@@ -83,7 +85,6 @@ class ApiClientService {
       );
 
       if (response.data.success) {
-        // Явно приводим тип через unknown или используем утверждение типа
         const responseData = response.data.data as unknown as AuthTokens;
         const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
 
@@ -114,7 +115,8 @@ class ApiClientService {
       if (response.data.success) {
         vibrate(VIBRATION_DURATION.LONG);
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
-        NavigationService.navigate(EScreens.TABS_STACK as any);
+        // Без any
+        NavigationService.navigate<keyof AuthStackParamList>(EScreens.TABS_STACK);
       }
 
       return response.data;
@@ -123,6 +125,7 @@ class ApiClientService {
       return undefined;
     }
   }
+
   // Верификация PIN кода
   static async verifyPinCode({
     pinCode,
@@ -139,7 +142,8 @@ class ApiClientService {
 
       if (response.data.success) {
         vibrate(VIBRATION_DURATION.LONG);
-        NavigationService.navigate(EScreens.TABS_STACK as any);
+        // Без any
+        NavigationService.navigate<keyof AuthStackParamList>(EScreens.TABS_STACK);
       }
 
       return response.data;

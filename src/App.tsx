@@ -3,7 +3,7 @@ import { AuthProvider } from '@contexts';
 import { AppNavigation } from '@navigation';
 import { AxiosService, NotificationCoordinator } from '@services';
 import { Block, Colors } from '@UIKit';
-// ✅ Убедитесь в правильности импортов
+import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -30,7 +30,7 @@ const App: React.FC = () => {
       }
     };
 
-    initApp();
+    initApp().then(() => noop);
   }, []);
 
   if (error || !isInitialized) {

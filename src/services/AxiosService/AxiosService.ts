@@ -1,3 +1,4 @@
+// AxiosService.ts - исправленная версия с правильной типизацией заголовков
 import { SecureStorageKeys } from '@services';
 import axios, {
   AxiosError,
@@ -15,10 +16,12 @@ import {
   NetworkErrorEvent,
   RequestCompletedEvent,
   UnauthorizedEvent,
-} from './types'; // Определяем тип для глобальной переменной __DEV__
+} from './types';
 
-// Определяем тип для глобальной переменной __DEV__
 declare const __DEV__: boolean;
+
+// Тип для заголовков, совместимый с разными версиями axios
+type HeadersType = Record<string, string>;
 
 class AxiosService {
   private static instance: AxiosInstance | null = null;
@@ -30,7 +33,6 @@ class AxiosService {
     config: AxiosRequestConfig;
   }> = [];
 
-  // Константы для ключей событий
   private static readonly UNAUTHORIZED_EVENT = 'axios:unauthorized';
   private static readonly NETWORK_ERROR_EVENT = 'axios:network-error';
   private static readonly REQUEST_COMPLETED_EVENT = 'axios:request-completed';
@@ -52,34 +54,32 @@ class AxiosService {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
         ...axiosConfig.headers,
-      },
+      } as HeadersType,
       withCredentials: axiosConfig.withCredentials || false,
     });
 
     // Интерцептор запросов
     this.instance.interceptors.request.use(
       async (requestConfig: InternalAxiosRequestConfig) => {
-        // Гарантируем наличие заголовков (InternalAxiosRequestConfig уже гарантирует это)
-        // но добавляем проверку для TypeScript
-        if (!requestConfig.headers) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          requestConfig.headers = {};
+        // Приводим заголовки к типу Record<string, string>
+        const headers = (requestConfig.headers || {}) as HeadersType;
+
+        // Устанавливаем Content-Type если не установлен
+        if (!headers['Content-Type']) {
+          headers['Content-Type'] = 'application/json';
         }
 
-        // Устанавливаем Content-Type по умолчанию для всех запросов
-        if (!requestConfig.headers['Content-Type']) {
-          requestConfig.headers['Content-Type'] = 'application/json';
-        }
-
-        // Добавление заголовков аутентификации
+        // Добавляем токен авторизации
         const token = await this.getAuthToken();
         if (token) {
-          requestConfig.headers.Authorization = `Bearer ${token}`;
+          headers.Authorization = `Bearer ${token}`;
         }
 
-        // Добавление временной метки для отслеживания
-        requestConfig.headers['X-Request-Timestamp'] = Date.now().toString();
+        // Добавляем временную метку
+        headers['X-Request-Timestamp'] = Date.now().toString();
+
+        // Обновляем заголовки в конфиге
+        requestConfig.headers = headers as typeof requestConfig.headers;
 
         return requestConfig;
       },
@@ -93,7 +93,8 @@ class AxiosService {
     // Интерцептор ответов
     this.instance.interceptors.response.use(
       (response: AxiosResponse) => {
-        const timestamp = response.config.headers?.['X-Request-Timestamp'];
+        const headers = response.config.headers as HeadersType;
+        const timestamp = headers?.['X-Request-Timestamp'];
         const duration = Date.now() - parseInt(timestamp || '0', 10);
 
         if (__DEV__) {
@@ -103,7 +104,6 @@ class AxiosService {
           });
         }
 
-        // Отправка события завершения запроса
         this.emitRequestCompleted({
           url: response.config.url || '',
           method: response.config.method || '',
@@ -115,7 +115,8 @@ class AxiosService {
       },
       async (error: AxiosError) => {
         const originalRequest = error.config;
-        const timestamp = originalRequest?.headers?.['X-Request-Timestamp'];
+        const headers = originalRequest?.headers as HeadersType | undefined;
+        const timestamp = headers?.['X-Request-Timestamp'];
         const duration = Date.now() - parseInt(timestamp || '0', 10);
 
         console.error('[Axios Ошибка Ответа]', {
@@ -127,15 +128,12 @@ class AxiosService {
           data: error.response?.data,
         });
 
-        // Обработка ошибок аутентификации
         if (error.response?.status === 401 && originalRequest) {
-          // Исключаем эндпоинт обновления токена из обработки
           if (originalRequest.url?.includes('/api/auth/refresh')) {
             await this.handleUnauthorized();
             return Promise.reject(error);
           }
 
-          // Пробуем обновить токен и повторить запрос
           try {
             return await this.handleTokenRefresh(originalRequest);
           } catch (refreshError) {
@@ -144,10 +142,8 @@ class AxiosService {
           }
         }
 
-        // Отправка события ошибки сети
         this.emitNetworkError(error);
 
-        // Обработка ошибок сервера
         if (error.response?.status && error.response.status >= 500) {
           this.emitServerError(error);
         }
@@ -167,12 +163,21 @@ class AxiosService {
   }
 
   /**
+   * Получение экземпляра с проверкой на null
+   */
+  private static getInstanceOrThrow(): AxiosInstance {
+    if (!this.instance) {
+      throw new Error('AxiosService не инициализирован. Вызовите initialize() сначала.');
+    }
+    return this.instance;
+  }
+
+  /**
    * Обработка обновления токена
    */
   private static async handleTokenRefresh(
     originalRequest: AxiosRequestConfig,
   ): Promise<AxiosResponse> {
-    // Если уже обновляем токен, добавляем запрос в очередь
     if (this.isRefreshing) {
       return new Promise((resolve, reject) => {
         this.failedRequests.push({ resolve, reject, config: originalRequest });
@@ -182,38 +187,44 @@ class AxiosService {
     this.isRefreshing = true;
 
     try {
-      // Пробуем обновить токен
       const refreshSuccess = await this.tryRefreshToken();
 
       if (!refreshSuccess) {
         throw new Error('Не удалось обновить токен');
       }
 
-      // Обновляем заголовок авторизации в оригинальном запросе
       const newToken = await this.getAuthToken();
       if (newToken && originalRequest.headers) {
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        const headers = originalRequest.headers as HeadersType;
+        headers.Authorization = `Bearer ${newToken}`;
       }
 
-      // Повторяем оригинальный запрос
-      const response = await this.instance!.request(originalRequest);
+      const instance = this.getInstanceOrThrow();
+      const response = await instance.request(originalRequest);
 
       // Выполняем все ожидающие запросы
-      this.failedRequests.forEach((request) => {
-        const token = this.getAuthToken();
+      for (const request of this.failedRequests) {
+        const token = await this.getAuthToken();
         if (token && request.config.headers) {
-          request.config.headers.Authorization = `Bearer ${token}`;
+          const headers = request.config.headers as HeadersType;
+          headers.Authorization = `Bearer ${token}`;
         }
-        this.instance!.request(request.config).then(request.resolve).catch(request.reject);
-      });
+        try {
+          const instanceForRequest = this.getInstanceOrThrow();
+          const resp = await instanceForRequest.request(request.config);
+          request.resolve(resp);
+        } catch (err) {
+          request.reject(err);
+        }
+      }
 
-      // Очищаем очередь
       this.failedRequests = [];
 
       return response;
     } catch (error) {
-      // Обрабатываем ошибки для всех ожидающих запросов
-      this.failedRequests.forEach((request) => request.reject(error));
+      for (const request of this.failedRequests) {
+        request.reject(error);
+      }
       this.failedRequests = [];
       throw error;
     } finally {
@@ -233,12 +244,11 @@ class AxiosService {
         return false;
       }
 
-      // Создаем временный экземпляр axios без интерцепторов для обновления токена
       const refreshAxios = axios.create({
         baseURL: Config.API_URL,
         headers: {
           'Content-Type': 'application/json',
-        },
+        } as HeadersType,
       });
 
       const response = await refreshAxios.post('/api/auth/refresh', {
@@ -246,15 +256,12 @@ class AxiosService {
       });
 
       if (response.data.success && response.data.data?.accessToken) {
-        // Сохраняем новый токен
         await SecureStorageService.saveAccessToken(response.data.data.accessToken);
 
-        // Если есть новый refresh токен, сохраняем его
         if (response.data.data.refreshToken) {
           await SecureStorageService.saveRefreshToken(response.data.data.refreshToken);
         }
 
-        // Обновляем заголовок в основном экземпляре
         this.setAuthHeader(response.data.data.accessToken);
 
         if (__DEV__) {
@@ -273,7 +280,7 @@ class AxiosService {
   }
 
   /**
-   * Инициализация сервисов приложения с автоматическим добавлением платформенных заголовков
+   * Инициализация сервисов приложения
    */
   public static async initializeWithAppDefaults(
     axiosConfig: AxiosServiceConfig = {},
@@ -283,7 +290,6 @@ class AxiosService {
         console.log('🚀 Инициализация AxiosService с настройками приложения...');
       }
 
-      // Инициализируем AxiosService с платформенными заголовками
       this.initialize({
         timeout: axiosConfig.timeout || 30000,
         baseURL: Config.API_URL,
@@ -293,7 +299,7 @@ class AxiosService {
           'X-App-Version': '1.0.0',
           'X-Device-Name': Platform.OS === 'ios' ? 'iOS' : 'Android',
           ...axiosConfig.headers,
-        },
+        } as HeadersType,
       });
 
       if (__DEV__) {
@@ -311,10 +317,12 @@ class AxiosService {
    */
   private static getInstance(): AxiosInstance {
     if (!this.instance) {
-      // Автоматическая инициализация с настройками по умолчанию
       this.initialize();
     }
-    return this.instance as AxiosInstance;
+    if (!this.instance) {
+      throw new Error('Не удалось инициализировать AxiosService');
+    }
+    return this.instance;
   }
 
   /**
@@ -324,7 +332,8 @@ class AxiosService {
     url: string,
     config?: AxiosRequestConfig,
   ): Promise<R> {
-    return this.getInstance().get<ApiResponse<T>, R>(url, config);
+    const instance = this.getInstance();
+    return instance.get<ApiResponse<T>, R>(url, config);
   }
 
   /**
@@ -335,7 +344,8 @@ class AxiosService {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
-    return this.getInstance().post<ApiResponse<T>, R>(url, data, config);
+    const instance = this.getInstance();
+    return instance.post<ApiResponse<T>, R>(url, data, config);
   }
 
   /**
@@ -346,7 +356,8 @@ class AxiosService {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
-    return this.getInstance().put<ApiResponse<T>, R>(url, data, config);
+    const instance = this.getInstance();
+    return instance.put<ApiResponse<T>, R>(url, data, config);
   }
 
   /**
@@ -357,7 +368,8 @@ class AxiosService {
     data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
-    return this.getInstance().patch<ApiResponse<T>, R>(url, data, config);
+    const instance = this.getInstance();
+    return instance.patch<ApiResponse<T>, R>(url, data, config);
   }
 
   /**
@@ -367,7 +379,8 @@ class AxiosService {
     url: string,
     config?: AxiosRequestConfig,
   ): Promise<R> {
-    return this.getInstance().delete<ApiResponse<T>, R>(url, config);
+    const instance = this.getInstance();
+    return instance.delete<ApiResponse<T>, R>(url, config);
   }
 
   /**
@@ -378,14 +391,15 @@ class AxiosService {
     formData: FormData,
     config?: AxiosRequestConfig,
   ): Promise<R> {
+    const instance = this.getInstance();
     const uploadConfig: AxiosRequestConfig = {
       headers: {
         'Content-Type': 'multipart/form-data',
-      },
+      } as HeadersType,
       ...config,
     };
 
-    return this.getInstance().post<ApiResponse<T>, R>(url, formData, uploadConfig);
+    return instance.post<ApiResponse<T>, R>(url, formData, uploadConfig);
   }
 
   /**
@@ -410,18 +424,22 @@ class AxiosService {
   private static async handleUnauthorized(): Promise<void> {
     const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
     if (phone.success && phone.data) {
-      await this.post('/api/auth/logout', {
-        phoneNumber: phone.data,
-      });
+      try {
+        await this.post('/api/auth/logout', {
+          phoneNumber: phone.data,
+        });
+      } catch (error) {
+        console.error('[AxiosService] Ошибка при logout:', error);
+      }
+
       SecureStorageService.clearAll()
         .then(() => {
           console.warn('[AxiosService] Сессия истекла. Токены очищены.');
-          // TODO выход из приложения
         })
         .catch((clearError: unknown) => {
           console.error('[AxiosService] Ошибка очистки токенов:', clearError);
         });
-      // Отправка события истечения сессии
+
       this.emitUnauthorized({
         timestamp: Date.now(),
         message: 'Сессия истекла',
@@ -457,7 +475,6 @@ class AxiosService {
    * Отправка события ошибки сервера
    */
   private static emitServerError(error: AxiosError): void {
-    // Можно добавить отдельное событие для ошибок сервера
     console.error('[AxiosService] Ошибка сервера:', error.response?.status, error.config?.url);
   }
 
@@ -475,11 +492,16 @@ class AxiosService {
 
   /**
    * Установить заголовок аутентификации напрямую
-   * (альтернатива автоматическому получению из SecureStorage)
    */
   public static setAuthHeader(token: string): void {
     const instance = this.getInstance();
-    instance.defaults.headers.Authorization = `Bearer ${token}`;
+    // Используем common для установки заголовка по умолчанию для всех запросов
+    if (instance.defaults.headers.common) {
+      instance.defaults.headers.common.Authorization = `Bearer ${token}`;
+    } else {
+      // Для старых версий axios
+      (instance.defaults.headers as HeadersType).Authorization = `Bearer ${token}`;
+    }
   }
 
   /**
