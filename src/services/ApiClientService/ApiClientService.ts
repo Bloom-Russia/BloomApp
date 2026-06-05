@@ -1,5 +1,4 @@
-// Импортируем типы навигации
-import { AuthStackParamList, EScreens, UnAuthStackParamList } from '@navigation';
+import { EScreens } from '@navigation';
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import AxiosService, { ApiResponse } from '../AxiosService';
 import NavigationService from '../NavigationService';
@@ -35,8 +34,7 @@ class ApiClientService {
       );
 
       if (response.data.success) {
-        // Теперь без any - напрямую передаем параметры
-        NavigationService.navigate<keyof UnAuthStackParamList>(EScreens.SMS_CONFIRM_SCREEN, {
+        NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
           phone: `+7${phone}`,
         });
       }
@@ -68,7 +66,7 @@ class ApiClientService {
     }
   }
 
-  // Верификация кода подтверждения и если isVerified === true, значит авторизовались
+  // Верификация кода подтверждения и если isVerified === true, значти авторизовались
   static async verifyCode({
     code,
     phone,
@@ -85,6 +83,7 @@ class ApiClientService {
       );
 
       if (response.data.success) {
+        // Явно приводим тип через unknown или используем утверждение типа
         const responseData = response.data.data as unknown as AuthTokens;
         const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
 
@@ -115,8 +114,7 @@ class ApiClientService {
       if (response.data.success) {
         vibrate(VIBRATION_DURATION.LONG);
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
-        // Без any
-        NavigationService.navigate<keyof AuthStackParamList>(EScreens.TABS_STACK);
+        NavigationService.navigate(EScreens.TABS_STACK as any);
       }
 
       return response.data;
@@ -125,7 +123,6 @@ class ApiClientService {
       return undefined;
     }
   }
-
   // Верификация PIN кода
   static async verifyPinCode({
     pinCode,
@@ -142,8 +139,7 @@ class ApiClientService {
 
       if (response.data.success) {
         vibrate(VIBRATION_DURATION.LONG);
-        // Без any
-        NavigationService.navigate<keyof AuthStackParamList>(EScreens.TABS_STACK);
+        NavigationService.navigate(EScreens.TABS_STACK as any);
       }
 
       return response.data;

@@ -11,245 +11,225 @@ import { CurrentRouteInfo } from './types';
 
 // Объявляем класс
 export class NavigationServiceClass {
-    private static instance: NavigationServiceClass;
+  private static instance: NavigationServiceClass;
 
-    private navigationRef: RefObject<NavigationContainerRef<RootStackParamList>> | null = null;
+  private navigationRef: RefObject<NavigationContainerRef<RootStackParamList>> | null = null;
 
-    private constructor() {}
+  private constructor() {}
 
-    static getInstance(): NavigationServiceClass {
-        if (!NavigationServiceClass.instance) {
-            NavigationServiceClass.instance = new NavigationServiceClass();
-        }
-        return NavigationServiceClass.instance;
+  static getInstance(): NavigationServiceClass {
+    if (!NavigationServiceClass.instance) {
+      NavigationServiceClass.instance = new NavigationServiceClass();
+    }
+    return NavigationServiceClass.instance;
+  }
+
+  // Основной метод навигации
+
+  navigate<RouteName extends keyof RootStackParamList>(
+    name: RouteName,
+    params?: RootStackParamList[RouteName],
+  ): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    // Обновляем для поддержки nullable типов
-    static setNavigationRef(ref: RefObject<NavigationContainerRef<RootStackParamList>> | null): void {
-        NavigationServiceClass.getInstance().navigationRef = ref;
-        console.log('Навигационный референс установлен');
+    try {
+      // Использование типизированного подхода
+      type NavigateFunction = <T extends keyof RootStackParamList>(
+        name: T,
+        params?: RootStackParamList[T],
+      ) => void;
+
+      const navigateFunc = this.navigationRef.current.navigate as NavigateFunction;
+      navigateFunc(name, params);
+    } catch (error) {
+      console.error('Ошибка навигации:', error);
+    }
+  }
+
+  dispatch(action: NavigationAction): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    setNavigationRef(ref: RefObject<NavigationContainerRef<RootStackParamList>> | null): void {
-        this.navigationRef = ref;
-        console.log('Навигационный референс установлен');
+    try {
+      this.navigationRef.current.dispatch(action);
+    } catch (error) {
+      console.error('Ошибка диспетчеризации действия:', error);
+    }
+  }
+
+  replace<RouteName extends keyof RootStackParamList>(
+    name: RouteName,
+    params?: RootStackParamList[RouteName],
+  ): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    // Основной метод навигации
+    try {
+      this.navigationRef.current.dispatch(StackActions.replace(name as string, params));
+    } catch (error) {
+      console.error('Ошибка при замене экрана:', error);
+    }
+  }
 
-    navigate<RouteName extends keyof RootStackParamList>(
-        name: RouteName,
-        params?: RootStackParamList[RouteName],
-    ): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
-
-        try {
-            // Использование типизированного подхода
-            type NavigateFunction = <T extends keyof RootStackParamList>(
-                name: T,
-                params?: RootStackParamList[T]
-            ) => void;
-
-            const navigateFunc = this.navigationRef.current.navigate as NavigateFunction;
-            navigateFunc(name, params);
-        } catch (error) {
-            console.error('Ошибка навигации:', error);
-        }
+  push<RouteName extends keyof RootStackParamList>(
+    name: RouteName,
+    params?: RootStackParamList[RouteName],
+  ): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    dispatch(action: NavigationAction): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    try {
+      this.navigationRef.current.dispatch(StackActions.push(name as string, params));
+    } catch (error) {
+      console.error('Ошибка при push навигации:', error);
+    }
+  }
 
-        try {
-            this.navigationRef.current.dispatch(action);
-        } catch (error) {
-            console.error('Ошибка диспетчеризации действия:', error);
-        }
+  pop(count = 1): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    replace<RouteName extends keyof RootStackParamList>(
-        name: RouteName,
-        params?: RootStackParamList[RouteName],
-    ): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    try {
+      this.navigationRef.current.dispatch(StackActions.pop(count));
+    } catch (error) {
+      console.error('Ошибка при pop навигации:', error);
+    }
+  }
 
-        try {
-            this.navigationRef.current.dispatch(
-                StackActions.replace(name as string, params)
-            );
-        } catch (error) {
-            console.error('Ошибка при замене экрана:', error);
-        }
+  goBack(): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    push<RouteName extends keyof RootStackParamList>(
-        name: RouteName,
-        params?: RootStackParamList[RouteName],
-    ): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    try {
+      this.navigationRef.current.goBack();
+    } catch (error) {
+      console.error('Ошибка при возврате назад:', error);
+    }
+  }
 
-        try {
-            this.navigationRef.current.dispatch(
-                StackActions.push(name as string, params)
-            );
-        } catch (error) {
-            console.error('Ошибка при push навигации:', error);
-        }
+  reset<RouteName extends keyof RootStackParamList>(
+    name: RouteName,
+    params?: RootStackParamList[RouteName],
+  ): void {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return;
     }
 
-    pop(count = 1): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    try {
+      this.navigationRef.current.reset({
+        index: 0,
+        routes: [{ name: name as string, params }],
+      });
+    } catch (error) {
+      console.error('Ошибка сброса навигации:', error);
+    }
+  }
 
-        try {
-            this.navigationRef.current.dispatch(StackActions.pop(count));
-        } catch (error) {
-            console.error('Ошибка при pop навигации:', error);
-        }
+  private getCurrentRoute(
+    state: NavigationState | PartialState<NavigationState>,
+  ): CurrentRouteInfo | null {
+    if (!state || !state.routes || state.index === undefined) {
+      console.warn('Неверное состояние навигации');
+      return null;
     }
 
-    goBack(): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    const route = state.routes[state.index];
 
-        try {
-            this.navigationRef.current.goBack();
-        } catch (error) {
-            console.error('Ошибка при возврате назад:', error);
-        }
+    // Проверяем тип route для TypeScript
+    if ('state' in route && route.state) {
+      return this.getCurrentRoute(route.state);
     }
 
-    reset<RouteName extends keyof RootStackParamList>(
-        name: RouteName,
-        params?: RootStackParamList[RouteName],
-    ): void {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return;
-        }
+    return {
+      name: route.name,
+      params: 'params' in route ? route.params : undefined,
+    };
+  }
 
-        try {
-            this.navigationRef.current.reset({
-                index: 0,
-                routes: [{ name: name as string, params }],
-            });
-        } catch (error) {
-            console.error('Ошибка сброса навигации:', error);
-        }
+  getCurrentRouteFromRoot(): CurrentRouteInfo | null {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return null;
     }
 
-    private getCurrentRoute(
-        state: NavigationState | PartialState<NavigationState>,
-    ): CurrentRouteInfo | null {
-        if (!state || !state.routes || state.index === undefined) {
-            console.warn('Неверное состояние навигации');
-            return null;
-        }
+    const state = this.navigationRef.current.getRootState();
+    return this.getCurrentRoute(state);
+  }
 
-        const route = state.routes[state.index];
+  // Дополнительные полезные методы с типизацией
 
-        // Проверяем тип route для TypeScript
-        if ('state' in route && route.state) {
-            return this.getCurrentRoute(route.state);
-        }
+  canGoBack(): boolean {
+    if (!this.navigationRef?.current) {
+      return false;
+    }
+    return this.navigationRef.current.canGoBack();
+  }
 
-        return {
-            name: route.name,
-            params: 'params' in route ? route.params : undefined,
-        };
+  getCurrentState(): NavigationState | undefined {
+    if (!this.navigationRef?.current) {
+      console.error('Навигационный референс не установлен или null');
+      return undefined;
     }
 
-    getCurrentRouteFromRoot(): CurrentRouteInfo | null {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return null;
-        }
+    return this.navigationRef.current.getRootState();
+  }
 
-        const state = this.navigationRef.current.getRootState();
-        return this.getCurrentRoute(state);
+  // Метод для безопасного получения параметров экрана
+  getCurrentParams<RouteName extends keyof RootStackParamList>():
+    | RootStackParamList[RouteName]
+    | undefined {
+    const route = this.getCurrentRouteFromRoot();
+    return route?.params as RootStackParamList[RouteName] | undefined;
+  }
+
+  // Альтернативный вариант с более точной типизацией
+  getCurrentParamsForScreen<RouteName extends keyof RootStackParamList>(
+    screenName?: RouteName,
+  ): RootStackParamList[RouteName] | undefined {
+    const route = this.getCurrentRouteFromRoot();
+
+    // Если указано имя экрана, проверяем, что текущий экран соответствует
+    if (screenName && route?.name !== screenName) {
+      return undefined;
     }
 
-    // Дополнительные полезные методы с типизацией
+    return route?.params as RootStackParamList[RouteName] | undefined;
+  }
 
-    canGoBack(): boolean {
-        if (!this.navigationRef?.current) {
-            return false;
-        }
-        return this.navigationRef.current.canGoBack();
+  // Вспомогательный метод для получения текущего имени экрана
+  getCurrentScreenName(): string | undefined {
+    const route = this.getCurrentRouteFromRoot();
+    return route?.name;
+  }
+
+  // Проверка, находимся ли мы на определенном экране
+  isCurrentScreen<RouteName extends keyof RootStackParamList>(screenName: RouteName): boolean {
+    const currentRoute = this.getCurrentRouteFromRoot();
+    return currentRoute?.name === screenName;
+  }
+
+  // Вспомогательный метод для безопасного перехода назад
+  safeGoBack(): boolean {
+    if (this.canGoBack()) {
+      this.goBack();
+      return true;
     }
-
-    getCurrentState(): NavigationState | undefined {
-        if (!this.navigationRef?.current) {
-            console.error('Навигационный референс не установлен или null');
-            return undefined;
-        }
-
-        return this.navigationRef.current.getRootState();
-    }
-
-    // Метод для безопасного получения параметров экрана
-    getCurrentParams<RouteName extends keyof RootStackParamList>():
-        | RootStackParamList[RouteName]
-        | undefined {
-        const route = this.getCurrentRouteFromRoot();
-        return route?.params as RootStackParamList[RouteName] | undefined;
-    }
-
-    // Альтернативный вариант с более точной типизацией
-    getCurrentParamsForScreen<RouteName extends keyof RootStackParamList>(
-        screenName?: RouteName,
-    ): RootStackParamList[RouteName] | undefined {
-        const route = this.getCurrentRouteFromRoot();
-
-        // Если указано имя экрана, проверяем, что текущий экран соответствует
-        if (screenName && route?.name !== screenName) {
-            return undefined;
-        }
-
-        return route?.params as RootStackParamList[RouteName] | undefined;
-    }
-
-    // Вспомогательный метод для получения текущего имени экрана
-    getCurrentScreenName(): string | undefined {
-        const route = this.getCurrentRouteFromRoot();
-        return route?.name;
-    }
-
-    // Проверка, находимся ли мы на определенном экране
-    isCurrentScreen<RouteName extends keyof RootStackParamList>(screenName: RouteName): boolean {
-        const currentRoute = this.getCurrentRouteFromRoot();
-        return currentRoute?.name === screenName;
-    }
-
-    // Вспомогательный метод для безопасного перехода назад
-    safeGoBack(): boolean {
-        if (this.canGoBack()) {
-            this.goBack();
-            return true;
-        }
-        return false;
-    }
-
-    // Утилита для проверки наличия референса
-    isReady(): boolean {
-        return !!this.navigationRef?.current;
-    }
+    return false;
+  }
 }
 
 // Экспортируем инстанс как дефолтный экспорт
