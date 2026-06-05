@@ -24,6 +24,17 @@ export class NavigationServiceClass {
     return NavigationServiceClass.instance;
   }
 
+  // Обновляем для поддержки nullable типов
+  static setNavigationRef(ref: RefObject<NavigationContainerRef<RootStackParamList>> | null): void {
+    NavigationServiceClass.getInstance().navigationRef = ref;
+    console.log('Навигационный референс установлен');
+  }
+
+  setNavigationRef(ref: RefObject<NavigationContainerRef<RootStackParamList>> | null): void {
+    this.navigationRef = ref;
+    console.log('Навигационный референс установлен');
+  }
+
   // Основной метод навигации
 
   navigate<RouteName extends keyof RootStackParamList>(

@@ -1,7 +1,6 @@
-// useNavigationService.ts
 import { useNavigationContainerRef } from '@react-navigation/native';
-import { useEffect } from 'react';
 import { NavigationService } from '@services';
+import { useEffect } from 'react';
 
 export const useNavigationService = () => {
   const navigationRef = useNavigationContainerRef();

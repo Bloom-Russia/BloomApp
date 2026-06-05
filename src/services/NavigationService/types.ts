@@ -15,6 +15,7 @@ export type NavigationServiceType = NavigationService;
 // Экспортируем публичный интерфейс с выбором методов
 export type NavigationServicePublicInterface = Pick<
   NavigationServiceClass,
+  | 'setNavigationRef'
   | 'navigate'
   | 'dispatch'
   | 'replace'
