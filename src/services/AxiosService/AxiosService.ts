@@ -1,4 +1,3 @@
-import { CONFIG } from '@config';
 import { SecureStorageKeys } from '@services';
 import axios, {
   AxiosError,
@@ -8,6 +7,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { DeviceEventEmitter, Platform } from 'react-native';
+import Config from 'react-native-config';
 import { SecureStorageService } from '../SecureStorageService';
 import {
   ApiResponse,
@@ -45,7 +45,7 @@ class AxiosService {
     }
 
     this.instance = axios.create({
-      baseURL: CONFIG.API_URL,
+      baseURL: Config.API_URL,
       timeout: axiosConfig.timeout || 15000,
       headers: {
         'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ class AxiosService {
 
       // Создаем временный экземпляр axios без интерцепторов для обновления токена
       const refreshAxios = axios.create({
-        baseURL: CONFIG.API_URL,
+        baseURL: Config.API_URL,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -286,7 +286,7 @@ class AxiosService {
       // Инициализируем AxiosService с платформенными заголовками
       this.initialize({
         timeout: axiosConfig.timeout || 30000,
-        baseURL: CONFIG.API_URL,
+        baseURL: Config.API_URL,
         withCredentials: axiosConfig.withCredentials,
         headers: {
           'X-Platform': Platform.OS,
@@ -304,22 +304,6 @@ class AxiosService {
       console.error('❌ Ошибка инициализации AxiosService:', error);
       return false;
     }
-  }
-
-  /**
-   * @deprecated Используйте initializeWithAppDefaults для лучшей читаемости
-   */
-  public static async initializeAppServices(
-    axiosConfig: AxiosServiceConfig = {},
-  ): Promise<boolean> {
-    return this.initializeWithAppDefaults(axiosConfig);
-  }
-
-  /**
-   * @deprecated Используйте initializeWithAppDefaults
-   */
-  public static async initializeService(axiosConfig: AxiosServiceConfig = {}): Promise<boolean> {
-    return this.initializeWithAppDefaults(axiosConfig);
   }
 
   /**
@@ -490,95 +474,6 @@ class AxiosService {
   }
 
   /**
-   * Подписаться на событие истечения сессии
-   */
-  public static onUnauthorized(callback: (event: UnauthorizedEvent) => void): () => void {
-    if (DeviceEventEmitter) {
-      const subscription = DeviceEventEmitter.addListener(this.UNAUTHORIZED_EVENT, callback);
-
-      // Возвращаем функцию для отписки
-      return () => subscription.remove();
-    }
-
-    // Пустая функция для отписки, если DeviceEventEmitter не доступен
-    return () => {
-      // Пустая функция для отписки
-    };
-  }
-
-  /**
-   * Подписаться на событие ошибки сети
-   */
-  public static onNetworkError(callback: (event: NetworkErrorEvent) => void): () => void {
-    if (DeviceEventEmitter) {
-      const subscription = DeviceEventEmitter.addListener(this.NETWORK_ERROR_EVENT, callback);
-
-      return () => subscription.remove();
-    }
-
-    return () => {
-      // Пустая функция для отписки
-    };
-  }
-
-  /**
-   * Подписаться на событие завершения запроса
-   */
-  public static onRequestCompleted(callback: (event: RequestCompletedEvent) => void): () => void {
-    if (DeviceEventEmitter && __DEV__) {
-      const subscription = DeviceEventEmitter.addListener(this.REQUEST_COMPLETED_EVENT, callback);
-
-      return () => subscription.remove();
-    }
-
-    return () => {
-      // Пустая функция для отписки
-    };
-  }
-
-  /**
-   * Установить базовый URL
-   */
-  public static setBaseURL(baseURL: string): void {
-    const instance = this.getInstance();
-    instance.defaults.baseURL = baseURL;
-
-    if (__DEV__) {
-      console.log('[AxiosService] Базовый URL обновлен:', baseURL);
-    }
-  }
-
-  /**
-   * Установить таймаут
-   */
-  public static setTimeout(timeout: number): void {
-    const instance = this.getInstance();
-    instance.defaults.timeout = timeout;
-
-    if (__DEV__) {
-      console.log('[AxiosService] Таймаут обновлен:', timeout);
-    }
-  }
-
-  /**
-   * Добавить заголовки
-   */
-  public static setHeaders(headers: Record<string, string>): void {
-    const instance = this.getInstance();
-    // Создаем новый объект заголовков с правильным типом
-    const currentHeaders = instance.defaults.headers as any;
-    const newHeaders = {
-      ...currentHeaders,
-      ...headers,
-    };
-    instance.defaults.headers = newHeaders;
-
-    if (__DEV__) {
-      console.log('[AxiosService] Заголовки обновлены:', headers);
-    }
-  }
-
-  /**
    * Установить заголовок аутентификации напрямую
    * (альтернатива автоматическому получению из SecureStorage)
    */
@@ -588,98 +483,10 @@ class AxiosService {
   }
 
   /**
-   * Очистить заголовок аутентификации
-   */
-  public static clearAuthHeader(): void {
-    const instance = this.getInstance();
-    // Используем delete для удаления заголовка
-    if (instance.defaults.headers) {
-      delete (instance.defaults.headers as any).Authorization;
-    }
-  }
-
-  /**
    * Проверить инициализацию
    */
   public static isServiceInitialized(): boolean {
     return this.isInitialized;
-  }
-
-  /**
-   * Получить текущую конфигурацию
-   */
-  public static getConfig(): AxiosServiceConfig {
-    const instance = this.getInstance();
-    const { headers } = instance.defaults;
-
-    return {
-      baseURL: instance.defaults.baseURL as string,
-      timeout: instance.defaults.timeout,
-      headers: headers ? this.simplifyHeaders(headers) : {},
-      withCredentials: instance.defaults.withCredentials,
-    };
-  }
-
-  /**
-   * Преобразование заголовков axios в простой объект
-   */
-  private static simplifyHeaders(headers: any): Record<string, string> {
-    const result: Record<string, string> = {};
-
-    if (headers && typeof headers === 'object') {
-      Object.keys(headers).forEach((key) => {
-        const value = headers[key];
-        if (typeof value === 'string') {
-          result[key] = value;
-        } else if (value && typeof value === 'object' && 'toString' in value) {
-          result[key] = value.toString();
-        }
-      });
-    }
-
-    return result;
-  }
-
-  /**
-   * Очистить все настройки и сбросить экземпляр
-   */
-  public static reset(): void {
-    if (this.instance) {
-      // Очищаем интерцепторы
-      this.instance.interceptors.request.clear();
-      this.instance.interceptors.response.clear();
-      this.instance = null;
-    }
-    this.isInitialized = false;
-    this.isRefreshing = false;
-    this.failedRequests = [];
-
-    if (__DEV__) {
-      console.log('[AxiosService] Сброс выполнен');
-    }
-  }
-
-  /**
-   * Создать новый экземпляр с другой конфигурацией
-   */
-  public static createNewInstance(config: AxiosServiceConfig): AxiosInstance {
-    return axios.create({
-      baseURL: config.baseURL || 'https://api.example.com',
-      timeout: config.timeout || 15000,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...config.headers,
-      },
-      withCredentials: config.withCredentials || false,
-    });
-  }
-
-  /**
-   * Получить экземпляр Axios для прямого использования
-   */
-  public static get axiosInstance(): AxiosInstance {
-    return this.getInstance();
   }
 }
 

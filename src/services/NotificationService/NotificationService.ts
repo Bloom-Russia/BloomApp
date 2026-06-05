@@ -1,24 +1,25 @@
 // NotificationService.ts
+import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import _ from 'lodash';
 import { NativeEventEmitter, NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import {
   SecureStorageKeys,
   SecureStorageResult,
   SecureStorageService,
 } from '../SecureStorageService';
-import { NotificationHandler, NotificationPayload } from './types';
-
-// Интерфейс для расширенного notification с полем sound
-interface ExtendedNotification extends FirebaseMessagingTypes.Notification {
-  sound?: string;
-}
+import {
+  ExtendedNotification,
+  IOSNotificationData,
+  NotifeeNotificationDetail,
+  NotificationHandler,
+  NotificationPayload,
+} from './types';
 
 class NotificationService {
   private static instance: NotificationService;
   private static notificationHandlers: NotificationHandler[] = [];
   private initialNotification: FirebaseMessagingTypes.RemoteMessage | null = null;
-  private nativeEventEmitter: NativeEventEmitter | null = null;
+  private readonly nativeEventEmitter: NativeEventEmitter | null = null;
   private isInitialized = false;
   private isProcessingForeground = new Set<string>();
   private lastNotificationTime = new Map<string, number>();
@@ -66,13 +67,21 @@ class NotificationService {
     try {
       console.log(`[${Platform.OS}] Инициализация сервиса уведомлений...`);
 
+      // Инициализируем Notifee
+      await this.initializeNotifee();
+
       // Запрашиваем разрешения
-      await this.requestPermission();
+      const hasPermission = await this.requestPermission();
 
-      // Получаем FCM токен
-      await this.getFCMToken();
+      if (hasPermission) {
+        // Получаем и обновляем FCM токен
+        await this.getFCMToken();
 
-      // Настраиваем обработчики сообщений (только подписчики, не показ уведомлений)
+        // Подписываемся на обновления токена (важно для iOS)
+        this.setupTokenRefresh();
+      }
+
+      // Настраиваем обработчики сообщений
       this.setupMessageHandlers();
 
       // Проверяем, было ли приложение открыто по тапу на уведомление
@@ -83,6 +92,206 @@ class NotificationService {
     } catch (error) {
       console.error(`[${Platform.OS}] Ошибка при инициализации сервиса уведомлений:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Инициализация Notifee
+   */
+  private async initializeNotifee(): Promise<void> {
+    // Создаем канал для уведомлений (Android)
+    if (Platform.OS === 'android') {
+      await notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        sound: 'default',
+      });
+
+      await notifee.createChannel({
+        id: 'verification',
+        name: 'Verification Channel',
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        sound: 'default',
+      });
+
+      await notifee.createChannel({
+        id: 'silent',
+        name: 'Silent Channel',
+        importance: AndroidImportance.LOW,
+      });
+    }
+
+    // Настройка обработчика нажатий на уведомления
+    notifee.onForegroundEvent(({ type, detail }) => {
+      switch (type) {
+        case EventType.PRESS:
+          console.log('[Notifee] Уведомление нажато:', detail.notification);
+          this.handleNotificationPress(detail.notification);
+          break;
+        case EventType.ACTION_PRESS:
+          console.log('[Notifee] Нажата кнопка действия:', detail.pressAction);
+          if (detail.pressAction) {
+            this.handleNotificationAction(detail.pressAction);
+          }
+          break;
+        case EventType.DISMISSED:
+          console.log('[Notifee] Уведомление отклонено');
+          break;
+      }
+    });
+  }
+
+  /**
+   * Обработка нажатия на уведомление
+   */
+  private handleNotificationPress(notification: unknown): void {
+    const notifeeNotification = notification as NotifeeNotificationDetail['notification'];
+    const data = notifeeNotification?.data;
+    if (data) {
+      const payload: NotificationPayload = {
+        title: notifeeNotification?.title || '',
+        body: notifeeNotification?.body || '',
+        data: data,
+        messageId: data.messageId || Date.now().toString(),
+        platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
+        isForeground: false,
+      };
+      this.notifyHandlersFromInstance(payload);
+    }
+  }
+
+  /**
+   * Обработка нажатия на кнопку действия
+   */
+  private handleNotificationAction(action: { id: string }): void {
+    console.log('[Notifee] Действие:', action);
+    // TODO: Обработка действий (например, ответить, прочитать и т.д.)
+  }
+
+  /**
+   * Показ локального уведомления
+   */
+  private async showLocalNotification(
+    notification: NotificationPayload,
+    _isForeground: boolean = true,
+  ): Promise<void> {
+    try {
+      // Не показываем silent уведомления
+      if (notification.isSilent) {
+        console.log('[NotificationService] Silent уведомление, не показываем');
+        return;
+      }
+
+      // Не показываем уведомления без заголовка и тела
+      if (!notification.title && !notification.body) {
+        console.log('[NotificationService] Уведомление без заголовка и тела, не показываем');
+        return;
+      }
+
+      // Определяем канал в зависимости от типа
+      let channelId = 'default';
+      if (notification.data?.type === 'verification') {
+        channelId = 'verification';
+      } else if (notification.isSilent) {
+        channelId = 'silent';
+      }
+
+      // Подготовка iOS конфигурации
+      const iosConfig: {
+        sound: string;
+        badgeCount?: number;
+      } = {
+        sound: notification.sound || 'default',
+      };
+
+      // Проверяем badge: должен быть числом и >= 0
+      if (
+        typeof notification.badge === 'number' &&
+        notification.badge >= 0 &&
+        !isNaN(notification.badge)
+      ) {
+        iosConfig.badgeCount = notification.badge;
+      }
+
+      // Настройка для Android - используем any для обхода проблемы с типами
+      const androidConfig =
+        Platform.OS === 'android'
+          ? {
+              channelId,
+              pressAction: { id: 'default' },
+              importance: AndroidImportance.HIGH,
+              autoCancel: true,
+              ...(notification.data?.image && {
+                style: 'bigpicture',
+                picture: notification.data.image,
+              }),
+            }
+          : undefined;
+
+      // Показываем уведомление
+      await notifee.displayNotification({
+        title: notification.title,
+        body: notification.body,
+        data: notification.data,
+        android: androidConfig as any,
+        ios: Platform.OS === 'ios' ? iosConfig : undefined,
+      });
+
+      console.log(`[Notifee] Уведомление показано: ${notification.title}`);
+    } catch (error) {
+      console.error('[NotificationService] Ошибка показа уведомления:', error);
+    }
+  }
+
+  /**
+   * Обновление бейджа на иконке приложения (iOS)
+   */
+  private async updateBadgeCount(count: number): Promise<void> {
+    if (Platform.OS === 'ios') {
+      try {
+        // Убеждаемся, что count - это неотрицательное число
+        const validCount = count >= 0 && !isNaN(count) ? count : 0;
+        await notifee.setBadgeCount(validCount);
+        console.log(`[iOS] Бейдж обновлен: ${validCount}`);
+      } catch (error) {
+        console.error('[iOS] Ошибка обновления бейджа:', error);
+      }
+    }
+  }
+
+  /**
+   * Подписка на обновление токена (важно для iOS)
+   */
+  private setupTokenRefresh(): void {
+    messaging().onTokenRefresh(async (_token: string) => {
+      console.log(`[${Platform.OS}] Токен обновлён`);
+      const freshToken = await this.getFreshToken();
+      if (freshToken) {
+        await SecureStorageService.saveValue(SecureStorageKeys.FCM_TOKEN_KEY, freshToken);
+        // Отправляем новый токен на сервер
+        await this.sendTokenToServer(freshToken);
+      }
+    });
+  }
+
+  /**
+   * Отправка токена на сервер
+   */
+  private async sendTokenToServer(_token: string): Promise<void> {
+    console.log(`[${Platform.OS}] Отправка токена на сервер временно отключена`);
+
+    try {
+      const userIdResult = await SecureStorageService.getValue(SecureStorageKeys.USER_ID);
+      if (userIdResult.success && userIdResult.data) {
+        console.log(
+          `[${Platform.OS}] Токен отправлен на сервер для пользователя: ${userIdResult.data}`,
+        );
+      }
+    } catch (error) {
+      console.error(`[${Platform.OS}] Ошибка отправки токена на сервер:`, error);
     }
   }
 
@@ -105,6 +314,10 @@ class NotificationService {
         permissionGranted =
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+        if (permissionGranted) {
+          console.log('[iOS] Разрешения на уведомления получены');
+        }
       } else {
         const androidVersion = Platform.Version;
         const versionNumber =
@@ -143,12 +356,39 @@ class NotificationService {
       const savedTokenResult: SecureStorageResult<string | null> =
         await SecureStorageService.getValue(SecureStorageKeys.FCM_TOKEN_KEY);
 
-      console.log('savedTokenResult: ', JSON.stringify(savedTokenResult.data));
+      console.log('[NotificationService] Saved token exists:', !!savedTokenResult.data);
 
       if (savedTokenResult.success && savedTokenResult.data) {
+        if (Platform.OS === 'ios') {
+          const freshToken = await this.getFreshToken();
+          if (freshToken && freshToken !== savedTokenResult.data) {
+            await SecureStorageService.saveValue(SecureStorageKeys.FCM_TOKEN_KEY, freshToken);
+            await this.sendTokenToServer(freshToken);
+            return freshToken;
+          }
+        }
         return savedTokenResult.data;
       }
 
+      const freshToken = await this.getFreshToken();
+      if (freshToken) {
+        await SecureStorageService.saveValue(SecureStorageKeys.FCM_TOKEN_KEY, freshToken);
+        await this.sendTokenToServer(freshToken);
+        return freshToken;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Ошибка при получении FCM токена:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Получение свежего токена из FCM
+   */
+  private async getFreshToken(): Promise<string | null> {
+    try {
       const enabled = await messaging().hasPermission();
       const hasPermission =
         enabled === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -156,15 +396,14 @@ class NotificationService {
 
       if (hasPermission) {
         const token = await messaging().getToken();
-        if (token) {
-          await SecureStorageService.saveValue(SecureStorageKeys.FCM_TOKEN_KEY, token);
+        if (token && token.length > 0) {
+          console.log(`[${Platform.OS}] Получен свежий токен:`, `${token.substring(0, 20)}...`);
           return token;
         }
       }
-
       return null;
     } catch (error) {
-      console.error('Ошибка при получении FCM токена:', error);
+      console.error('Ошибка при получении свежего токена:', error);
       return null;
     }
   }
@@ -180,13 +419,11 @@ class NotificationService {
     const safeTitle = title || '';
     const dedupeKey = messageId || `${safeTitle}_${currentTime}`;
 
-    // Проверяем, обрабатывается ли уже это уведомление
     if (this.isProcessingForeground.has(dedupeKey)) {
       console.log(`[${Platform.OS}] Уведомление уже обрабатывается: ${dedupeKey}`);
       return false;
     }
 
-    // Проверяем время последнего показа похожего уведомления
     const lastTime = this.lastNotificationTime.get(safeTitle);
     if (lastTime && currentTime - lastTime < 5000) {
       console.log(`[${Platform.OS}] Похожее уведомление показывалось недавно: ${safeTitle}`);
@@ -196,14 +433,12 @@ class NotificationService {
     this.isProcessingForeground.add(dedupeKey);
     this.lastNotificationTime.set(safeTitle, currentTime);
 
-    // Очищаем старые записи
     setTimeout(() => {
       this.isProcessingForeground.delete(dedupeKey);
     }, 10000);
 
-    // Ограничиваем размер Map
     if (this.lastNotificationTime.size > 50) {
-      const oldestKey = this.lastNotificationTime.keys().next().value;
+      const oldestKey = Array.from(this.lastNotificationTime.keys())[0];
       if (oldestKey) {
         this.lastNotificationTime.delete(oldestKey);
       }
@@ -227,7 +462,7 @@ class NotificationService {
    * Настройка обработчиков для Android
    */
   private setupAndroidMessageHandlers(): void {
-    console.log('[Android] Настройка обработчиков сообщений (только подписчики)');
+    console.log('[Android] Настройка обработчиков сообщений');
 
     messaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
       const messageId = remoteMessage.messageId;
@@ -235,22 +470,25 @@ class NotificationService {
 
       console.log('[Android] Уведомление получено в foreground:', messageId);
 
-      // Проверка дедупликации
       if (!this.shouldProcessNotification(messageId, title)) {
         return;
       }
 
-      // Только преобразуем и уведомляем подписчиков
-      // Показ уведомления будет обрабатываться NotifeeService
       const notification = this.transformMessageToNotification(remoteMessage);
+
+      // Показываем уведомление в foreground
+      await this.showLocalNotification(notification, true);
+
       this.notifyHandlersFromInstance(notification);
     });
 
     messaging().setBackgroundMessageHandler(
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
         console.log('[Android] Уведомление обработано в background:', remoteMessage.messageId);
-
         const notification = this.transformMessageToNotification(remoteMessage);
+
+        // В background показываем уведомление
+        await this.showLocalNotification(notification, false);
         this.notifyHandlersFromInstance(notification);
 
         return Promise.resolve();
@@ -259,7 +497,6 @@ class NotificationService {
 
     messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
       console.log('[Android] Приложение открыто по уведомлению:', remoteMessage.messageId);
-
       const notification = this.transformMessageToNotification(remoteMessage);
       this.notifyHandlersFromInstance(notification);
     });
@@ -270,10 +507,12 @@ class NotificationService {
         if (remoteMessage) {
           console.log('[Android] Первоначальное уведомление:', remoteMessage.messageId);
           this.initialNotification = remoteMessage;
-
           const notification = this.transformMessageToNotification(remoteMessage);
           this.notifyHandlersFromInstance(notification);
         }
+      })
+      .catch((error: Error) => {
+        console.error('[Android] Ошибка получения initial notification:', error);
       });
   }
 
@@ -296,22 +535,23 @@ class NotificationService {
       return;
     }
 
-    this.nativeEventEmitter.addListener('FCMNotificationReceived', (data: unknown) => {
-      console.log('[iOS] Уведомление получено через нативный мост:', data);
-
+    this.nativeEventEmitter.addListener('FCMNotificationReceived', async (data: unknown) => {
+      console.log('[iOS] Уведомление получено через нативный мост');
       const notification = this.transformNativeDataToNotification(data, true);
+
+      // Показываем уведомление
+      await this.showLocalNotification(notification, true);
       this.notifyHandlersFromInstance(notification);
     });
 
     this.nativeEventEmitter.addListener('NotificationOpened', (data: unknown) => {
-      console.log('[iOS] Уведомление открыто через нативный мост:', data);
-
+      console.log('[iOS] Уведомление открыто через нативный мост');
       const notification = this.transformNativeDataToNotification(data, false);
       this.notifyHandlersFromInstance(notification);
     });
 
     this.nativeEventEmitter.addListener('SilentPushReceived', (data: unknown) => {
-      console.log('[iOS] Silent push получен:', data);
+      console.log('[iOS] Silent push получен');
       this.handleSilentPush(data as Record<string, string>);
     });
   }
@@ -327,18 +567,19 @@ class NotificationService {
 
         console.log('[iOS] Уведомление получено через FCM (foreground):', messageId);
 
-        // Проверка дедупликации
         if (!this.shouldProcessNotification(messageId, title)) {
           return;
         }
 
         const notification = this.transformMessageToNotification(remoteMessage);
+
+        // Показываем уведомление в foreground
+        await this.showLocalNotification(notification, true);
         this.notifyHandlersFromInstance(notification);
       });
 
       messaging().onNotificationOpenedApp((remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
         console.log('[iOS] Приложение открыто по уведомлению (FCM):', remoteMessage.messageId);
-
         const notification = this.transformMessageToNotification(remoteMessage);
         this.notifyHandlersFromInstance(notification);
       });
@@ -349,7 +590,6 @@ class NotificationService {
           if (remoteMessage) {
             console.log('[iOS] Первоначальное уведомление (FCM):', remoteMessage.messageId);
             this.initialNotification = remoteMessage;
-
             const notification = this.transformMessageToNotification(remoteMessage);
             this.notifyHandlersFromInstance(notification);
           }
@@ -364,11 +604,14 @@ class NotificationService {
 
           const isSilent = !remoteMessage.notification && remoteMessage.data;
           if (isSilent) {
-            console.log('[iOS] Silent push через FCM:', remoteMessage.data);
+            console.log('[iOS] Silent push через FCM');
             this.handleSilentPush(remoteMessage.data as Record<string, string>);
           }
 
           const notification = this.transformMessageToNotification(remoteMessage);
+
+          // В background показываем уведомление
+          await this.showLocalNotification(notification, false);
           this.notifyHandlersFromInstance(notification);
 
           return Promise.resolve();
@@ -386,72 +629,81 @@ class NotificationService {
     data: unknown,
     isForeground: boolean,
   ): NotificationPayload {
-    const dataObj = data as Record<string, unknown> | null;
-    const notificationData = dataObj?.data || dataObj;
-    const isSilent = (dataObj?.isSilent as boolean) || false;
+    const iosData = data as IOSNotificationData;
+    const notificationData = iosData.data || iosData;
+    const isSilent = iosData.isSilent || false;
 
-    // Безопасное получение sound
-    let sound: string | undefined = 'default';
-    const soundFromData = dataObj?.sound;
+    let sound: string = 'default';
+    const soundFromData = iosData.sound;
 
     if (soundFromData) {
       if (typeof soundFromData === 'string') {
         sound = soundFromData;
-      } else if (typeof soundFromData === 'object') {
-        const soundObj = soundFromData as Record<string, unknown>;
-        if (soundObj.name && typeof soundObj.name === 'string') {
-          sound = soundObj.name;
-        }
+      } else if (
+        typeof soundFromData === 'object' &&
+        'name' in soundFromData &&
+        typeof soundFromData.name === 'string'
+      ) {
+        sound = soundFromData.name;
       }
     }
 
-    // Получаем notification объект из dataObj
-    const notificationObj = dataObj?.notification as Record<string, unknown> | undefined;
-
-    // Если есть notification в dataObj, используем его поля
-    const notificationDataObj = notificationData as Record<string, unknown> | null;
+    const notificationObj = iosData.notification;
 
     let title = '';
     let body = '';
     const dataForPayload: Record<string, string> = {};
 
-    if (notificationDataObj) {
-      // Извлекаем данные для payload
-      Object.keys(notificationDataObj).forEach((key) => {
-        const value = notificationDataObj[key];
+    if (notificationData && typeof notificationData === 'object') {
+      Object.keys(notificationData).forEach((key) => {
+        const value = (notificationData as Record<string, unknown>)[key];
         if (typeof value === 'string') {
           dataForPayload[key] = value;
         } else if (typeof value === 'number') {
-          dataForPayload[key] = value.toString();
+          dataForPayload[key] = String(value);
         }
       });
 
-      // Получаем title и body
-      title = (notificationDataObj.title as string) || '';
-      body = (notificationDataObj.body as string) || '';
+      title = dataForPayload.title || '';
+      body = dataForPayload.body || '';
     }
 
-    // Приоритет: notificationObj > dataObj
-    if (notificationObj?.title && typeof notificationObj.title === 'string') {
-      title = notificationObj.title;
-    }
-    if (notificationObj?.body && typeof notificationObj.body === 'string') {
-      body = notificationObj.body;
+    if (notificationObj && typeof notificationObj === 'object') {
+      if ('title' in notificationObj && typeof notificationObj.title === 'string') {
+        title = notificationObj.title;
+      }
+      if ('body' in notificationObj && typeof notificationObj.body === 'string') {
+        body = notificationObj.body;
+      }
     }
 
-    const badge = dataObj?.badge ? parseInt(String(dataObj.badge), 10) : undefined;
+    let badge: number | undefined;
+    if (
+      iosData.badge !== undefined &&
+      iosData.badge !== null &&
+      iosData.badge >= 0 &&
+      !isNaN(iosData.badge)
+    ) {
+      badge = iosData.badge;
+    }
 
-    return {
+    const result: NotificationPayload = {
       title,
       body,
       data: dataForPayload,
-      messageId: (dataObj?.messageId as string) || Date.now().toString(),
-      platform: Platform.OS as 'ios' | 'android' | undefined,
+      messageId: iosData.messageId || Date.now().toString(),
+      platform: 'ios',
       isForeground,
       isSilent,
-      badge,
       sound,
-    } as NotificationPayload;
+    };
+
+    if (badge !== undefined) {
+      result.badge = badge;
+      this.updateBadgeCount(badge).catch((err) => console.error('Ошибка обновления бейджа:', err));
+    }
+
+    return result;
   }
 
   /**
@@ -463,28 +715,6 @@ class NotificationService {
     if (this.nativeEventEmitter) {
       this.nativeEventEmitter.emit('DataUpdated', data);
     }
-
-    if (data.type === 'data_update') {
-      this.processDataUpdate(data);
-    }
-
-    if (data.type === 'sync') {
-      this.triggerDataSync(data);
-    }
-  }
-
-  /**
-   * Обработка обновления данных
-   */
-  private processDataUpdate(data: Record<string, string>): void {
-    console.log('[iOS] Обработка обновления данных:', data);
-  }
-
-  /**
-   * Триггер синхронизации данных
-   */
-  private triggerDataSync(data: Record<string, string>): void {
-    console.log('[iOS] Запуск синхронизации данных:', data);
   }
 
   /**
@@ -513,41 +743,33 @@ class NotificationService {
   ): NotificationPayload {
     const { notification, data, messageId } = remoteMessage;
 
-    // Используем расширенный интерфейс для доступа к sound
     const extendedNotification = notification as ExtendedNotification | undefined;
 
-    let title = extendedNotification?.title;
-    let body = extendedNotification?.body;
+    let title = extendedNotification?.title || '';
+    let body = extendedNotification?.body || '';
 
     if (!title && data?.title) {
-      title = data.title as string;
+      title = typeof data.title === 'string' ? data.title : '';
     }
     if (!body && data?.body) {
-      body = data.body as string;
+      body = typeof data.body === 'string' ? data.body : '';
     }
 
-    const badge = data?.badge ? parseInt(String(data.badge), 10) : undefined;
+    let badge: number | undefined;
+    if (data?.badge) {
+      const parsedBadge = parseInt(String(data.badge), 10);
+      if (!isNaN(parsedBadge) && parsedBadge >= 0) {
+        badge = parsedBadge;
+      }
+    }
 
-    // Безопасное получение sound с проверкой типа
-    let sound: string | undefined = 'default';
-
-    // Проверяем notification.sound через расширенный интерфейс
+    let sound: string = 'default';
     const notificationSound = extendedNotification?.sound;
+
     if (notificationSound) {
       sound = notificationSound;
-    }
-    // Проверяем data.sound
-    else if (data?.sound) {
-      if (typeof data.sound === 'string') {
-        sound = data.sound;
-      }
-      // Если data.sound это объект, можно попытаться извлечь имя звука
-      else if (typeof data.sound === 'object') {
-        const soundObj = data.sound as Record<string, unknown>;
-        if (soundObj.name && typeof soundObj.name === 'string') {
-          sound = soundObj.name;
-        }
-      }
+    } else if (data?.sound && typeof data.sound === 'string') {
+      sound = data.sound;
     }
 
     const payloadData: Record<string, string> = {};
@@ -556,21 +778,26 @@ class NotificationService {
         const value = data[key];
         if (typeof value === 'string') {
           payloadData[key] = value;
-        } else if (_.isNumber(value)) {
-          payloadData[key] = (value as number).toString(); // Type assertion
         }
       });
     }
 
-    return {
-      title: title || '',
-      body: body || '',
+    const result: NotificationPayload = {
+      title,
+      body,
       data: payloadData,
       messageId: messageId || Date.now().toString(),
-      badge,
       sound,
-      platform: Platform.OS as 'ios' | 'android' | undefined,
-    } as NotificationPayload;
+      platform: Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : undefined,
+      isForeground: false,
+    };
+
+    if (badge !== undefined) {
+      result.badge = badge;
+      this.updateBadgeCount(badge).catch((err) => console.error('Ошибка обновления бейджа:', err));
+    }
+
+    return result;
   }
 
   /**
@@ -584,92 +811,6 @@ class NotificationService {
     });
 
     NotificationService.notifySubscribers(notification);
-  }
-
-  /**
-   * Подписка на уведомления
-   */
-  subscribe(handler: NotificationHandler): void {
-    if (!NotificationService.notificationHandlers.includes(handler)) {
-      NotificationService.notificationHandlers.push(handler);
-    }
-  }
-
-  /**
-   * Отписка от уведомлений
-   */
-  unsubscribe(handler: NotificationHandler): void {
-    NotificationService.notificationHandlers = NotificationService.notificationHandlers.filter(
-      (h) => h !== handler,
-    );
-  }
-
-  /**
-   * Удаление FCM токена (для логаута)
-   */
-  async deleteToken(): Promise<void> {
-    try {
-      await messaging().deleteToken();
-      const removeResult = await SecureStorageService.removeValue(SecureStorageKeys.FCM_TOKEN_KEY);
-
-      if (removeResult.success) {
-        console.log('FCM токен удален');
-      } else {
-        console.warn('Не удалось удалить FCM токен из хранилища');
-      }
-    } catch (error) {
-      console.error('Ошибка при удалении FCM токена:', error);
-    }
-  }
-
-  /**
-   * Получение текущего статуса разрешений
-   */
-  async getPermissionStatus(): Promise<string> {
-    try {
-      const statusResult: SecureStorageResult<string | null> = await SecureStorageService.getValue(
-        SecureStorageKeys.NOTIFICATION_PERMISSION_KEY,
-      );
-
-      if (statusResult.success && statusResult.data) {
-        return statusResult.data;
-      }
-      return 'not_determined';
-    } catch (error) {
-      console.error('Ошибка при получении статуса разрешений:', error);
-      return 'unknown';
-    }
-  }
-
-  /**
-   * Получение текущего initial notification
-   */
-  getInitialNotification(): FirebaseMessagingTypes.RemoteMessage | null {
-    return this.initialNotification;
-  }
-
-  /**
-   * Очистка initial notification
-   */
-  clearInitialNotification(): void {
-    this.initialNotification = null;
-  }
-
-  /**
-   * Очистка ресурсов при размонтировании
-   */
-  cleanup(): void {
-    if (this.nativeEventEmitter) {
-      this.nativeEventEmitter.removeAllListeners('FCMNotificationReceived');
-      this.nativeEventEmitter.removeAllListeners('NotificationOpened');
-      this.nativeEventEmitter.removeAllListeners('SilentPushReceived');
-    }
-
-    this.isInitialized = false;
-    this.isProcessingForeground.clear();
-    this.lastNotificationTime.clear();
-
-    console.log(`[${Platform.OS}] Ресурсы NotificationService очищены`);
   }
 }
 

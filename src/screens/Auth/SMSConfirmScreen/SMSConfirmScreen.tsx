@@ -20,6 +20,7 @@ import {
 import React, { memo, useCallback, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Image } from 'react-native';
+import Config from 'react-native-config';
 import styled from 'styled-components';
 
 const CELL_COUNT = 4;
@@ -109,7 +110,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
         <ResendCodeButton
           loading={false}
           startTimeInMillis={startTime}
-          timeout={10}
+          timeout={Number(Config.RESEND_TIMEOUT)}
           resendCode={resendCode}
         />
 

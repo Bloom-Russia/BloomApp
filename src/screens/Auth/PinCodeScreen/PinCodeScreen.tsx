@@ -8,6 +8,7 @@ import { Block, Colors, ESpacings, Row, ScreenContainer, Typography } from '@UIK
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
+import Config from 'react-native-config';
 
 import {
   ExitButton,
@@ -18,7 +19,6 @@ import {
   StyledDots,
   StyledImage,
 } from './components';
-import { ERROR_TIMEOUT } from './constants';
 import {
   useGetActionButton,
   useHandleExitApp,
@@ -67,7 +67,7 @@ const PinCodeScreenComponent: React.FC<
     errorTimeoutRef.current = setTimeout(() => {
       setErrorMessage('');
       errorTimeoutRef.current = null;
-    }, ERROR_TIMEOUT);
+    }, Number(Config.ERROR_TIMEOUT));
   }, []);
 
   // Функция ввода PIN-кода для входа

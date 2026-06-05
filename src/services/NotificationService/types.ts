@@ -1,41 +1,43 @@
-export interface LocalNotification {
-  id: string;
-  title?: string;
-  body?: string;
-  data?: Record<string, any>;
-  timestamp: number;
-  type?: 'info' | 'warning' | 'error' | 'success';
-  priority?: 'high' | 'normal' | 'low';
-  isRead?: boolean;
-  imageUrl?: string;
-  platform?: 'ios' | 'android';
-  fcmMessageId?: string;
-}
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
-export type NotificationPayload = {
-  title?: string;
-  body?: string;
-  data?: Record<string, any>;
+export interface NotificationPayload {
+  title: string;
+  body: string;
+  data?: Record<string, string>;
+  messageId: string;
   platform?: 'ios' | 'android';
   isForeground?: boolean;
   isSilent?: boolean;
   badge?: number;
   sound?: string;
-  [key: string]: any;
-};
+}
 
-export interface LocalNotification {
-  id: string;
-  title?: string;
-  body?: string;
-  data?: Record<string, any>;
-  timestamp: number;
-  type?: 'info' | 'warning' | 'error' | 'success';
-  priority?: 'high' | 'normal' | 'low';
-  isRead?: boolean;
-  imageUrl?: string;
-  platform?: 'ios' | 'android';
-  fcmMessageId?: string;
+// Тип для нативных событий iOS
+export interface IOSNotificationData {
+  data?: Record<string, unknown>;
+  notification?: Record<string, unknown>;
+  messageId?: string;
+  badge?: number;
+  sound?: string | { name: string };
+  isSilent?: boolean;
+  type?: string;
+}
+
+// Тип для деталей уведомления от Notifee
+export interface NotifeeNotificationDetail {
+  notification?: {
+    title?: string;
+    body?: string;
+    data?: Record<string, string>;
+  };
+  pressAction?: {
+    id: string;
+  };
+}
+
+// Интерфейс для расширенного notification с полем sound
+export interface ExtendedNotification extends FirebaseMessagingTypes.Notification {
+  sound?: string;
 }
 
 export type NotificationHandler = (notification: NotificationPayload) => void;

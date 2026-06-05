@@ -3,10 +3,9 @@ import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Animated } from 'react-native';
-import { ANIMATION_CONFIG } from '../constants';
+import Config from 'react-native-config';
 import { NavigationProp } from '../types';
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const useAnimatedSplash = () => {
   const navigation = useNavigation<NavigationProp>();
   const lottieRef = useRef<LottieView>(null);
@@ -24,7 +23,7 @@ export const useAnimatedSplash = () => {
       try {
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: ANIMATION_CONFIG.FADE_DURATION,
+          duration: Number(Config.FADE_DURATION),
           useNativeDriver: true,
         }).start(() => {
           if (isComponentMounted) {
@@ -54,7 +53,7 @@ export const useAnimatedSplash = () => {
         }
 
         const elapsedTime = Date.now() - animationStartTime;
-        const progress = elapsedTime / ANIMATION_CONFIG.ANIMATION_DURATION;
+        const progress = elapsedTime / Number(Config.ANIMATION_DURATION);
 
         if (progress >= 1) {
           navigateToLogin();
@@ -65,14 +64,14 @@ export const useAnimatedSplash = () => {
 
       lottieRef.current.play();
       checkProgress();
-    }, ANIMATION_CONFIG.START_DELAY);
+    }, Number(Config.START_DELAY));
 
     const fallbackTimer = setTimeout(() => {
       if (isComponentMounted) {
         console.warn('Fallback: переход по таймауту');
         navigateToLogin();
       }
-    }, ANIMATION_CONFIG.FALLBACK_TIMEOUT);
+    }, Number(Config.FALLBACK_TIMEOUT));
 
     return () => {
       isComponentMounted = false;
