@@ -9,7 +9,6 @@ import {
 import { RefObject } from 'react';
 import { CurrentRouteInfo } from './types';
 
-// Объявляем класс
 export class NavigationServiceClass {
   private static instance: NavigationServiceClass;
 
