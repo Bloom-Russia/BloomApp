@@ -1,11 +1,11 @@
-import React, { useImperativeHandle } from "react";
+import React, { useImperativeHandle } from 'react';
 import {
   CodeField,
   useBlurOnFulfill,
   useClearByFocusCell,
-} from "react-native-confirmation-code-field";
+} from 'react-native-confirmation-code-field';
 
-import { SmsCodeCell } from "./components/SmsCodeCell";
+import { SmsCodeCell } from './components/SmsCodeCell';
 
 const CELL_COUNT = 4;
 
@@ -29,7 +29,7 @@ export const CodeFieldComponent = React.forwardRef<ICodeFieldComponent, Props>(
 
     useImperativeHandle(ref, () => ({
       clear: () => {
-        setValue("");
+        setValue('');
         refCodeField.current?.clear();
       },
     }));
@@ -64,8 +64,9 @@ export const CodeFieldComponent = React.forwardRef<ICodeFieldComponent, Props>(
         textContentType="oneTimeCode"
         renderCell={renderCell}
         rootStyle={{
-          justifyContent: "center",
+          justifyContent: 'center',
         }}
+        autoFocus={true}
       />
     );
   },
