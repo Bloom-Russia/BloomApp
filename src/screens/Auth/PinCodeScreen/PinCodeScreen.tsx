@@ -3,7 +3,7 @@ import { useCustomAlert } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
-import { Block, Colors, ESpacings, Row, ScreenContainer, Typography } from '@UIKit';
+import { Block, Colors, ESpacings, IconNames, Row, ScreenContainer, Typography } from '@UIKit';
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
@@ -32,7 +32,6 @@ const PinCodeScreenComponent: React.FC<
 > = memo(() => {
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.SET);
   const [currentPin, setCurrentPin] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
   const [isPinCodeSet, setIsPinCodeSet] = useState<boolean>(false);
   const [confirmPin, setConfirmPin] = useState<string>(''); // Для хранения PIN-кода при подтверждении
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // Флаг блокировки во время обработки
@@ -40,7 +39,7 @@ const PinCodeScreenComponent: React.FC<
   // Рефы для хранения таймеров
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { AlertComponent, showAlert } = useCustomAlert();
+  const { AlertComponent, showAlert, hideAlert } = useCustomAlert();
 
   // Хук для загрузки данных о PIN-коде
   const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
@@ -51,23 +50,43 @@ const PinCodeScreenComponent: React.FC<
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
-    setErrorMessage('');
-  }, []);
+    hideAlert();
+  }, [hideAlert]);
 
   // Функция для установки ошибки с автоматическим скрытием
-  const setErrorMessageWithTimeout = useCallback((message: string) => {
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
+  const setErrorMessageWithTimeout = useCallback(
+    (message: string) => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
 
-    setErrorMessage(message);
+      showAlert({
+        title: message,
+        type: 'error',
+        theme: 'dark',
+        showIcon: true,
+        buttons: [
+          {
+            text: 'Закрыть',
+            style: 'destructive',
+            showButtonIcon: true,
+            buttonIconName: IconNames.cancel,
+          },
+        ],
+      });
 
-    errorTimeoutRef.current = setTimeout(() => {
-      setErrorMessage('');
-      errorTimeoutRef.current = null;
-    }, Number(Config.ERROR_TIMEOUT));
-  }, []);
+      errorTimeoutRef.current = setTimeout(() => {
+        hideAlert();
+        errorTimeoutRef.current = null;
+      }, Number(Config.ERROR_TIMEOUT));
+    },
+    [hideAlert, showAlert],
+  );
+
+  const errorVerifyPinCodeCallBack = useCallback(() => {
+    setErrorMessageWithTimeout('Ошибка верификации PIN кода!');
+  }, [setErrorMessageWithTimeout]);
 
   // Функция ввода PIN-кода для входа
   const handleEnterPin = useCallback(
@@ -88,6 +107,7 @@ const PinCodeScreenComponent: React.FC<
         await ApiClientService.verifyPinCode({
           phoneNumber,
           pinCode: pin,
+          errorVerifyPinCodeCallBack,
         });
 
         // Успешная верификация - сбрасываем состояние
@@ -103,7 +123,7 @@ const PinCodeScreenComponent: React.FC<
         vibrate(VIBRATION_DURATION.ERROR);
       }
     },
-    [setErrorMessageWithTimeout],
+    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout],
   );
 
   // Функция подтверждения установки PIN-кода
@@ -245,7 +265,7 @@ const PinCodeScreenComponent: React.FC<
       );
     }
     return (
-      <Row justifyContent="center" marginBottom={40} gap={ESpacings.s16}>
+      <Row justifyContent="center" marginBottom={ESpacings.s16} gap={ESpacings.s16}>
         {dots}
       </Row>
     );
@@ -302,15 +322,15 @@ const PinCodeScreenComponent: React.FC<
   return (
     <ScreenContainer scrollEnabled={false}>
       <Block flex={1}>
-        <Block alignItems="center" marginTop={ESpacings.s32}>
+        <Block alignItems="center" marginTop={ESpacings.s4} marginBottom={ESpacings.s16}>
           <StyledImage source={RoundLogoAppImage} />
         </Block>
 
         <Block flex={1} padding={ESpacings.s16} alignItems="center" justifyContent="center">
-          <Block alignItems="center" marginBottom={ESpacings.s32}>
-            <Typography.R24 color={Colors.white} textAlign="center" marginBottom={ESpacings.s8}>
+          <Block alignItems="center" marginBottom={ESpacings.s16}>
+            <Typography.B16 color={Colors.white} textAlign="center" marginBottom={ESpacings.s8}>
               {getTitle()}
-            </Typography.R24>
+            </Typography.B16>
             <Typography.R14 color={Colors.textSecondary} textAlign="center">
               {getSubtitle()}
             </Typography.R14>
@@ -318,19 +338,10 @@ const PinCodeScreenComponent: React.FC<
 
           {renderPinDots()}
 
-          {errorMessage ? (
-            <Block marginBottom={ESpacings.s24}>
-              <Typography.R14 color={Colors.error} textAlign="center">
-                {errorMessage}
-              </Typography.R14>
-            </Block>
-          ) : (
-            isPinCodeSet &&
-            pinMode !== PinMode.ENTER && (
-              <ResetButton onPress={handleReset}>
-                <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
-              </ResetButton>
-            )
+          {isPinCodeSet && pinMode !== PinMode.ENTER && (
+            <ResetButton onPress={handleReset}>
+              <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
+            </ResetButton>
           )}
         </Block>
       </Block>

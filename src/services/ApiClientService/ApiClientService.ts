@@ -130,6 +130,7 @@ class ApiClientService {
   static async verifyPinCode({
     pinCode,
     phoneNumber,
+    errorVerifyPinCodeCallBack,
   }: VerifyPinCoderParams): Promise<ApiResponse<AuthResponseDataVerifyPinCode> | undefined> {
     try {
       const response = await AxiosService.post<AuthResponseDataVerifyPinCode>(
@@ -147,6 +148,7 @@ class ApiClientService {
 
       return response.data;
     } catch (error) {
+      errorVerifyPinCodeCallBack();
       console.error('Ошибка верификации PIN кода:', error);
       return undefined;
     }
