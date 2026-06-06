@@ -9,6 +9,8 @@ import {
   AuthResponseDataVerifyCode,
   AuthResponseDataVerifyPinCode,
   AuthTokens,
+  CheckPinParams,
+  CheckPinStatusResponse,
   LogoutRequest,
   LogoutResponse,
   RequestCodeParams,
@@ -119,10 +121,11 @@ class ApiClientService {
 
       return response.data;
     } catch (error) {
-      console.error('Ошибка верификации кода ', error);
+      console.error('Ошибка сохранения PIN кода:', error);
       return undefined;
     }
   }
+
   // Верификация PIN кода
   static async verifyPinCode({
     pinCode,
@@ -144,8 +147,41 @@ class ApiClientService {
 
       return response.data;
     } catch (error) {
-      console.error('Ошибка верификации PIN кода ', error);
+      console.error('Ошибка верификации PIN кода:', error);
       return undefined;
+    }
+  }
+
+  // Проверка статуса PIN-кода
+  static async checkPinStatus({
+    phoneNumber,
+  }: CheckPinParams): Promise<ApiResponse<CheckPinStatusResponse> | undefined> {
+    try {
+      const response = await AxiosService.get<CheckPinStatusResponse>('/api/auth/check-pin', {
+        params: { phoneNumber },
+      });
+
+      if (response.data.success && response.data.data) {
+        const hasPin = response.data.data.hasPin;
+        if (hasPin) {
+          await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
+        } else {
+          await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
+        }
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Ошибка проверки статуса PIN:', error);
+      return {
+        success: false,
+        message: 'Ошибка проверки PIN-кода',
+        status: 500,
+        data: {
+          hasPin: false,
+          isVerified: false,
+        },
+      };
     }
   }
 

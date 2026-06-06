@@ -29,6 +29,11 @@ export type SavePinParams = {
   pinCode: string;
 };
 
+// Параметры для проверки есть ли PIN
+export type CheckPinParams = {
+  phoneNumber: string;
+};
+
 // Тип для запроса на выход
 export interface LogoutRequest {
   phoneNumber: string;
@@ -80,4 +85,9 @@ export interface AuthTokens {
   isVerified: boolean;
   phoneNumber: string;
   hasPin: boolean;
+}
+
+export interface CheckPinStatusResponse {
+  hasPin: boolean;
+  isVerified: boolean;
 }

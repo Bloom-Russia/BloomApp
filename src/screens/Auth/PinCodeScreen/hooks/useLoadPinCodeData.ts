@@ -1,5 +1,4 @@
-// useLoadPinCodeData.ts
-import { SecureStorageKeys, SecureStorageService } from '@services';
+import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import { useCallback } from 'react';
 import { PinMode } from '../types';
 
@@ -8,18 +7,44 @@ type Props = {
   setPinMode: (value: PinMode) => void;
 };
 
-// Хук для загрузки данных о PIN-коде
 export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode }: Props) => {
   const loadPinCodeData = useCallback(async () => {
     try {
-      const { success, data } = await SecureStorageService.getValue(
-        SecureStorageKeys.PIN_CODE_IS_SET,
+      const { success: phoneSuccess, data: phoneNumber } = await SecureStorageService.getValue(
+        SecureStorageKeys.PHONE_NUMBER,
       );
-      setPinMode(success && data === 'true' ? PinMode.ENTER : PinMode.SET);
-      return setIsPinCodeSet(success && data === 'true');
+
+      if (!phoneSuccess || !phoneNumber) {
+        setPinMode(PinMode.SET);
+        setIsPinCodeSet(false);
+
+        await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
+        return;
+      }
+
+      const response = await ApiClientService.checkPinStatus({ phoneNumber });
+
+      let hasPin = false;
+
+      if (response?.success && response?.data) {
+        hasPin = response.data.hasPin;
+      } else if (response?.data.hasPin !== undefined) {
+        hasPin = response.data.hasPin;
+      }
+
+      setPinMode(hasPin ? PinMode.ENTER : PinMode.SET);
+      setIsPinCodeSet(hasPin);
+
+      if (hasPin) {
+        await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, 'true');
+      } else {
+        await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
+      }
     } catch (error) {
-      console.log('Ошибка загрузки данных PIN:', error);
-      return setIsPinCodeSet(false);
+      console.error('❌ Критическая ошибка в loadPinCodeData:', error);
+      setPinMode(PinMode.SET);
+      setIsPinCodeSet(false);
+      await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
     }
   }, [setIsPinCodeSet, setPinMode]);
 

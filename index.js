@@ -3,10 +3,9 @@ import { AppRegistry } from 'react-native';
 import App from './src/App';
 import { name as appName } from './app.json';
 import Reactotron from 'reactotron-react-native';
-import Config from 'react-native-config';
 
 Reactotron.configure({
-  host: Config.API_URL,
+  host: '192.168.1.54',
   name: 'Bloom',
   port: 9090,
 })

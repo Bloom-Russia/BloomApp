@@ -1,4 +1,3 @@
-// PinCodeScreen.tsx
 import { RoundLogoAppImage } from '@assets/images';
 import { useCustomAlert } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
