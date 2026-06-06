@@ -1,4 +1,3 @@
-import { NotifeeImage } from '@assets/images';
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
@@ -130,7 +129,8 @@ class UnifiedNotificationService {
         data: remoteMessage.data,
         android: {
           channelId: remoteMessage.data?.type === 'verification' ? 'verification' : 'default',
-          largeIcon: NotifeeImage,
+          smallIcon: 'ic_notification_small',
+          largeIcon: 'ic_notification_large',
         },
       });
     });
