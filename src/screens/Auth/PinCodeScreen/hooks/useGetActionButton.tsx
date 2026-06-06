@@ -1,6 +1,7 @@
+import { SecureStorageKeys, SecureStorageService } from '@services';
 import { ESize, Icon, IconNames } from '@UIKit';
 import { noop } from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import { BiometricKeyButton, DeleteButtonInRow } from '../components';
@@ -41,7 +42,11 @@ export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Pro
     }
   }, []);
 
-  const getActionButton = () => {
+  const getActionButton = useCallback(async () => {
+    const { success, data: hasPin } = await SecureStorageService.getValue(
+      SecureStorageKeys.PIN_CODE_IS_SET,
+    );
+
     if (hasEnteredSymbols) {
       return (
         <DeleteButtonInRow disabled={false} onPress={handleDeletePress}>
@@ -50,7 +55,10 @@ export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Pro
       );
     } else {
       return (
-        <BiometricKeyButton disabled={false} onPress={() => console.log('Биометрия')}>
+        <BiometricKeyButton
+          disabled={success && hasPin !== 'true'}
+          onPress={() => console.log('Биометрия')}
+        >
           <Icon
             size={ESize.s40}
             color="white"
@@ -59,7 +67,7 @@ export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Pro
         </BiometricKeyButton>
       );
     }
-  };
+  }, [handleDeletePress, hasEnteredSymbols, hasFaceID]);
 
   return { getActionButton };
 };

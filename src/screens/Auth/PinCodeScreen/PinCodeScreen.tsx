@@ -7,6 +7,7 @@ import { Block, Colors, ESpacings, IconNames, Row, ScreenContainer, Typography }
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
+import ReactNativeBiometrics from 'react-native-biometrics';
 import Config from 'react-native-config';
 
 import {
@@ -29,7 +30,7 @@ import { PinMode } from './types';
 
 const PinCodeScreenComponent: React.FC<
   NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>
-> = memo(() => {
+> = memo(({ navigation }) => {
   const [pinMode, setPinMode] = useState<PinMode>(PinMode.SET);
   const [currentPin, setCurrentPin] = useState<string>('');
   const [isPinCodeSet, setIsPinCodeSet] = useState<boolean>(false);
@@ -83,6 +84,41 @@ const PinCodeScreenComponent: React.FC<
     },
     [hideAlert, showAlert],
   );
+
+  const requestForTheUseOfBiometrics = useCallback(async () => {
+    const { available, biometryType } = await new ReactNativeBiometrics().isSensorAvailable();
+    const isFaceId = available && biometryType === 'FaceID';
+
+    showAlert({
+      title: 'Использовать биометрию для входа?',
+      message: isFaceId
+        ? 'Использовать Face ID для входа'
+        : 'Использовать отпечаток пальца для входа',
+      type: 'error',
+      theme: 'dark',
+      showIcon: true,
+      buttons: [
+        {
+          text: 'Позже',
+          style: 'cancel',
+          showButtonIcon: true,
+          buttonIconName: IconNames.cancel,
+          onPress: async () => {
+            return navigation.navigate(EScreens.TABS_STACK);
+          },
+        },
+        {
+          text: 'Да',
+          style: 'default',
+          showButtonIcon: true,
+          buttonIconName: isFaceId ? IconNames.faceId : IconNames.fingerprint,
+          onPress: async () => {
+            return navigation.navigate(EScreens.TABS_STACK);
+          },
+        },
+      ],
+    });
+  }, [navigation, showAlert]);
 
   const errorVerifyPinCodeCallBack = useCallback(() => {
     setErrorMessageWithTimeout('Ошибка верификации PIN кода!');
@@ -143,6 +179,7 @@ const PinCodeScreenComponent: React.FC<
         await ApiClientService.savePinCode({
           phoneNumber,
           pinCode: pin,
+          requestForTheUseOfBiometrics,
         });
 
         // Успешное сохранение - блокируем дальнейший ввод
@@ -160,7 +197,7 @@ const PinCodeScreenComponent: React.FC<
         setIsProcessing(false);
       }
     },
-    [setErrorMessageWithTimeout],
+    [requestForTheUseOfBiometrics, setErrorMessageWithTimeout],
   );
 
   // Функция обработки завершенного PIN-кода
