@@ -27,7 +27,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const { showAlert, AlertComponent } = useCustomAlert();
 
   const setPhoneHandler = useCallback((value: string) => {
-    if (value.length === 10) {
+    if (value.length === CONSTANTS.MIN_PHONE_LENGTH) {
       Keyboard.dismiss();
     }
     setPhone(value);

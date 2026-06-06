@@ -1,3 +1,4 @@
+import { AndroidImportance } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 export interface NotificationPayload {
@@ -41,6 +42,16 @@ export interface NotifeeNotificationDetail {
 // Интерфейс для расширенного notification с полем sound
 export interface ExtendedNotification extends FirebaseMessagingTypes.Notification {
   sound?: string;
+}
+
+export interface AndroidNotificationConfig {
+  channelId: string;
+  pressAction: { id: string };
+  importance: AndroidImportance;
+  autoCancel: boolean;
+  tag: string;
+  style?: string;
+  picture?: string;
 }
 
 export type NotificationHandler = (notification: NotificationPayload) => void;

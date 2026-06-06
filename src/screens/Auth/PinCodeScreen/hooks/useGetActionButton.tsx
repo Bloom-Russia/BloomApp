@@ -1,7 +1,8 @@
-// useGetActionButton.tsx - упрощенная версия
 import { ESize, Icon, IconNames } from '@UIKit';
-import React from 'react';
+import { noop } from 'lodash';
+import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import ReactNativeBiometrics from 'react-native-biometrics';
 import { BiometricKeyButton, DeleteButtonInRow } from '../components';
 
 type Props = {
@@ -9,7 +10,37 @@ type Props = {
   hasEnteredSymbols: boolean;
 };
 
+// Создаем экземпляр класса
+const reactNativeBiometrics = new ReactNativeBiometrics();
+
+// Функция проверки поддержки Face ID
+const checkForFaceIDSupport = async () => {
+  if (Platform.OS === 'ios') {
+    try {
+      const { available, biometryType } = await reactNativeBiometrics.isSensorAvailable();
+      return available && biometryType === 'FaceID';
+    } catch (error) {
+      console.error('Error checking biometrics:', error);
+      return false;
+    }
+  }
+  return false;
+};
+
 export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Props) => {
+  const [hasFaceID, setHasFaceID] = useState(false);
+
+  useEffect(() => {
+    const checkBiometrics = async () => {
+      const hasFaceIDSupport = await checkForFaceIDSupport();
+      setHasFaceID(hasFaceIDSupport);
+    };
+
+    if (Platform.OS === 'ios') {
+      checkBiometrics().then(() => noop);
+    }
+  }, []);
+
   const getActionButton = () => {
     if (hasEnteredSymbols) {
       return (
@@ -23,7 +54,7 @@ export const useGetActionButton = ({ handleDeletePress, hasEnteredSymbols }: Pro
           <Icon
             size={ESize.s40}
             color="white"
-            name={Platform.OS === 'ios' ? IconNames.faceId : IconNames.fingerprint}
+            name={Platform.OS === 'ios' && hasFaceID ? IconNames.faceId : IconNames.fingerprint}
           />
         </BiometricKeyButton>
       );

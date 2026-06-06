@@ -1,4 +1,3 @@
-// SecureStorageService.ts
 import Keychain, { ACCESSIBLE } from 'react-native-keychain';
 import { SecureStorageKeys } from './SecureStorageKeys';
 import { SecureStorageOptions, SecureStorageResult, Tokens } from './types';

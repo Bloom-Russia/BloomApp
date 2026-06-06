@@ -1,4 +1,3 @@
-// NotificationCoordinator.ts - исправленная версия с UnifiedNotificationService
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AppState,

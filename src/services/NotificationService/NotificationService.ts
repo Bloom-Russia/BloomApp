@@ -1,4 +1,3 @@
-// NotificationService.ts
 import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { NativeEventEmitter, NativeModules, PermissionsAndroid, Platform } from 'react-native';
@@ -8,23 +7,13 @@ import {
   SecureStorageService,
 } from '../SecureStorageService';
 import {
+  AndroidNotificationConfig,
   ExtendedNotification,
   IOSNotificationData,
   NotifeeNotificationDetail,
   NotificationHandler,
   NotificationPayload,
 } from './types';
-
-// Тип для Android конфигурации Notifee
-interface AndroidNotificationConfig {
-  channelId: string;
-  pressAction: { id: string };
-  importance: AndroidImportance;
-  autoCancel: boolean;
-  tag: string;
-  style?: string;
-  picture?: string;
-}
 
 class NotificationService {
   private static instance: NotificationService;
