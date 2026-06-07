@@ -24,6 +24,7 @@ export type UnAuthStackParamList = {
 
 export type AuthStackParamList = {
   [EScreens.AUTH_PIN_CODE_SCREEN]: undefined;
+  [EScreens.ON_BOARDING_SCREEN]: undefined;
   [EScreens.TABS_STACK]: undefined;
 };
 

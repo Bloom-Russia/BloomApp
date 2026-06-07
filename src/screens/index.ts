@@ -4,3 +4,4 @@ export { ChatScreen } from './Chat';
 export { MyWorksScreen } from './MyWorks';
 export { ProfileScreen } from './Profile';
 export { BootSplashScreen } from './BootSplashScreen';
+export { OnBoardingScreen } from './OnBoardingScreen';

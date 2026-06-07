@@ -30,4 +30,5 @@ export enum EScreens {
 
   // OTHER SCREENS
   BOOT_SPLASH_SCREEN = 'BootSplashScreen',
+  ON_BOARDING_SCREEN = 'OnBoardingScreen',
 }

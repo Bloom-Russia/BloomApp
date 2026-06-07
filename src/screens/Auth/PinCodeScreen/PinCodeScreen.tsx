@@ -279,7 +279,7 @@ const PinCodeScreenComponent: React.FC<
         if (phoneSuccess && phoneNumber) {
           await ApiClientService.loginWithBiometrics({ phoneNumber });
           setHasAuthenticated(true);
-          navigation.replace(EScreens.TABS_STACK);
+          navigation.replace(EScreens.ON_BOARDING_SCREEN);
           return true;
         }
       } else if (error) {
@@ -372,7 +372,7 @@ const PinCodeScreenComponent: React.FC<
       if (isBiometricsEnabled) {
         console.log('✅ Биометрия уже настроена');
         if (shouldNavigateOnCancel) {
-          navigation.replace(EScreens.TABS_STACK);
+          navigation.replace(EScreens.ON_BOARDING_SCREEN);
         }
         return;
       }
@@ -381,7 +381,7 @@ const PinCodeScreenComponent: React.FC<
         const initialized = await initBiometrics();
         if (!initialized || !biometrics.current) {
           if (shouldNavigateOnCancel) {
-            navigation.replace(EScreens.TABS_STACK);
+            navigation.replace(EScreens.ON_BOARDING_SCREEN);
           }
           return;
         }
@@ -395,7 +395,7 @@ const PinCodeScreenComponent: React.FC<
         if (!available) {
           console.log('❌ Биометрия недоступна');
           if (shouldNavigateOnCancel) {
-            navigation.replace(EScreens.TABS_STACK);
+            navigation.replace(EScreens.ON_BOARDING_SCREEN);
           }
           return;
         }
@@ -419,7 +419,7 @@ const PinCodeScreenComponent: React.FC<
                 console.log('👆 Пользователь выбрал "Позже"');
                 await saveBiometricsStatus(false);
                 if (shouldNavigateOnCancel) {
-                  navigation.replace(EScreens.TABS_STACK);
+                  navigation.replace(EScreens.ON_BOARDING_SCREEN);
                 }
               },
             },
@@ -466,7 +466,7 @@ const PinCodeScreenComponent: React.FC<
                               console.log(
                                 '👆 Пользователь нажал "Продолжить", переходим в приложение',
                               );
-                              navigation.replace(EScreens.TABS_STACK);
+                              navigation.replace(EScreens.ON_BOARDING_SCREEN);
                             },
                           },
                         ],
@@ -475,14 +475,14 @@ const PinCodeScreenComponent: React.FC<
                       console.log('❌ Не удалось сохранить ключи');
                       setErrorMessageWithTimeout('Не удалось настроить биометрию');
                       if (shouldNavigateOnCancel) {
-                        navigation.replace(EScreens.TABS_STACK);
+                        navigation.replace(EScreens.ON_BOARDING_SCREEN);
                       }
                     }
                   } else {
                     console.log('❌ Пользователь отменил подтверждение биометрии');
                     setErrorMessageWithTimeout('Настройка биометрии отменена');
                     if (shouldNavigateOnCancel) {
-                      navigation.replace(EScreens.TABS_STACK);
+                      navigation.replace(EScreens.ON_BOARDING_SCREEN);
                     }
                   }
                 } catch (error) {
@@ -552,7 +552,7 @@ const PinCodeScreenComponent: React.FC<
         supported: isSupported,
         setupCompleted: isSetupCompleted,
       });
-      navigation.replace(EScreens.TABS_STACK);
+      navigation.replace(EScreens.ON_BOARDING_SCREEN);
     }
   }, [
     isBiometricsSupported,

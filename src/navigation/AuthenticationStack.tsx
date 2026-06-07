@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { PinCodeScreen } from '@screens';
+import { OnBoardingScreen, PinCodeScreen } from '@screens';
 import { Colors } from '@UIKit';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
@@ -24,6 +24,7 @@ const Authentication: React.FC<AuthorizationStackProps> = () => {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name={EScreens.AUTH_PIN_CODE_SCREEN} component={PinCodeScreen} />
+        <Stack.Screen name={EScreens.ON_BOARDING_SCREEN} component={OnBoardingScreen} />
         <Stack.Screen name={EScreens.TABS_STACK} component={TabBarNavigator} />
       </Stack.Navigator>
     </>
