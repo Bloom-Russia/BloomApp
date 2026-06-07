@@ -20,6 +20,7 @@ export enum SecureStorageKeys {
   // ===== БИОМЕТРИЧЕСКАЯ АУТЕНТИФИКАЦИЯ =====
   /** Флаг включения/отключения биометрической аутентификации */
   BIOMETRIC_ENABLED = 'biometric_enabled',
+  BIOMETRIC_SETUP_COMPLETED = 'biometric_setup_completed',
 
   // ===== PUSH-УВЕДОМЛЕНИЯ =====
   /** FCM токен для push-уведомлений */
