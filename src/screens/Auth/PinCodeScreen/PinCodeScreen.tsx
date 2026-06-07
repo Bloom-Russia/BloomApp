@@ -676,7 +676,6 @@ const PinCodeScreenComponent: React.FC<
         setConfirmPin('');
         setIsPinCodeSet(true);
         setHasAuthenticated(true);
-        navigation.replace(EScreens.TABS_STACK);
       } catch (error) {
         console.error('Ошибка верификации PIN:', error);
         setErrorMessageWithTimeout('Неверный PIN-код');
@@ -686,7 +685,7 @@ const PinCodeScreenComponent: React.FC<
         setIsProcessing(false);
       }
     },
-    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout, navigation],
+    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout],
   );
 
   const handleConfirmPin = useCallback(
