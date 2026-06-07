@@ -91,6 +91,30 @@ const PinCodeScreenComponent: React.FC<
     [hideAlert, showAlert],
   );
 
+  // Функция для проверки статуса онбординга и навигации
+  const checkAndNavigateAfterAuth = useCallback(async () => {
+    try {
+      // Проверяем, был ли завершен онбординг
+      const { success, data: onboardingCompleted } = await SecureStorageService.getValue(
+        SecureStorageKeys.ONBOARDING_COMPLETED,
+      );
+
+      const isOnboardingCompleted = success && onboardingCompleted === 'true';
+
+      if (isOnboardingCompleted) {
+        // Если онбординг уже пройден, идем сразу в приложение
+        navigation.replace(EScreens.TABS_STACK);
+      } else {
+        // Если нет - показываем онбординг
+        navigation.replace(EScreens.ON_BOARDING_SCREEN);
+      }
+    } catch (error) {
+      console.error('Ошибка проверки статуса онбординга:', error);
+      // В случае ошибки показываем онбординг для безопасности
+      navigation.replace(EScreens.ON_BOARDING_SCREEN);
+    }
+  }, [navigation]);
+
   // Инициализация биометрии
   const initBiometrics = useCallback(async () => {
     try {
@@ -279,7 +303,8 @@ const PinCodeScreenComponent: React.FC<
         if (phoneSuccess && phoneNumber) {
           await ApiClientService.loginWithBiometrics({ phoneNumber });
           setHasAuthenticated(true);
-          navigation.replace(EScreens.ON_BOARDING_SCREEN);
+          // Проверяем статус онбординга перед переходом
+          await checkAndNavigateAfterAuth();
           return true;
         }
       } else if (error) {
@@ -300,7 +325,7 @@ const PinCodeScreenComponent: React.FC<
     hasAuthenticated,
     initBiometrics,
     resetBiometricsStatus,
-    navigation,
+    checkAndNavigateAfterAuth,
   ]);
 
   // Сохранение биометрических ключей
@@ -372,7 +397,7 @@ const PinCodeScreenComponent: React.FC<
       if (isBiometricsEnabled) {
         console.log('✅ Биометрия уже настроена');
         if (shouldNavigateOnCancel) {
-          navigation.replace(EScreens.ON_BOARDING_SCREEN);
+          await checkAndNavigateAfterAuth();
         }
         return;
       }
@@ -381,7 +406,7 @@ const PinCodeScreenComponent: React.FC<
         const initialized = await initBiometrics();
         if (!initialized || !biometrics.current) {
           if (shouldNavigateOnCancel) {
-            navigation.replace(EScreens.ON_BOARDING_SCREEN);
+            await checkAndNavigateAfterAuth();
           }
           return;
         }
@@ -395,7 +420,7 @@ const PinCodeScreenComponent: React.FC<
         if (!available) {
           console.log('❌ Биометрия недоступна');
           if (shouldNavigateOnCancel) {
-            navigation.replace(EScreens.ON_BOARDING_SCREEN);
+            await checkAndNavigateAfterAuth();
           }
           return;
         }
@@ -419,7 +444,7 @@ const PinCodeScreenComponent: React.FC<
                 console.log('👆 Пользователь выбрал "Позже"');
                 await saveBiometricsStatus(false);
                 if (shouldNavigateOnCancel) {
-                  navigation.replace(EScreens.ON_BOARDING_SCREEN);
+                  await checkAndNavigateAfterAuth();
                 }
               },
             },
@@ -462,11 +487,11 @@ const PinCodeScreenComponent: React.FC<
                           {
                             text: 'Продолжить',
                             style: 'default',
-                            onPress: () => {
+                            onPress: async () => {
                               console.log(
                                 '👆 Пользователь нажал "Продолжить", переходим в приложение',
                               );
-                              navigation.replace(EScreens.ON_BOARDING_SCREEN);
+                              await checkAndNavigateAfterAuth();
                             },
                           },
                         ],
@@ -475,14 +500,14 @@ const PinCodeScreenComponent: React.FC<
                       console.log('❌ Не удалось сохранить ключи');
                       setErrorMessageWithTimeout('Не удалось настроить биометрию');
                       if (shouldNavigateOnCancel) {
-                        navigation.replace(EScreens.ON_BOARDING_SCREEN);
+                        await checkAndNavigateAfterAuth();
                       }
                     }
                   } else {
                     console.log('❌ Пользователь отменил подтверждение биометрии');
                     setErrorMessageWithTimeout('Настройка биометрии отменена');
                     if (shouldNavigateOnCancel) {
-                      navigation.replace(EScreens.ON_BOARDING_SCREEN);
+                      await checkAndNavigateAfterAuth();
                     }
                   }
                 } catch (error) {
@@ -502,7 +527,7 @@ const PinCodeScreenComponent: React.FC<
       isBiometricsEnabled,
       isBiometricsSupported,
       initBiometrics,
-      navigation,
+      checkAndNavigateAfterAuth,
       saveBiometricKeys,
       saveBiometricsStatus,
       setErrorMessageWithTimeout,
@@ -548,11 +573,8 @@ const PinCodeScreenComponent: React.FC<
       console.log('✅ Показываем диалог настройки биометрии');
       await setupBiometrics(true);
     } else {
-      console.log('⏸️ Не показываем диалог биометрии:', {
-        supported: isSupported,
-        setupCompleted: isSetupCompleted,
-      });
-      navigation.replace(EScreens.ON_BOARDING_SCREEN);
+      console.log('⏸️ Не показываем диалог биометрии');
+      await checkAndNavigateAfterAuth();
     }
   }, [
     isBiometricsSupported,
@@ -560,7 +582,7 @@ const PinCodeScreenComponent: React.FC<
     isPinCodeSet,
     initBiometrics,
     setupBiometrics,
-    navigation,
+    checkAndNavigateAfterAuth,
   ]);
 
   // Автоматический вход по биометрии - только один раз
@@ -676,6 +698,8 @@ const PinCodeScreenComponent: React.FC<
         setConfirmPin('');
         setIsPinCodeSet(true);
         setHasAuthenticated(true);
+        // Проверяем статус онбординга перед переходом
+        await checkAndNavigateAfterAuth();
       } catch (error) {
         console.error('Ошибка верификации PIN:', error);
         setErrorMessageWithTimeout('Неверный PIN-код');
@@ -685,7 +709,7 @@ const PinCodeScreenComponent: React.FC<
         setIsProcessing(false);
       }
     },
-    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout],
+    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout, checkAndNavigateAfterAuth],
   );
 
   const handleConfirmPin = useCallback(

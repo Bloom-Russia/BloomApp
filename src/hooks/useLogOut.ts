@@ -25,7 +25,7 @@ export const useLogOut = () => {
           console.error('Ошибка удаления биометрических ключей:', error);
         }
 
-        // Очищаем все данные из SecureStorage (включая BIOMETRIC_ENABLED и BIOMETRIC_SETUP_COMPLETED)
+        // Очищаем все данные из SecureStorage (включая BIOMETRIC_ENABLED и BIOMETRIC_SETUP_COMPLETED и ONBOARDING_COMPLETED)
         await SecureStorageService.clearAll();
 
         // Обновляем состояние авторизации

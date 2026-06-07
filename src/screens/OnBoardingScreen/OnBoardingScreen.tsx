@@ -85,7 +85,8 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
 
   const completeOnboarding = async () => {
     try {
-      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, true);
+      // Сохраняем как строку для консистентности
+      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, 'true');
     } catch (_error) {
       console.error('Ошибка при завершении онбординга:', _error);
     }
