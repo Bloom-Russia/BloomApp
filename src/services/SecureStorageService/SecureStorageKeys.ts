@@ -29,10 +29,6 @@ export enum SecureStorageKeys {
   // ===== PIN-КОД ДЛЯ ПРИЛОЖЕНИЯ =====
   /** PIN-код для входа в приложение */
   PIN_CODE_IS_SET = 'pin_code_is_set',
-  /** Количество неудачных попыток ввода PIN-кода */
-  PIN_ATTEMPTS = 'pin_attempts',
-  /** Время последней неудачной попытки ввода PIN-кода */
-  PIN_LAST_FAILED = 'pin_last_failed',
-  /** Время последней успешной аутентификации */
-  PIN_LAST_SUCCESS = 'pin_last_success',
+  /** onboarding показан */
+  ONBOARDING_COMPLETED = 'onboarding_completed',
 }

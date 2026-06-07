@@ -10,6 +10,7 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   onPress: () => void;
+  paddingHorizontal?: number;
 } & SpacingsProps;
 
 export const Button: React.FC<Props> = ({
@@ -19,6 +20,7 @@ export const Button: React.FC<Props> = ({
   onPress,
   disabled,
   loading,
+  paddingHorizontal = 0,
   ...props
 }) => {
   const onPressHandler = useCallback(() => {
@@ -31,7 +33,9 @@ export const Button: React.FC<Props> = ({
         {loading ? (
           <ActivityIndicator size="large" color={'white'} />
         ) : (
-          <Typography.B14 color={textColor}>{title}</Typography.B14>
+          <Typography.B14 paddingHorizontal={paddingHorizontal} color={textColor}>
+            {title}
+          </Typography.B14>
         )}
       </StyledPressable>
     </Block>

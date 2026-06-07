@@ -13,6 +13,7 @@ import {
   CheckPinStatusResponse,
   LogoutRequest,
   LogoutResponse,
+  OnboardingResponse,
   RequestCodeParams,
   SavePinParams,
   SavePinResponse,
@@ -256,6 +257,24 @@ class ApiClientService {
       return response.data;
     } catch (error) {
       console.error('❌ Ошибка сохранения биометрического ключа:', error);
+      return undefined;
+    }
+  }
+
+  // Получение слайдов для онбординга
+  static async getOnboardingSlides(): Promise<ApiResponse<OnboardingResponse> | undefined> {
+    try {
+      const response = await AxiosService.get<OnboardingResponse>('/api/other/onboarding');
+
+      if (response.data.success && response.data.data) {
+        // Можно сохранить статус просмотра онбординга, если нужно
+        await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, false);
+        console.log('✅ Слайды онбординга успешно получены');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Ошибка получения слайдов онбординга:', error);
       return undefined;
     }
   }

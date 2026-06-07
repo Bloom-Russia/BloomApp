@@ -9,3 +9,6 @@ export { Input } from './Input';
 export { ScreenContainer } from './ScreenContainer';
 export { Header } from './ScreenContainer';
 export { Separator } from './Separator';
+export { Avatar } from './Avatar';
+export { MultiSelect } from './MultiSelect';
+export { Select } from './Select';

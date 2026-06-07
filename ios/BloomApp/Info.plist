@@ -28,6 +28,10 @@
 	<false/>
 	<key>NSFaceIDUsageDescription</key>
     <string>Приложению требуется доступ к Face ID для безопасного входа</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Приложению нужен доступ к камере для фото аватара</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Приложению нужен доступ к галерее для выбора аватара</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

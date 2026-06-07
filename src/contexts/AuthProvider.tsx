@@ -1,4 +1,4 @@
-import { SecureStorageKeys, SecureStorageService } from '@services';
+import { SecureStorageService } from '@services';
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import { AuthContextType } from 'src/contexts/types'; // Тип контекста
 
@@ -10,7 +10,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const setIsVerified = useCallback(async (value: boolean) => {
-    await SecureStorageService.saveValue(SecureStorageKeys.IS_VERIFIED, value);
+    await SecureStorageService.saveIsVerified(value);
     setIsVerifiedState(value);
   }, []);
 
@@ -21,10 +21,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadVerifiedStatus = async () => {
     try {
-      const verified = await SecureStorageService.getValue(SecureStorageKeys.IS_VERIFIED);
+      const verified = await SecureStorageService.loadIsVerified();
 
       if (verified.success && verified.data !== null) {
-        setIsVerifiedState(verified.data === 'true');
+        setIsVerifiedState(!!verified.data);
       } else {
         setIsVerifiedState(false);
       }

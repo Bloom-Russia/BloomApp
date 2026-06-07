@@ -9,6 +9,14 @@ export interface AuthResponseDataRequestVerificationCode {
   };
 }
 
+export interface OnboardingSlide {
+  id: number;
+  title: string;
+  description: string;
+  imageUrl: string;
+  order: number;
+}
+
 // Параметры запрос подтверждения кода
 export type VerifyCoderParams = {
   phone: string;
@@ -57,6 +65,11 @@ export type SavePinResponse = {
     hasPin: boolean;
   };
 };
+
+export interface OnboardingResponse {
+  slides: OnboardingSlide[];
+  completed: boolean;
+}
 
 export type RequestCodeParams = {
   phone: string;
