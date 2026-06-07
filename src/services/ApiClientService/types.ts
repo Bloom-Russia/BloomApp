@@ -28,7 +28,6 @@ export type VerifyPinCoderParams = {
 export type SavePinParams = {
   phoneNumber: string;
   pinCode: string;
-  requestForTheUseOfBiometrics: () => void;
 };
 
 // Параметры для проверки есть ли PIN

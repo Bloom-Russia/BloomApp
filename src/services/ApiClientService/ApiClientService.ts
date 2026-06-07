@@ -106,7 +106,6 @@ class ApiClientService {
   static async savePinCode({
     pinCode,
     phoneNumber,
-    requestForTheUseOfBiometrics,
   }: SavePinParams): Promise<ApiResponse<SavePinResponse> | undefined> {
     try {
       const response = await AxiosService.post<SavePinResponse>('/api/auth/save-pin', {
@@ -117,7 +116,6 @@ class ApiClientService {
       if (response.data.success) {
         vibrate(VIBRATION_DURATION.LONG);
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
-        requestForTheUseOfBiometrics();
       }
 
       return response.data;

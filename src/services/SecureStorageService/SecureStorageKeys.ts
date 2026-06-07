@@ -16,8 +16,6 @@ export enum SecureStorageKeys {
   // ===== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ =====
   /** Флаг верификации пользователя */
   IS_VERIFIED = 'isVerified',
-  /** ID пользователя */
-  USER_ID = 'user_id',
 
   // ===== БИОМЕТРИЧЕСКАЯ АУТЕНТИФИКАЦИЯ =====
   /** Флаг включения/отключения биометрической аутентификации */
@@ -26,8 +24,6 @@ export enum SecureStorageKeys {
   // ===== PUSH-УВЕДОМЛЕНИЯ =====
   /** FCM токен для push-уведомлений */
   FCM_TOKEN_KEY = 'fcm_token',
-  /** Разрешение на получение уведомлений */
-  NOTIFICATION_PERMISSION_KEY = 'notification_permission',
 
   // ===== PIN-КОД ДЛЯ ПРИЛОЖЕНИЯ =====
   /** PIN-код для входа в приложение */
