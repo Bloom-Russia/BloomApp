@@ -206,6 +206,59 @@ class ApiClientService {
       return undefined;
     }
   }
+
+  // Вход через биометрию
+  static async loginWithBiometrics({
+    phoneNumber,
+  }: {
+    phoneNumber: string;
+  }): Promise<ApiResponse<AuthTokens> | undefined> {
+    try {
+      const response = await AxiosService.post<AuthTokens>('/api/auth/biometric-login', {
+        phoneNumber,
+      });
+
+      if (response.data.success && response.data.data) {
+        const { accessToken, refreshToken, phoneNumber: userPhone } = response.data.data;
+
+        await SecureStorageService.saveTokens(accessToken, refreshToken);
+        await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, userPhone);
+
+        vibrate(VIBRATION_DURATION.LONG);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Ошибка биометрического входа:', error);
+      return undefined;
+    }
+  }
+
+  // Сохранение биометрического ключа на сервере
+  static async saveBiometricKey({
+    phoneNumber,
+    publicKey,
+  }: {
+    phoneNumber: string;
+    publicKey: string;
+  }): Promise<ApiResponse<{ message: string }> | undefined> {
+    try {
+      const response = await AxiosService.post<{ message: string }>('/api/auth/biometric-key', {
+        phoneNumber,
+        publicKey,
+      });
+
+      if (response.data.success) {
+        console.log('✅ Биометрический ключ успешно сохранен на сервере');
+        vibrate(VIBRATION_DURATION.SHORT);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Ошибка сохранения биометрического ключа:', error);
+      return undefined;
+    }
+  }
 }
 
 export default ApiClientService;

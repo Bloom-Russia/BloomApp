@@ -277,7 +277,7 @@ const PinCodeScreenComponent: React.FC<
         );
 
         if (phoneSuccess && phoneNumber) {
-          // await ApiClientService.loginWithBiometrics({ phoneNumber });
+          await ApiClientService.loginWithBiometrics({ phoneNumber });
           setHasAuthenticated(true);
           navigation.replace(EScreens.TABS_STACK);
           return true;
@@ -329,10 +329,10 @@ const PinCodeScreenComponent: React.FC<
       );
 
       if (success && phoneNumber && publicKey) {
-        // await ApiClientService.saveBiometricKey({
-        //   phoneNumber,
-        //   publicKey,
-        // });
+        await ApiClientService.saveBiometricKey({
+          phoneNumber,
+          publicKey,
+        });
         await saveBiometricsStatus(true);
         console.log('✅ Биометрические ключи успешно сохранены');
         return true;
