@@ -99,11 +99,11 @@ const PinCodeScreenComponent: React.FC<
 
       setIsBiometricsSupported(available);
 
-      if (Platform.OS === 'ios' && available) {
-        // Проверяем существование ключей
-        const { keysExist } = await biometrics.current.biometricKeysExist();
-        console.log('Biometrics available:', available, biometryType, 'keys exist:', keysExist);
-      }
+      console.log('📱 Биометрия инициализирована:', {
+        available,
+        biometryType,
+        platform: Platform.OS,
+      });
 
       return available;
     } catch (error) {
@@ -119,11 +119,12 @@ const PinCodeScreenComponent: React.FC<
       const { success, data } = await SecureStorageService.getValue(
         SecureStorageKeys.BIOMETRIC_ENABLED,
       );
-      if (success && data === 'true') {
-        setIsBiometricsEnabled(true);
-      }
+      const enabled = success && data === 'true';
+      setIsBiometricsEnabled(enabled);
+      return enabled;
     } catch (error) {
       console.error('Ошибка загрузки статуса биометрии:', error);
+      return false;
     }
   }, []);
 
@@ -150,6 +151,13 @@ const PinCodeScreenComponent: React.FC<
       isAuthenticatingRef.current ||
       hasAuthenticated
     ) {
+      console.log('⏸️ Биометрическая аутентификация пропущена:', {
+        isBiometricsEnabled,
+        isBiometricsSupported,
+        isProcessing,
+        isAuthenticating: isAuthenticatingRef.current,
+        hasAuthenticated,
+      });
       return false;
     }
 
@@ -159,8 +167,8 @@ const PinCodeScreenComponent: React.FC<
 
     try {
       if (!biometrics.current) {
-        await initBiometrics();
-        if (!biometrics.current) {
+        const initialized = await initBiometrics();
+        if (!initialized || !biometrics.current) {
           return false;
         }
       }
@@ -169,7 +177,7 @@ const PinCodeScreenComponent: React.FC<
       const { available } = await biometrics.current.isSensorAvailable();
 
       if (!available) {
-        console.log('Biometrics not available');
+        console.log('❌ Биометрия недоступна');
         await saveBiometricsStatus(false);
         return false;
       }
@@ -178,16 +186,15 @@ const PinCodeScreenComponent: React.FC<
       if (Platform.OS === 'ios') {
         const { keysExist } = await biometrics.current.biometricKeysExist();
         if (!keysExist) {
+          console.log('❌ Биометрические ключи не найдены');
           await saveBiometricsStatus(false);
           return false;
         }
       }
 
+      const biometricName = Platform.OS === 'ios' ? 'Face ID' : 'Touch ID';
       const { success, error } = await biometrics.current.simplePrompt({
-        promptMessage:
-          Platform.OS === 'ios'
-            ? 'Подтвердите вход с помощью Face ID'
-            : 'Подтвердите вход с помощью отпечатка пальца',
+        promptMessage: `Подтвердите вход с помощью ${biometricName}`,
         cancelButtonText: 'Отмена',
       });
 
@@ -198,17 +205,17 @@ const PinCodeScreenComponent: React.FC<
         );
 
         if (phoneSuccess && phoneNumber) {
-          //await ApiClientService.loginWithBiometrics({ phoneNumber });
+          // await ApiClientService.loginWithBiometrics({ phoneNumber });
           setHasAuthenticated(true);
           navigation.replace(EScreens.TABS_STACK);
           return true;
         }
       } else if (error) {
-        console.log('Biometric authentication failed:', error);
+        console.log('❌ Биометрическая аутентификация не удалась:', error);
       }
       return false;
     } catch (error) {
-      console.error('Error during biometric authentication:', error);
+      console.error('❌ Ошибка при биометрической аутентификации:', error);
       return false;
     } finally {
       isAuthenticatingRef.current = false;
@@ -227,8 +234,8 @@ const PinCodeScreenComponent: React.FC<
   // Сохранение биометрических ключей
   const saveBiometricKeys = useCallback(async () => {
     if (!biometrics.current) {
-      await initBiometrics();
-      if (!biometrics.current) {
+      const initialized = await initBiometrics();
+      if (!initialized || !biometrics.current) {
         return false;
       }
     }
@@ -237,21 +244,12 @@ const PinCodeScreenComponent: React.FC<
       const { available } = await biometrics.current.isSensorAvailable();
 
       if (!available) {
-        console.log('Biometrics not available for saving');
+        console.log('❌ Биометрия недоступна для сохранения');
         return false;
       }
 
-      // Проверяем, существуют ли уже ключи
-      const { keysExist } = await biometrics.current.biometricKeysExist();
-
-      let publicKey;
-      if (keysExist) {
-        const { publicKey: newKey } = await biometrics.current.createKeys();
-        publicKey = newKey;
-      } else {
-        const { publicKey: newKey } = await biometrics.current.createKeys();
-        publicKey = newKey;
-      }
+      // Создаем ключи (если существуют, будут перезаписаны)
+      const { publicKey } = await biometrics.current.createKeys();
 
       // Сохраняем публичный ключ на сервере
       const { success, data: phoneNumber } = await SecureStorageService.getValue(
@@ -264,11 +262,12 @@ const PinCodeScreenComponent: React.FC<
         //   publicKey,
         // });
         await saveBiometricsStatus(true);
+        console.log('✅ Биометрические ключи успешно сохранены');
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error saving biometric keys:', error);
+      console.error('❌ Ошибка сохранения биометрических ключей:', error);
       return false;
     }
   }, [initBiometrics, saveBiometricsStatus]);
@@ -282,132 +281,139 @@ const PinCodeScreenComponent: React.FC<
     try {
       await biometrics.current.deleteKeys();
       await saveBiometricsStatus(false);
+      console.log('✅ Биометрические ключи удалены');
     } catch (error) {
-      console.error('Error deleting biometric keys:', error);
+      console.error('❌ Ошибка удаления биометрических ключей:', error);
     }
   }, [saveBiometricsStatus]);
 
-  const onPressBiometricsButton = useCallback(async () => {
-    if (!biometrics.current) {
-      await initBiometrics();
+  // Единая функция для настройки биометрии (двухшаговая)
+  const setupBiometrics = useCallback(
+    async (shouldNavigateOnCancel: boolean = true) => {
+      // Если биометрия уже настроена, не показываем диалог повторно
+      if (isBiometricsEnabled) {
+        console.log('✅ Биометрия уже настроена');
+        if (shouldNavigateOnCancel) {
+          navigation.replace(EScreens.TABS_STACK);
+        }
+        return;
+      }
+
       if (!biometrics.current) {
-        navigation.navigate(EScreens.TABS_STACK);
-        return;
-      }
-    }
-
-    try {
-      const biometricName = Platform.OS === 'ios' ? 'Face ID' : 'Touch ID';
-
-      showAlert({
-        title: 'Использовать биометрию для входа?',
-        message: `Использовать ${biometricName} для входа`,
-        type: 'info',
-        theme: 'dark',
-        showIcon: true,
-        buttons: [
-          {
-            text: 'Позже',
-            style: 'cancel',
-            showButtonIcon: true,
-            buttonIconName: IconNames.cancel,
-            onPress: async () => {
-              await saveBiometricsStatus(false);
-            },
-          },
-          {
-            text: 'Да',
-            style: 'default',
-            showButtonIcon: true,
-            buttonIconName: Platform.OS === 'ios' ? IconNames.faceId : IconNames.fingerprint,
-            onPress: async () => {
-              const success = await saveBiometricKeys();
-              if (success) {
-                //navigation.navigate(EScreens.TABS_STACK);
-              } else {
-                setErrorMessageWithTimeout('Не удалось настроить биометрию');
-              }
-            },
-          },
-        ],
-      });
-    } catch (error) {
-      console.error('Error in onPressBiometricsButton:', error);
-    }
-  }, [
-    initBiometrics,
-    navigation,
-    saveBiometricKeys,
-    saveBiometricsStatus,
-    setErrorMessageWithTimeout,
-    showAlert,
-  ]);
-
-  // Запрос на использование биометрии
-  const requestForTheUseOfBiometrics = useCallback(async () => {
-    if (!biometrics.current) {
-      await initBiometrics();
-      if (!biometrics.current) {
-        navigation.navigate(EScreens.TABS_STACK);
-        return;
-      }
-    }
-
-    try {
-      const { available, biometryType } = await biometrics.current.isSensorAvailable();
-
-      if (!available) {
-        navigation.navigate(EScreens.TABS_STACK);
-        return;
+        const initialized = await initBiometrics();
+        if (!initialized || !biometrics.current) {
+          if (shouldNavigateOnCancel) {
+            navigation.replace(EScreens.TABS_STACK);
+          }
+          return;
+        }
       }
 
-      const isFaceId = biometryType === 'FaceID';
-      const biometricName = isFaceId ? 'Face ID' : 'Touch ID';
+      try {
+        const { available, biometryType } = await biometrics.current.isSensorAvailable();
 
-      showAlert({
-        title: 'Использовать биометрию для входа?',
-        message: `Использовать ${biometricName} для входа`,
-        type: 'info',
-        theme: 'dark',
-        showIcon: true,
-        buttons: [
-          {
-            text: 'Позже',
-            style: 'cancel',
-            showButtonIcon: true,
-            buttonIconName: IconNames.cancel,
-            onPress: async () => {
-              await saveBiometricsStatus(false);
-              navigation.navigate(EScreens.TABS_STACK);
+        if (!available) {
+          console.log('❌ Биометрия недоступна');
+          if (shouldNavigateOnCancel) {
+            navigation.replace(EScreens.TABS_STACK);
+          }
+          return;
+        }
+
+        const isFaceId = biometryType === 'FaceID';
+        const biometricName = isFaceId ? 'Face ID' : 'Touch ID';
+
+        showAlert({
+          title: 'Использовать биометрию для входа?',
+          message: `Использовать ${biometricName} для быстрого и безопасного входа в приложение`,
+          type: 'info',
+          theme: 'dark',
+          showIcon: true,
+          buttons: [
+            {
+              text: 'Позже',
+              style: 'cancel',
+              showButtonIcon: true,
+              buttonIconName: IconNames.cancel,
+              onPress: async () => {
+                await saveBiometricsStatus(false);
+                if (shouldNavigateOnCancel) {
+                  navigation.replace(EScreens.TABS_STACK);
+                }
+              },
             },
-          },
-          {
-            text: 'Да',
-            style: 'default',
-            showButtonIcon: true,
-            buttonIconName: isFaceId ? IconNames.faceId : IconNames.fingerprint,
-            onPress: async () => {
-              const success = await saveBiometricKeys();
-              if (success) {
-                navigation.navigate(EScreens.TABS_STACK);
-              } else {
-                setErrorMessageWithTimeout('Не удалось настроить биометрию');
-              }
+            {
+              text: 'Настроить',
+              style: 'default',
+              showButtonIcon: true,
+              buttonIconName: isFaceId ? IconNames.faceId : IconNames.fingerprint,
+              onPress: async () => {
+                if (!biometrics.current) {
+                  setErrorMessageWithTimeout('Биометрия недоступна');
+                  return;
+                }
+
+                // ТОЛЬКО ОДИН вызов simplePrompt - для подтверждения настройки
+                const authResult = await biometrics.current.simplePrompt({
+                  promptMessage: `Подтвердите использование ${biometricName}`,
+                  cancelButtonText: 'Отмена',
+                });
+
+                if (authResult.success) {
+                  const success = await saveBiometricKeys();
+                  if (success) {
+                    // Устанавливаем флаг, что пользователь аутентифицирован
+                    setHasAuthenticated(true);
+
+                    showAlert({
+                      title: 'Биометрия настроена',
+                      message: `${biometricName} успешно настроен(а) для входа`,
+                      type: 'success',
+                      theme: 'dark',
+                      showIcon: true,
+                      buttons: [
+                        {
+                          text: 'Продолжить',
+                          style: 'default',
+                          onPress: () => {
+                            navigation.replace(EScreens.TABS_STACK);
+                          },
+                        },
+                      ],
+                    });
+                  } else {
+                    setErrorMessageWithTimeout('Не удалось настроить биометрию');
+                    if (shouldNavigateOnCancel) {
+                      navigation.replace(EScreens.TABS_STACK);
+                    }
+                  }
+                } else {
+                  console.log('❌ Пользователь отменил подтверждение биометрии');
+                  setErrorMessageWithTimeout('Настройка биометрии отменена');
+                  if (shouldNavigateOnCancel) {
+                    navigation.replace(EScreens.TABS_STACK);
+                  }
+                }
+              },
             },
-          },
-        ],
-      });
-    } catch (error) {
-      console.error('Error in requestForTheUseOfBiometrics:', error);
-    }
-  }, [
-    initBiometrics,
-    navigation,
-    showAlert,
-    saveBiometricsStatus,
-    saveBiometricKeys,
-    setErrorMessageWithTimeout,
-  ]);
+          ],
+        });
+      } catch (error) {
+        console.error('❌ Ошибка в setupBiometrics:', error);
+        setErrorMessageWithTimeout('Произошла ошибка при настройке биометрии');
+      }
+    },
+    [
+      isBiometricsEnabled,
+      initBiometrics,
+      navigation,
+      saveBiometricKeys,
+      saveBiometricsStatus,
+      setErrorMessageWithTimeout,
+      showAlert,
+      setHasAuthenticated,
+    ],
+  );
 
   // Автоматический вход по биометрии - только один раз
   useEffect(() => {
@@ -456,7 +462,7 @@ const PinCodeScreenComponent: React.FC<
   useEffect(() => {
     let isMounted = true;
     let lastAuthTime = 0;
-    const AUTH_COOLDOWN = 2000; // Кулдаун 2 секунды
+    const AUTH_COOLDOWN = 2000;
 
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       const now = Date.now();
@@ -473,7 +479,6 @@ const PinCodeScreenComponent: React.FC<
         now - lastAuthTime > AUTH_COOLDOWN
       ) {
         lastAuthTime = now;
-        // При возвращении в приложение запрашиваем биометрию снова
         setTimeout(() => {
           if (isMounted && !hasAuthenticated) {
             authenticateWithBiometrics();
@@ -522,6 +527,8 @@ const PinCodeScreenComponent: React.FC<
         setCurrentPin('');
         setConfirmPin('');
         setIsPinCodeSet(true);
+        setHasAuthenticated(true);
+        navigation.replace(EScreens.TABS_STACK);
       } catch (error) {
         console.error('Ошибка верификации PIN:', error);
         setErrorMessageWithTimeout('Неверный PIN-код');
@@ -531,7 +538,7 @@ const PinCodeScreenComponent: React.FC<
         setIsProcessing(false);
       }
     },
-    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout],
+    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout, navigation],
   );
 
   const handleConfirmPin = useCallback(
@@ -554,9 +561,11 @@ const PinCodeScreenComponent: React.FC<
         setCurrentPin('');
         setConfirmPin('');
         setIsPinCodeSet(true);
+        // НЕ устанавливаем hasAuthenticated здесь, так как пользователь еще не вошел
+        // setHasAuthenticated(true); // УБРАНО
 
         // Запрашиваем использование биометрии после успешной установки PIN
-        await requestForTheUseOfBiometrics();
+        await setupBiometrics(true);
       } catch (error) {
         console.error('Ошибка сохранения PIN:', error);
         setErrorMessageWithTimeout('Ошибка сохранения PIN-кода');
@@ -567,7 +576,7 @@ const PinCodeScreenComponent: React.FC<
         setIsProcessing(false);
       }
     },
-    [requestForTheUseOfBiometrics, setErrorMessageWithTimeout],
+    [setupBiometrics, setErrorMessageWithTimeout],
   );
 
   const handlePinComplete = useCallback(
@@ -672,11 +681,12 @@ const PinCodeScreenComponent: React.FC<
   }, [currentPin]);
 
   const { getSubtitle, getTitle } = useTitle(pinMode);
+
   const { getActionButton } = useGetActionButton({
     handleDeletePress,
     hasEnteredSymbols: currentPin.length > 0,
     isPinCodeSet,
-    onPressBiometricsButton,
+    onPressBiometricsButton: () => setupBiometrics(false),
   });
 
   // Инициализация
@@ -733,7 +743,7 @@ const PinCodeScreenComponent: React.FC<
 
           {renderPinDots()}
 
-          {isPinCodeSet && pinMode !== PinMode.ENTER && (
+          {isPinCodeSet && pinMode === PinMode.ENTER && (
             <ResetButton onPress={handleReset}>
               <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
             </ResetButton>

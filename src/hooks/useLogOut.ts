@@ -11,6 +11,7 @@ export const useLogOut = () => {
       const result = await ApiClientService.logOutWithToken({ phoneNumber: phoneNumber.data });
       if (result?.success) {
         console.log('Успешный выход из системы');
+        await SecureStorageService.clearAll();
         await setIsVerified(!isVerified);
       }
     } else {
