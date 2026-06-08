@@ -13,3 +13,4 @@ export { Avatar } from './Avatar';
 export { MultiSelect } from './MultiSelect';
 export { Select } from './Select';
 export { MaskedInput } from './MaskedInput';
+export { DateTimeInputPicker } from './DateTimeInputPicker';

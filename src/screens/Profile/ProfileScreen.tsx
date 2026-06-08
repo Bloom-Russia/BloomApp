@@ -1,12 +1,12 @@
 import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Avatar,
   Block,
   Button,
   Colors,
+  DateTimeInputPicker,
   ESpacings,
   Input,
   MaskedInput,
@@ -17,7 +17,7 @@ import {
 } from '@UIKit';
 import React, { memo, useCallback, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import { Alert, Platform, ScrollView, TouchableOpacity } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
 
@@ -62,6 +62,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [lastName, setLastName] = useState('');
   const [patronymic, setPatronymic] = useState('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [birthday, setBirthday] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [phone, setPhone] = useState('');
   const [telegram, setTelegram] = useState('');
@@ -132,14 +133,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       ],
     });
   }, [openCamera, openGallery, showAlert]);
-
-  // Обработка изменения даты
-  const onDateChange = (_event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setBirthDate(selectedDate);
-    }
-  };
 
   // Валидация формы
   const validateForm = useCallback(() => {
@@ -223,14 +216,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     validateForm,
   ]);
 
-  // Форматирование даты для отображения
-  const formatDate = (date: Date | null) => {
-    if (!date) {
-      return 'Выберите дату';
-    }
-    return date.toLocaleDateString('ru-RU');
-  };
-
   return (
     <ScreenContainer title={'Редактирование профиля'} paddingHorizontal={ESpacings.s16}>
       <ScrollView
@@ -270,29 +255,17 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           />
 
           {/* Дата рождения */}
-          <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
-            Дата рождения
-          </Typography.B14>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-            <Block
-              backgroundColor={Colors.gray}
-              padding={ESpacings.s12}
-              borderRadius={8}
-              marginBottom={ESpacings.s12}
-            >
-              <Typography.B14 color={Colors.white}>{formatDate(birthDate)}</Typography.B14>
-            </Block>
-          </TouchableOpacity>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={birthDate || new Date(1990, 0, 1)}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onDateChange}
-              maximumDate={new Date()}
-            />
-          )}
+          <DateTimeInputPicker
+            date={birthDate}
+            setDate={setBirthDate}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            title={'Дата рождения'}
+            error={'Введите дату рождения'}
+            marginBottom={ESpacings.s12}
+            value={birthday}
+            setValue={setBirthday}
+          />
 
           {/* Контактная информация */}
           <Typography.B20
