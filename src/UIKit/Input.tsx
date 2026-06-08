@@ -18,6 +18,10 @@ type Props = {
   icon?: ImageSourcePropType;
   onIconPress?: () => void;
   error?: string;
+  multiline?: boolean;
+  numberOfLines?: number;
+  height?: number;
+  textAlignVertical?: string;
 };
 
 export const Input: React.FC<Props> = ({
@@ -31,17 +35,25 @@ export const Input: React.FC<Props> = ({
   autoCapitalize,
   title,
   error,
+  multiline,
+  numberOfLines = 1,
+  height = 48,
+  textAlignVertical = 'center',
 }) => {
   return (
     <Block marginBottom={marginBottom}>
       {title ? (
-        <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8} paddingLeft={ESpacings.s8}>
+        <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
           {title}
         </Typography.B14>
       ) : null}
       <StyledInput
+        textAlignVertical={textAlignVertical}
+        height={height}
+        numberOfLines={numberOfLines}
+        multiline={multiline}
         color={Colors.white}
-        placeholderTextColor={Colors.white}
+        placeholderTextColor={Colors.gray}
         editable={!disabled}
         onChangeText={onChangeValue}
         value={value}
@@ -49,15 +61,12 @@ export const Input: React.FC<Props> = ({
         keyboardType={keyboardType}
         maxLength={maxLength}
         autoCapitalize={autoCapitalize}
-        underlineColorAndroid="transparent"
+        autoCorrect={false}
+        autoComplete="off"
+        error={!!error}
       />
       {error ? (
-        <Typography.B14
-          paddingLeft={ESpacings.s8}
-          color={Colors.red}
-          marginBottom={ESpacings.s8}
-          marginTop={ESpacings.s8}
-        >
+        <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
           {error}
         </Typography.B14>
       ) : null}
@@ -65,13 +74,19 @@ export const Input: React.FC<Props> = ({
   );
 };
 
-const StyledInput = styled(TextInput)<{ color: string }>(({ color }) => ({
+const StyledInput = styled(TextInput)<{
+  color: string;
+  height: number;
+  textAlignVertical: string;
+  error?: boolean;
+}>(({ color, height, textAlignVertical, error }) => ({
   borderRadius: ERounding.r14,
   overflow: 'hidden',
-  borderColor: Colors.white,
+  borderColor: error ? Colors.red : Colors.white,
   borderWidth: 1,
   paddingHorizontal: ESpacings.s14,
   fontSize: 14,
   color,
-  height: 48,
+  height: height,
+  textAlignVertical: textAlignVertical,
 }));

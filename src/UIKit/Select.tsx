@@ -1,4 +1,4 @@
-import { Block, Colors, ESpacings, Icon, Typography } from '@UIKit';
+import { Block, Colors, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import {
@@ -83,7 +83,7 @@ const SelectComponent: React.FC<SelectProps> = ({
   return (
     <Block marginBottom={marginBottom} marginTop={marginTop}>
       {label && (
-        <Typography.B14 marginBottom={ESpacings.s8} color={Colors.gray}>
+        <Typography.B14 marginBottom={ESpacings.s8} color={Colors.white}>
           {label}
         </Typography.B14>
       )}
@@ -102,14 +102,14 @@ const SelectComponent: React.FC<SelectProps> = ({
           alignItems={'center'}
           style={[styles.selectContainer, error && styles.errorBorder]}
         >
-          <Typography.B14
+          <Typography.R14
             color={selectedItem ? Colors.white : Colors.gray}
             style={styles.selectText}
           >
             {getSelectedLabel()}
-          </Typography.B14>
+          </Typography.R14>
           <Icon
-            name={modalVisible ? 'chevron-up' : 'chevron-down'}
+            name={modalVisible ? IconNames.cancel : IconNames.success}
             size={20}
             color={Colors.white}
           />
@@ -117,7 +117,7 @@ const SelectComponent: React.FC<SelectProps> = ({
       </TouchableOpacity>
 
       {error && (
-        <Typography.B14 marginTop={ESpacings.s4} color={Colors.error}>
+        <Typography.B14 marginTop={ESpacings.s8} color={Colors.error}>
           {error}
         </Typography.B14>
       )}
@@ -153,7 +153,7 @@ const SelectComponent: React.FC<SelectProps> = ({
                       {label || 'Выберите значение'}
                     </Typography.B14>
                     <TouchableOpacity onPress={() => setModalVisible(false)}>
-                      <Icon name="x" size={24} color={Colors.white} />
+                      <Icon name={IconNames.cancel} size={24} color={Colors.white} />
                     </TouchableOpacity>
                   </Block>
 

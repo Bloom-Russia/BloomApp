@@ -133,7 +133,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   }, [openCamera, openGallery, showAlert]);
 
   // Обработка изменения даты
-  const onDateChange = (event: any, selectedDate?: Date) => {
+  const onDateChange = (_event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setBirthDate(selectedDate);
@@ -200,9 +200,9 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       Alert.alert('Успех', 'Данные успешно сохранены!');
-      // navigation.navigate(EScreens.MAIN_SCREEN);
     } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось сохранить данные', error);
+      console.error('Не удалось сохранить данные', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить данные');
     } finally {
       setIsLoading(false);
     }
@@ -231,7 +231,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   };
 
   return (
-    <ScreenContainer title={'Редактирование профиля '} paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer title={'Редактирование профиля'} paddingHorizontal={ESpacings.s16}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: ESpacings.s24 }}
@@ -242,34 +242,36 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
               <Avatar source={avatar} />
             </TouchableOpacity>
           </Block>
-
-          {/* Персональная информация */}
-          <Typography.B20 marginBottom={ESpacings.s16} color={Colors.white}>
-            Персональные данные
-          </Typography.B20>
-
           <Input
-            placeholder={'Имя *'}
+            placeholder={'Имя'}
             value={firstName}
-            onChangeText={setFirstName}
+            onChangeValue={setFirstName}
+            title={'Имя'}
+            error={'Введите имя'}
             marginBottom={ESpacings.s12}
           />
 
           <Input
-            placeholder={'Фамилия *'}
+            placeholder={'Фамилия'}
             value={lastName}
-            onChangeText={setLastName}
+            onChangeValue={setLastName}
+            title={'Фамилия'}
+            error={'Введите фамилию'}
             marginBottom={ESpacings.s12}
           />
 
           <Input
             placeholder={'Отчество'}
             value={patronymic}
-            onChangeText={setPatronymic}
-            marginBottom={ESpacings.s12}
+            onChangeValue={setPatronymic}
+            title={'Отчество'}
+            marginBottom={ESpacings.s24}
           />
 
           {/* Дата рождения */}
+          <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
+            Дата рождения
+          </Typography.B14>
           <TouchableOpacity onPress={() => setShowDatePicker(true)}>
             <Block
               backgroundColor={Colors.gray}
@@ -301,43 +303,42 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           </Typography.B20>
 
           <Input
-            placeholder={'Телефон *'}
+            placeholder={'Телефон'}
+            title={'Телефон'}
             value={phone}
-            onChangeText={setPhone}
+            onChangeValue={setPhone}
             keyboardType={'phone-pad'}
             marginBottom={ESpacings.s12}
+            error={'Введите Телефон'}
           />
 
           <Input
-            placeholder={'Telegram (username)'}
+            placeholder={'Telegram (Имя пользователя)'}
+            title={'Telegram'}
             value={telegram}
-            onChangeText={setTelegram}
+            onChangeValue={setTelegram}
             marginBottom={ESpacings.s12}
+            error={'Введите Telegram'}
           />
 
-          {/* Профессиональная информация */}
-          <Typography.B20
-            marginTop={ESpacings.s8}
-            marginBottom={ESpacings.s16}
-            color={Colors.white}
-          >
-            Профессиональные данные
-          </Typography.B20>
-
           <Input
-            placeholder={'MAX (максимальная загрузка)'}
+            placeholder={'Max'}
+            title={'Max'}
             value={max}
-            onChangeText={setMax}
+            onChangeValue={setMax}
             keyboardType={'numeric'}
             marginBottom={ESpacings.s12}
+            error={'Введите Max'}
           />
 
           <Input
-            placeholder={'Стаж (лет) *'}
+            placeholder={'Стаж (лет)'}
+            title={'Стаж'}
             value={experience}
-            onChangeText={setExperience}
+            onChangeValue={setExperience}
             keyboardType={'numeric'}
             marginBottom={ESpacings.s12}
+            error={'Введите Стаж'}
           />
 
           {/* Выбор города */}
@@ -348,6 +349,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             onSelect={setSelectedCity}
             marginBottom={ESpacings.s12}
             label="Город"
+            error={'Выберите город'}
           />
 
           {/* Множественный выбор профессий */}
@@ -358,6 +360,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             onSelect={setSelectedProfessions}
             label="Профессии"
             marginBottom={ESpacings.s12}
+            error={'Выберите профессии'}
           />
 
           {/* Адрес студии */}
@@ -366,22 +369,25 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s16}
             color={Colors.white}
           >
-            Информация о студии
+            Адрес студии
           </Typography.B20>
 
           <Input
             placeholder={'Адрес студии'}
             value={studioAddress}
-            onChangeText={setStudioAddress}
-            multiline
-            numberOfLines={3}
+            onChangeValue={setStudioAddress}
+            multiline={true}
             textAlignVertical={'top'}
+            numberOfLines={4}
+            height={100}
             marginBottom={ESpacings.s24}
+            error={'Введите адрес студии'}
           />
 
           {/* Кнопка отправки */}
           <Button
-            title={isLoading ? 'Сохранение...' : 'Завершить регистрацию'}
+            title={'Сохранить'}
+            loading={isLoading}
             onPress={handleSubmit}
             disabled={isLoading}
             marginBottom={ESpacings.s24}

@@ -1,4 +1,4 @@
-import { Block, Colors, ESpacings, Icon, Typography } from '@UIKit';
+import { Block, Colors, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import {
@@ -124,7 +124,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
   return (
     <Block marginBottom={marginBottom} marginTop={marginTop}>
       {label && (
-        <Typography.B14 marginBottom={ESpacings.s8} color={Colors.gray}>
+        <Typography.B14 marginBottom={ESpacings.s8} color={Colors.white}>
           {label}
         </Typography.B14>
       )}
@@ -143,15 +143,15 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
           alignItems={'center'}
           style={[styles.selectContainer, error && styles.errorBorder]}
         >
-          <Typography.B14
+          <Typography.R14
             color={selectedValues.length > 0 ? Colors.white : Colors.gray}
             style={styles.selectText}
             numberOfLines={1}
           >
             {getSelectedLabels()}
-          </Typography.B14>
+          </Typography.R14>
           <Icon
-            name={modalVisible ? 'chevron-up' : 'chevron-down'}
+            name={modalVisible ? IconNames.cancel : IconNames.success}
             size={20}
             color={Colors.white}
           />
@@ -176,7 +176,12 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
                 style={styles.tag}
               >
                 <Typography.B14 color={Colors.white}>{item.name}</Typography.B14>
-                <Icon name="x" size={14} color={Colors.white} style={styles.tagIcon} />
+                <Icon
+                  name={IconNames.cancel}
+                  size={14}
+                  color={Colors.white}
+                  style={styles.tagIcon}
+                />
               </TouchableOpacity>
             ))}
         </ScrollView>
@@ -216,7 +221,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
                         {label || 'Выберите значения'}
                       </Typography.B14>
                       <TouchableOpacity onPress={() => setModalVisible(false)}>
-                        <Icon name="x" size={24} color={Colors.white} />
+                        <Icon name={IconNames.cancel} size={24} color={Colors.white} />
                       </TouchableOpacity>
                     </Block>
 
@@ -260,7 +265,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
                             ]}
                           >
                             {isSelected(item.id) && (
-                              <Icon name="check" size={14} color={Colors.white} />
+                              <Icon name={IconNames.cancel} size={14} color={Colors.white} />
                             )}
                           </View>
                         </Block>
