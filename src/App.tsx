@@ -1,45 +1,63 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { TransparentLogoAppImage } from '@assets/images';
+import { AuthProvider } from '@contexts';
+import { AppNavigation } from '@navigation';
+import { AxiosService, NotificationCoordinator } from '@services';
+import { Block, Colors } from '@UIKit';
+import { noop } from 'lodash';
+import React, { useEffect, useState } from 'react';
+import { Image } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import styled from 'styled-components';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { useEffect } from 'react';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import BootSplash from 'react-native-bootsplash';
+// Создаем внутренний компонент для использования safe area
+const App: React.FC = () => {
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-function App() {
   useEffect(() => {
-    BootSplash.hide({ fade: true });
+    const initApp = async (): Promise<void> => {
+      try {
+        const success = await AxiosService.initializeWithAppDefaults();
+        if (success) {
+          setIsInitialized(true);
+        } else {
+          setError('Не удалось инициализировать сервисы приложения');
+        }
+      } catch (err) {
+        setError('Ошибка инициализации приложения');
+        console.error(err);
+      }
+    };
+
+    initApp().then(() => noop);
   }, []);
 
-  const isDarkMode = useColorScheme() === 'dark';
+  if (error || !isInitialized) {
+    return (
+      <SafeAreaProvider>
+        <Block flex={1} backgroundColor={Colors.black} justifyContent="center" alignItems="center">
+          <Logo source={TransparentLogoAppImage} />
+        </Block>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <AuthProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <NotificationCoordinator />
+          <AppNavigation />
+        </SafeAreaProvider>
+      </KeyboardProvider>
+    </AuthProvider>
   );
-}
+};
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen templateFileName="App.tsx" safeAreaInsets={safeAreaInsets} />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const Logo = styled(Image)({
+  width: 250,
+  height: 250,
 });
 
 export default App;

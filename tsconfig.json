@@ -24,7 +24,7 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Настройки для React Native */
-    "types": ["react-native", "jest"],
+    "types": ["react-native", "jest", "node"],
     "baseUrl": "./",
     "paths": {
       "@screens": ["src/screens/index.ts"],
@@ -38,8 +38,7 @@
       "@assets/*": ["assets/*"]
     }
   },
-  "include": ["src/**/*",
-    "src/App.tsx", "index.js", "declarations.d.ts"],
+  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],
   "exclude": [
     "node_modules",
     "babel.config.js",

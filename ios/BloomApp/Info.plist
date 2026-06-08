@@ -24,6 +24,14 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>NSFaceIDUsageDescription</key>
+    <string>Приложению требуется доступ к Face ID для безопасного входа</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Приложению нужен доступ к камере для фото аватара</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Приложению нужен доступ к галерее для выбора аватара</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -33,12 +41,23 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Inter-Medium.ttf</string>
+		<string>Inter-Bold.ttf</string>
+		<string>Inter-Regular.ttf</string>
+		<string>Inter-SemiBold.ttf</string>
+		<string>icomoon.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>BootSplash</string>
+	<string>BootSplash.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
@@ -57,13 +76,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>icomoon.ttf</string>
-		<string>Inter-Medium.ttf</string>
-		<string>Inter-Bold.ttf</string>
-		<string>Inter-Regular.ttf</string>
-		<string>Inter-SemiBold.ttf</string>
-	</array>
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>
