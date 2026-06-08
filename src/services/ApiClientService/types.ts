@@ -29,7 +29,6 @@ export type VerifyCoderParams = {
 export type VerifyPinCoderParams = {
   phoneNumber: string;
   pinCode: string;
-  errorVerifyPinCodeCallBack: () => void;
 };
 
 // Параметры для сохраненния PIN

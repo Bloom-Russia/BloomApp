@@ -640,10 +640,6 @@ const PinCodeScreenComponent: React.FC<
     authenticateWithBiometrics,
   ]);
 
-  const errorVerifyPinCodeCallBack = useCallback(() => {
-    setErrorMessageWithTimeout('Ошибка верификации PIN кода!');
-  }, [setErrorMessageWithTimeout]);
-
   const handleEnterPin = useCallback(
     async (pin: string) => {
       setIsProcessing(true);
@@ -651,6 +647,7 @@ const PinCodeScreenComponent: React.FC<
         const { success, data: phoneNumber } = await SecureStorageService.getValue(
           SecureStorageKeys.PHONE_NUMBER,
         );
+
         if (!success || !phoneNumber) {
           setErrorMessageWithTimeout('Номер телефона не найден!');
           setCurrentPin('');
@@ -660,25 +657,35 @@ const PinCodeScreenComponent: React.FC<
         await ApiClientService.verifyPinCode({
           phoneNumber,
           pinCode: pin,
-          errorVerifyPinCodeCallBack,
         });
 
         setCurrentPin('');
         setConfirmPin('');
         setIsPinCodeSet(true);
         setHasAuthenticated(true);
-        // Проверяем статус онбординга перед переходом
         await checkAndNavigateAfterAuth();
       } catch (error) {
         console.error('Ошибка верификации PIN:', error);
-        setErrorMessageWithTimeout('Неверный PIN-код');
+
+        // Проверяем тип ошибки Axios
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { status?: number } };
+          if (axiosError.response?.status === 400) {
+            setErrorMessageWithTimeout('Неверный PIN-код');
+          } else {
+            setErrorMessageWithTimeout('Ошибка сервера, попробуйте позже');
+          }
+        } else {
+          setErrorMessageWithTimeout('Ошибка верификации PIN-кода');
+        }
+
         setCurrentPin('');
         vibrate(VIBRATION_DURATION.ERROR);
       } finally {
         setIsProcessing(false);
       }
     },
-    [errorVerifyPinCodeCallBack, setErrorMessageWithTimeout, checkAndNavigateAfterAuth],
+    [setErrorMessageWithTimeout, checkAndNavigateAfterAuth],
   );
 
   const handleConfirmPin = useCallback(
