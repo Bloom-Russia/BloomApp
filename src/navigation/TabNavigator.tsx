@@ -82,7 +82,7 @@ const TabBarNavigatorComponent: React.FC = () => {
   );
 
   return (
-    <Tab.Navigator screenOptions={SCREEN_OPTIONS} initialRouteName={EScreens.HOME_STACK}>
+    <Tab.Navigator screenOptions={SCREEN_OPTIONS} initialRouteName={EScreens.PROFILE_STACK}>
       {tabScreens.map((screen) => (
         <Tab.Screen
           key={screen.name}

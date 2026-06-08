@@ -1,3 +1,4 @@
+import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,6 +10,7 @@ import {
   ESpacings,
   Input,
   MultiSelect,
+  ScreenContainer,
   Select,
   Typography,
 } from '@UIKit';
@@ -16,6 +18,7 @@ import React, { memo, useCallback, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Alert, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import styled from 'styled-components/native';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
@@ -68,6 +71,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
   const [studioAddress, setStudioAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const openCamera = useCallback(() => {
     ImagePicker.openCamera({
@@ -103,17 +107,30 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   // Функция для выбора аватарки
   const handleSelectAvatar = useCallback(() => {
-    Alert.alert(
-      'Выберите аватар',
-      'Хотите выбрать фото из галереи или сделать снимок?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        { text: 'Камера', onPress: openCamera },
-        { text: 'Галерея', onPress: openGallery },
+    showAlert({
+      title: 'Выберите аватар',
+      message: 'Хотите выбрать фото из галереи или сделать снимок?',
+      type: 'info',
+      theme: 'dark',
+      showIcon: true,
+      buttons: [
+        {
+          text: 'Галерея',
+          style: 'default',
+          onPress: openGallery,
+        },
+        {
+          text: 'Камера',
+          style: 'default',
+          onPress: openCamera,
+        },
+        {
+          text: 'Отмена',
+          style: 'destructive',
+        },
       ],
-      { cancelable: true },
-    );
-  }, [openCamera, openGallery]);
+    });
+  }, [openCamera, openGallery, showAlert]);
 
   // Обработка изменения даты
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -214,24 +231,15 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   };
 
   return (
-    <Block flex={1} backgroundColor={Colors.black}>
+    <ScreenContainer title={'Редактирование профиля '} paddingHorizontal={ESpacings.s16}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: ESpacings.s24 }}
       >
         <Block padding={ESpacings.s16}>
-          {/* Заголовок */}
-          <Typography.B16 textAlign={'center'} marginBottom={ESpacings.s24} color={Colors.white}>
-            Регистрация специалиста
-          </Typography.B16>
-
-          {/* Аватар */}
           <Block alignItems={'center'} marginBottom={ESpacings.s24}>
             <TouchableOpacity onPress={handleSelectAvatar}>
-              <Avatar size={100} source={avatar ? { uri: avatar } : undefined} placeholder={'👤'} />
-              <Typography.B14 textAlign={'center'} marginTop={ESpacings.s8} color={Colors.primary}>
-                Добавить фото
-              </Typography.B14>
+              <Avatar source={avatar} />
             </TouchableOpacity>
           </Block>
 
@@ -380,8 +388,19 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           />
         </Block>
       </ScrollView>
-    </Block>
+      <AlertContainer>
+        <AlertComponent />
+      </AlertContainer>
+    </ScreenContainer>
   );
 };
 
 export const ProfileScreen = memo(ProfileScreenComponent, isEqual);
+
+const AlertContainer = styled(Block)({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  height: 500,
+});

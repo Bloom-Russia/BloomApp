@@ -16,6 +16,7 @@ export enum IconNames {
   success = 'success',
   help = 'help',
   backspace = 'backspace',
+  user = 'user',
 }
 
 export const IconSet = createIconSetFromIcoMoon(config);
