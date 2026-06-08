@@ -3,7 +3,16 @@ import { useCustomAlert, useLoading } from '@hooks';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 // Импортируем messaging для работы с уведомлениями
 import { ApiClientService } from '@services';
-import { Block, Button, Colors, ESpacings, IconNames, Row, ScreenContainer } from '@UIKit';
+import {
+  Block,
+  Button,
+  Colors,
+  ESpacings,
+  IconNames,
+  MaskedInput,
+  Row,
+  ScreenContainer,
+} from '@UIKit';
 import React, { memo, useCallback, useEffect } from 'react';
 import isEqual from 'react-fast-compare';
 import {
@@ -16,7 +25,6 @@ import {
 } from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import styled from 'styled-components';
-import { MaskedInput } from './components/MaskInput';
 import { CONSTANTS } from './constants';
 import type { LoginScreenProps } from './types'; // Изменено здесь
 

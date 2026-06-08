@@ -12,3 +12,4 @@ export { Separator } from './Separator';
 export { Avatar } from './Avatar';
 export { MultiSelect } from './MultiSelect';
 export { Select } from './Select';
+export { MaskedInput } from './MaskedInput';

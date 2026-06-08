@@ -9,6 +9,7 @@ import {
   Colors,
   ESpacings,
   Input,
+  MaskedInput,
   MultiSelect,
   ScreenContainer,
   Select,
@@ -302,12 +303,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             Контактная информация
           </Typography.B20>
 
-          <Input
-            placeholder={'Телефон'}
+          <MaskedInput
             title={'Телефон'}
-            value={phone}
-            onChangeValue={setPhone}
-            keyboardType={'phone-pad'}
+            phone={phone}
+            setPhone={setPhone}
             marginBottom={ESpacings.s12}
             error={'Введите Телефон'}
           />
@@ -321,12 +320,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             error={'Введите Telegram'}
           />
 
-          <Input
-            placeholder={'Max'}
+          <MaskedInput
             title={'Max'}
-            value={max}
-            onChangeValue={setMax}
-            keyboardType={'numeric'}
+            phone={max}
+            setPhone={setMax}
             marginBottom={ESpacings.s12}
             error={'Введите Max'}
           />
