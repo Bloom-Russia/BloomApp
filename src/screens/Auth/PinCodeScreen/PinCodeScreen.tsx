@@ -479,8 +479,8 @@ const PinCodeScreenComponent: React.FC<
 
                       showAlert({
                         title: 'Биометрия настроена',
-                        message: `${biometricName} успешно настроен(а) для входа`,
-                        type: 'success',
+                        message: `${biometricName} успешно настроен для входа`,
+                        type: 'info',
                         theme: 'dark',
                         showIcon: true,
                         buttons: [
