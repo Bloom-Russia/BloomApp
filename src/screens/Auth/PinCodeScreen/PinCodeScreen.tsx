@@ -17,16 +17,10 @@ import {
   KeyboardContainer,
   KeyboardRow,
   KeyButton,
-  ResetButton,
   StyledDots,
   StyledImage,
 } from './components';
-import {
-  useGetActionButton,
-  useHandleExitApp,
-  useHandleResetPin,
-  useLoadPinCodeData,
-} from './hooks';
+import { useGetActionButton, useHandleExitApp, useLoadPinCodeData } from './hooks';
 import { useTitle } from './hooks/useTitle';
 import { PinMode } from './types';
 
@@ -51,16 +45,6 @@ const PinCodeScreenComponent: React.FC<
   const { AlertComponent, showAlert, hideAlert } = useCustomAlert();
   const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
   const { handleExitApp } = useHandleExitApp(showAlert);
-  const { handleResetPin } = useHandleResetPin({
-    clearErrorMessage: () => {
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-        errorTimeoutRef.current = null;
-      }
-      hideAlert();
-    },
-    showAlert,
-  });
 
   const setErrorMessageWithTimeout = useCallback(
     (message: string) => {
@@ -368,21 +352,6 @@ const PinCodeScreenComponent: React.FC<
       return false;
     }
   }, [initBiometrics, saveBiometricsStatus]);
-
-  // Удаление биометрических ключей
-  const deleteBiometricKeys = useCallback(async () => {
-    if (!biometrics.current) {
-      return;
-    }
-
-    try {
-      await biometrics.current.deleteKeys();
-      await resetBiometricsStatus();
-      console.log('✅ Биометрические ключи удалены');
-    } catch (error) {
-      console.error('❌ Ошибка удаления биометрических ключей:', error);
-    }
-  }, [resetBiometricsStatus]);
 
   // Единая функция для настройки биометрии (двухшаговая)
   const setupBiometrics = useCallback(
@@ -878,24 +847,6 @@ const PinCodeScreenComponent: React.FC<
     };
   }, []);
 
-  const handleReset = useCallback(async () => {
-    if (isProcessing) {
-      return;
-    }
-    handleResetPin();
-    await deleteBiometricKeys();
-    // Очищаем статус биометрии при сбросе PIN
-    await resetBiometricsStatus();
-    setPinMode(PinMode.SET);
-    setIsPinCodeSet(false);
-    setCurrentPin('');
-    setConfirmPin('');
-    setIsProcessing(false);
-    setHasAuthenticated(false);
-    hasInitialAuthRef.current = false;
-    isAuthenticatingRef.current = false;
-  }, [handleResetPin, isProcessing, deleteBiometricKeys, resetBiometricsStatus]);
-
   return (
     <ScreenContainer scrollEnabled={false}>
       <Block flex={1}>
@@ -914,12 +865,6 @@ const PinCodeScreenComponent: React.FC<
           </Block>
 
           {renderPinDots()}
-
-          {isPinCodeSet && pinMode === PinMode.ENTER && (
-            <ResetButton onPress={handleReset}>
-              <Typography.B14 color={Colors.primary}>Забыли PIN?</Typography.B14>
-            </ResetButton>
-          )}
         </Block>
       </Block>
 
