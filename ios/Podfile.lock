@@ -3078,8 +3078,6 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-<<<<<<< HEAD
-=======
   - RNScreens (4.19.0):
     - boost
     - DoubleConversion
@@ -3139,7 +3137,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
->>>>>>> dev
   - RNVectorIcons (10.3.0):
     - boost
     - DoubleConversion
@@ -3356,10 +3353,7 @@ DEPENDENCIES:
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
-<<<<<<< HEAD
-=======
   - RNScreens (from `../node_modules/react-native-screens`)
->>>>>>> dev
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - SocketRocket (~> 0.7.1)
@@ -3569,11 +3563,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
-<<<<<<< HEAD
-=======
   RNScreens:
     :path: "../node_modules/react-native-screens"
->>>>>>> dev
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   RNWorklets:
@@ -3673,13 +3664,6 @@ SPEC CHECKSUMS:
   React-utils: 28158276c67b375d1b7546a342571cfffbea9770
   React-webperformancenativemodule: 3aa0693c4d19898831317e17b005fad3444d2c99
   ReactAppDependencyProvider: 0eb286cc274abb059ee601b862ebddac2e681d01
-<<<<<<< HEAD
-  ReactCodegen: 3d48510bcef445f6403c0004047d4d9cbb915435
-  ReactCommon: ac934cb340aee91282ecd6f273a26d24d4c55cae
-  RNBootSplash: a50a2908e25aa4a3e5e2eb429bcf5ed54cbcb9e2
-  RNReanimated: 292cd58688552a22b3fc1cefcfbc49b336dfed68
-  RNVectorIcons: 791f13226ec4a3fd13062eda9e892159f0981fae
-=======
   ReactCodegen: d663254bf59e57e5ed7c65638bd45f358a373bba
   ReactCommon: 15e1e727fa34f760beb7dd52928687fda8edf8dc
   RNBootSplash: 9d60c4745e72afd70c264dd8f2df465b1bd1542f
@@ -3695,7 +3679,6 @@ SPEC CHECKSUMS:
   RNReanimated: fbcb7fd8da5b0b088401542c58fb5d266388f1cf
   RNScreens: d6413aeb1878cdafd3c721e2c5218faf5d5d3b13
   RNVectorIcons: e355dd0998d6b9020e560922a66614eb9636501b
->>>>>>> dev
   RNWorklets: 01efdd402d236a13651ea5ea5437ca85a44e7afa
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   TOCropViewController: 797deaf39c90e6e9ddd848d88817f6b9a8a09888
