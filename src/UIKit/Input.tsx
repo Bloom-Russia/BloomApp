@@ -13,6 +13,7 @@ type Props = {
   placeholder?: string;
   title?: string;
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  autoComplete?: TextInputProps['autoComplete'];
   disabled?: boolean;
   maxLength?: number;
   errorText?: string;
@@ -39,6 +40,7 @@ export const Input: React.FC<Props> = ({
   height = 48,
   textAlignVertical = 'center',
   isError,
+  autoComplete,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
@@ -62,7 +64,7 @@ export const Input: React.FC<Props> = ({
         maxLength={maxLength}
         autoCapitalize={autoCapitalize}
         autoCorrect={false}
-        autoComplete="off"
+        autoComplete={autoComplete}
         isError={isError}
       />
       {isError ? (

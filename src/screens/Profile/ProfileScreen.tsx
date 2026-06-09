@@ -22,7 +22,7 @@ import {
 } from '@UIKit';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import { Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { Alert, findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
 
@@ -69,6 +69,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [birthday, setBirthday] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [telegram, setTelegram] = useState('');
   const [max, setMax] = useState('');
   const [experience, setExperience] = useState('');
@@ -94,6 +95,16 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const { showAlert, AlertComponent } = useCustomAlert();
+
+  // Refs для полей
+  const firstNameRef = useRef<View>(null);
+  const lastNameRef = useRef<View>(null);
+  const birthDateRef = useRef<View>(null);
+  const phoneRef = useRef<View>(null);
+  const experienceRef = useRef<View>(null);
+  const cityRef = useRef<View>(null);
+  const professionsRef = useRef<View>(null);
+  const studioAddressRef = useRef<View>(null);
 
   const filteredCities = useMemo(() => {
     if (!citySearchQuery.trim()) {
@@ -192,9 +203,54 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }, 300);
   }, []);
 
-  const scrollToTop = useCallback(() => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  // Функция для скролла к элементу с ошибкой
+  const scrollToElement = useCallback((elementRef: React.RefObject<View | null>) => {
+    if (elementRef.current && scrollViewRef.current) {
+      const elementHandle = findNodeHandle(elementRef.current);
+      const scrollHandle = findNodeHandle(scrollViewRef.current);
+
+      if (elementHandle && scrollHandle) {
+        UIManager.measureLayout(
+          elementHandle,
+          scrollHandle,
+          () => null,
+          (_x, y) => {
+            scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+          },
+        );
+      }
+    }
   }, []);
+
+  const scrollToFirstError = useCallback(() => {
+    if (firstNameError) {
+      scrollToElement(firstNameRef);
+    } else if (lastNameError) {
+      scrollToElement(lastNameRef);
+    } else if (birthDateError) {
+      scrollToElement(birthDateRef);
+    } else if (phoneError) {
+      scrollToElement(phoneRef);
+    } else if (experienceError) {
+      scrollToElement(experienceRef);
+    } else if (cityError) {
+      scrollToElement(cityRef);
+    } else if (professionsError) {
+      scrollToElement(professionsRef);
+    } else if (studioAddressError) {
+      scrollToElement(studioAddressRef);
+    }
+  }, [
+    firstNameError,
+    lastNameError,
+    birthDateError,
+    phoneError,
+    experienceError,
+    cityError,
+    professionsError,
+    studioAddressError,
+    scrollToElement,
+  ]);
 
   const validateForm = useCallback(() => {
     let isValid = true;
@@ -291,43 +347,45 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    setTimeout(async () => {
-      if (!validateForm()) {
-        scrollToTop();
-        return;
-      }
+    const isValid = validateForm();
 
-      setIsLoading(true);
+    if (!isValid) {
+      setTimeout(() => {
+        scrollToFirstError();
+      }, 100);
+      return;
+    }
 
-      // Имитация отправки данных на сервер
-      try {
-        const formData = {
-          firstName,
-          lastName,
-          patronymic,
-          birthDate: birthDate?.toISOString(),
-          phone,
-          telegram,
-          max,
-          experience,
-          avatar,
-          city: selectedCity,
-          professions: selectedProfessions,
-          studioAddress,
-        };
+    setIsLoading(true);
 
-        console.log('Form data:', formData);
+    // Имитация отправки данных на сервер
+    try {
+      const formData = {
+        firstName,
+        lastName,
+        patronymic,
+        birthDate: birthDate?.toISOString(),
+        phone,
+        telegram,
+        max,
+        experience,
+        avatar,
+        city: selectedCity,
+        professions: selectedProfessions,
+        studioAddress,
+      };
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log('Form data:', formData);
 
-        Alert.alert('Успех', 'Данные успешно сохранены!');
-      } catch (error) {
-        console.error('Не удалось сохранить данные', error);
-        Alert.alert('Ошибка', 'Не удалось сохранить данные');
-      } finally {
-        setIsLoading(false);
-      }
-    }, 100);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      Alert.alert('Успех', 'Данные успешно сохранены!');
+    } catch (error) {
+      console.error('Не удалось сохранить данные', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить данные');
+    } finally {
+      setIsLoading(false);
+    }
   }, [
     firstName,
     lastName,
@@ -342,7 +400,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     selectedProfessions,
     studioAddress,
     validateForm,
-    scrollToTop,
+    scrollToFirstError,
   ]);
 
   return (
@@ -364,31 +422,37 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             </TouchableOpacity>
           </Block>
 
-          <Input
-            placeholder={'Имя'}
-            value={firstName}
-            onChangeValue={(value) => {
-              setFirstName(value);
-              setFirstNameError(false);
-            }}
-            title={'Имя'}
-            marginBottom={ESpacings.s12}
-            errorText={'Введите имя'}
-            isError={firstNameError}
-          />
+          <View ref={firstNameRef}>
+            <Input
+              placeholder={'Имя'}
+              value={firstName}
+              onChangeValue={(value) => {
+                setFirstName(value);
+                setFirstNameError(false);
+              }}
+              title={'Имя'}
+              marginBottom={ESpacings.s12}
+              errorText={'Введите имя'}
+              isError={firstNameError}
+              autoComplete={'name'}
+            />
+          </View>
 
-          <Input
-            placeholder={'Фамилия'}
-            value={lastName}
-            onChangeValue={(value) => {
-              setLastName(value);
-              setLastNameError(false);
-            }}
-            title={'Фамилия'}
-            marginBottom={ESpacings.s12}
-            errorText={'Введите фамилию'}
-            isError={lastNameError}
-          />
+          <View ref={lastNameRef}>
+            <Input
+              placeholder={'Фамилия'}
+              value={lastName}
+              onChangeValue={(value) => {
+                setLastName(value);
+                setLastNameError(false);
+              }}
+              title={'Фамилия'}
+              marginBottom={ESpacings.s12}
+              errorText={'Введите фамилию'}
+              isError={lastNameError}
+              autoComplete={'family-name'}
+            />
+          </View>
 
           <Input
             placeholder={'Отчество'}
@@ -398,21 +462,23 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s24}
           />
 
-          <DateTimeInputPicker
-            date={birthDate}
-            setDate={(date) => {
-              setBirthDate(date);
-              setBirthDateError(false);
-            }}
-            showDatePicker={showDatePicker}
-            setShowDatePicker={setShowDatePicker}
-            title={'Дата рождения'}
-            errorText={'Введите дату рождения'}
-            marginBottom={ESpacings.s12}
-            value={birthday}
-            setValue={setBirthday}
-            isError={birthDateError}
-          />
+          <View ref={birthDateRef}>
+            <DateTimeInputPicker
+              date={birthDate}
+              setDate={(date) => {
+                setBirthDate(date);
+                setBirthDateError(false);
+              }}
+              showDatePicker={showDatePicker}
+              setShowDatePicker={setShowDatePicker}
+              title={'Дата рождения'}
+              errorText={'Введите дату рождения'}
+              marginBottom={ESpacings.s12}
+              value={birthday}
+              setValue={setBirthday}
+              isError={birthDateError}
+            />
+          </View>
 
           <Typography.B20
             marginTop={ESpacings.s8}
@@ -422,16 +488,28 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             Контактная информация
           </Typography.B20>
 
-          <MaskedInput
-            title={'Телефон'}
-            phone={phone}
-            setPhone={(value) => {
-              setPhone(value);
-              setPhoneError(false);
-            }}
+          <View ref={phoneRef}>
+            <MaskedInput
+              title={'Телефон'}
+              phone={phone}
+              setPhone={(value) => {
+                setPhone(value);
+                setPhoneError(false);
+              }}
+              marginBottom={ESpacings.s12}
+              errorText={'Введите корректный номер телефона'}
+              isError={phoneError}
+              autoComplete={'tel'}
+            />
+          </View>
+
+          <Input
+            placeholder={'example@mail.com'}
+            title={'email'}
+            value={email}
+            onChangeValue={setEmail}
             marginBottom={ESpacings.s12}
-            errorText={'Введите корректный номер телефона'}
-            isError={phoneError}
+            autoComplete={'email'}
           />
 
           <Input
@@ -444,44 +522,50 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
           <MaskedInput title={'Max'} phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
 
-          <Input
-            placeholder={'Стаж (лет)'}
-            title={'Стаж'}
-            value={experience}
-            onChangeValue={(text) => {
-              setExperience(text);
-              setExperienceError(false);
-            }}
-            keyboardType={'numeric'}
-            marginBottom={ESpacings.s12}
-            errorText={'Введите корректный стаж'}
-            isError={experienceError}
-          />
+          <View ref={experienceRef}>
+            <Input
+              placeholder={'Стаж (лет)'}
+              title={'Стаж'}
+              value={experience}
+              onChangeValue={(text) => {
+                setExperience(text);
+                setExperienceError(false);
+              }}
+              keyboardType={'numeric'}
+              marginBottom={ESpacings.s12}
+              errorText={'Введите корректный стаж'}
+              isError={experienceError}
+            />
+          </View>
 
-          <Select
-            placeholder={'Выберите город'}
-            selectedValue={getSelectedCityName()}
-            onSelect={() => setIsCitySheetVisible(true)}
-            marginBottom={ESpacings.s12}
-            label="Город"
-            errorText={'Выберите город'}
-            isError={cityError}
-          />
+          <View ref={cityRef}>
+            <Select
+              placeholder={'Выберите город'}
+              selectedValue={getSelectedCityName()}
+              onSelect={() => setIsCitySheetVisible(true)}
+              marginBottom={ESpacings.s12}
+              label="Город"
+              errorText={'Выберите город'}
+              isError={cityError}
+            />
+          </View>
 
-          <MultiSelect
-            placeholder={'Выберите профессии'}
-            items={BEAUTY_PROFESSIONS}
-            selectedValues={selectedProfessions}
-            onPress={() => setIsProfessionsSheetVisible(true)}
-            onSelect={(values) => {
-              setSelectedProfessions(values);
-              setProfessionsError(false);
-            }}
-            label="Профессии"
-            marginBottom={ESpacings.s12}
-            errorText={'Выберите хотя бы одну профессию'}
-            isError={professionsError}
-          />
+          <View ref={professionsRef}>
+            <MultiSelect
+              placeholder={'Выберите профессии'}
+              items={BEAUTY_PROFESSIONS}
+              selectedValues={selectedProfessions}
+              onPress={() => setIsProfessionsSheetVisible(true)}
+              onSelect={(values) => {
+                setSelectedProfessions(values);
+                setProfessionsError(false);
+              }}
+              label="Профессии"
+              marginBottom={ESpacings.s12}
+              errorText={'Выберите хотя бы одну профессию'}
+              isError={professionsError}
+            />
+          </View>
 
           <Typography.B20
             marginTop={ESpacings.s8}
@@ -491,21 +575,23 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             Адрес студии
           </Typography.B20>
 
-          <Input
-            placeholder={'Адрес студии'}
-            value={studioAddress}
-            onChangeValue={(text) => {
-              setStudioAddress(text);
-              setStudioAddressError(false);
-            }}
-            multiline={true}
-            textAlignVertical={'top'}
-            numberOfLines={4}
-            height={100}
-            marginBottom={ESpacings.s24}
-            errorText={'Введите адрес студии'}
-            isError={studioAddressError}
-          />
+          <View ref={studioAddressRef}>
+            <Input
+              placeholder={'Адрес студии'}
+              value={studioAddress}
+              onChangeValue={(text) => {
+                setStudioAddress(text);
+                setStudioAddressError(false);
+              }}
+              multiline={true}
+              textAlignVertical={'top'}
+              numberOfLines={4}
+              height={100}
+              marginBottom={ESpacings.s24}
+              errorText={'Введите адрес студии'}
+              isError={studioAddressError}
+            />
+          </View>
 
           <Button
             title={'Сохранить'}

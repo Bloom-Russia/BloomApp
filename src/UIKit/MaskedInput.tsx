@@ -1,5 +1,6 @@
 import { Block, Colors, ERounding, ESize, ESpacings, Typography } from '@UIKit';
 import React from 'react';
+import { TextInputProps } from 'react-native';
 import MaskInput from 'react-native-mask-input';
 import styled from 'styled-components';
 
@@ -10,6 +11,7 @@ type MaskInputProps = {
   title?: string;
   marginBottom?: number;
   isError?: boolean;
+  autoComplete?: TextInputProps['autoComplete'];
 };
 
 export const MaskedInput: React.FC<MaskInputProps> = ({
@@ -19,6 +21,7 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
   title,
   errorText,
   isError,
+  autoComplete,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
@@ -28,6 +31,7 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
         </Typography.B14>
       ) : null}
       <StyledMaskInput
+        autoComplete={autoComplete}
         isError={isError}
         color={Colors.white}
         value={phone}
