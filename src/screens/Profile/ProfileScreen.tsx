@@ -13,18 +13,20 @@ import {
   MultiSelect,
   ScreenContainer,
   Select,
+  SelectItem,
   Typography,
 } from '@UIKit';
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Alert, ScrollView, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
+import { SelectBottomSheet } from './components/SelectBottomSheet';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
 // Данные для выпадающих списков
-const CITIES_OF_RUSSIA = [
+const CITIES_OF_RUSSIA: SelectItem[] = [
   { id: '1', name: 'Москва' },
   { id: '2', name: 'Санкт-Петербург' },
   { id: '3', name: 'Новосибирск' },
@@ -42,7 +44,7 @@ const CITIES_OF_RUSSIA = [
   { id: '15', name: 'Волгоград' },
 ];
 
-const BEAUTY_PROFESSIONS = [
+const BEAUTY_PROFESSIONS: SelectItem[] = [
   { id: '1', name: 'Парикмахер' },
   { id: '2', name: 'Косметолог' },
   { id: '3', name: 'Визажист' },
@@ -74,6 +76,20 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [studioAddress, setStudioAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { showAlert, AlertComponent } = useCustomAlert();
+
+  // Состояния для BottomSheet города
+  const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
+
+  // Фильтрация городов
+  const filteredCities = useMemo(() => {
+    if (!citySearchQuery.trim()) {
+      return CITIES_OF_RUSSIA;
+    }
+    return CITIES_OF_RUSSIA.filter((city) =>
+      city.name.toLowerCase().includes(citySearchQuery.toLowerCase()),
+    );
+  }, [citySearchQuery]);
 
   const openCamera = useCallback(() => {
     ImagePicker.openCamera({
@@ -134,6 +150,13 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     });
   }, [openCamera, openGallery, showAlert]);
 
+  // Обработчик выбора города
+  const handleCitySelect = useCallback((city: SelectItem) => {
+    setSelectedCity(city.id);
+    setIsCitySheetVisible(false);
+    setCitySearchQuery('');
+  }, []);
+
   // Валидация формы
   const validateForm = useCallback(() => {
     if (!firstName.trim()) {
@@ -162,6 +185,21 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }
     return true;
   }, [firstName, lastName, birthDate, phone, selectedCity, selectedProfessions]);
+
+  const getSelectedCityName = useCallback(() => {
+    if (!selectedCity) {
+      return null;
+    }
+    const city = CITIES_OF_RUSSIA.find((c) => c.id === selectedCity);
+    return city?.name || null;
+  }, [selectedCity]);
+
+  const selectBottomSheetOnClose = useCallback(() => {
+    setTimeout(() => {
+      setIsCitySheetVisible(false);
+      setCitySearchQuery('');
+    }, 300);
+  }, []);
 
   // Отправка формы
   const handleSubmit = useCallback(async () => {
@@ -233,6 +271,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
               <Avatar source={avatar} />
             </TouchableOpacity>
           </Block>
+
           <Input
             placeholder={'Имя'}
             value={firstName}
@@ -321,14 +360,11 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
           <Select
             placeholder={'Выберите город'}
-            items={CITIES_OF_RUSSIA}
-            selectedValue={selectedCity}
-            onSelect={setSelectedCity}
+            selectedValue={getSelectedCityName()}
+            onSelect={() => setIsCitySheetVisible(true)}
             marginBottom={ESpacings.s12}
             label="Город"
             errorText={'Выберите город'}
-            searchPlaceholder={'Поиск города'}
-            showSearch
           />
 
           <MultiSelect
@@ -341,7 +377,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             errorText={'Выберите профессии'}
           />
 
-          {/* Адрес студии */}
           <Typography.B20
             marginTop={ESpacings.s8}
             marginBottom={ESpacings.s16}
@@ -362,7 +397,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             errorText={'Введите адрес студии'}
           />
 
-          {/* Кнопка отправки */}
           <Button
             title={'Сохранить'}
             loading={isLoading}
@@ -372,9 +406,23 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           />
         </Block>
       </ScrollView>
+
       <AlertContainer>
         <AlertComponent />
       </AlertContainer>
+
+      <SelectBottomSheet
+        visible={isCitySheetVisible}
+        label="Выберите город"
+        items={filteredCities}
+        searchQuery={citySearchQuery}
+        onSearchChange={setCitySearchQuery}
+        selectedItem={CITIES_OF_RUSSIA.find((c) => c.id === selectedCity) || null}
+        onSelect={handleCitySelect}
+        onClose={selectBottomSheetOnClose}
+        searchPlaceholder="Поиск города"
+        showSearch={true}
+      />
     </ScreenContainer>
   );
 };

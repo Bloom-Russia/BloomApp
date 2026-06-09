@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03980445CFCE4BAB9D97480E /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BEF54F6A40AB4D19B61A9407 /* icomoon.ttf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		31A86C63C8FB4207A652BB69 /* Inter-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6291AC65FF974375A65435D4 /* Inter-Regular.ttf */; };
 		46AE2CB5B8CD4FB586CF06A1 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EDE225E58CC3418FA358FCF3 /* Inter-Medium.ttf */; };
@@ -20,6 +19,7 @@
 		ADD781E6B3EB4EDB92E2F618 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */; };
 		B64966D0940477FDCFE437A2 /* Pods_BloomApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3893BD97C5872057434EE78 /* Pods_BloomApp.framework */; };
 		C23972063ED34FC0A9C4EA54 /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */; };
+		600CF97201324B788C10CB2D /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BB401E2ADD0B42AC9202297E /* icomoon.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,12 +36,12 @@
 		A62D7A112F1BAFD2003088D6 /* BloomApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = BloomApp.entitlements; path = BloomApp/BloomApp.entitlements; sourceTree = "<group>"; };
 		A6ECF5912F1AB3670014106D /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B3893BD97C5872057434EE78 /* Pods_BloomApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BloomApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BEF54F6A40AB4D19B61A9407 /* icomoon.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = icomoon.ttf; path = ../assets/fonts/icomoon.ttf; sourceTree = "<group>"; };
 		EAF56628520B4F7CB66B161C /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = BloomApp/Colors.xcassets; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EDE225E58CC3418FA358FCF3 /* Inter-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Medium.ttf"; path = "../assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; };
 		FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-SemiBold.ttf"; path = "../assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; };
 		FFFC9CD92B0547BBB83EB784 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = BloomApp/BootSplash.storyboard; sourceTree = "<group>"; };
+		BB401E2ADD0B42AC9202297E /* icomoon.ttf */ = {isa = PBXFileReference; name = "icomoon.ttf"; path = "../assets/fonts/icomoon.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,7 +127,7 @@
 				5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */,
 				6291AC65FF974375A65435D4 /* Inter-Regular.ttf */,
 				FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */,
-				BEF54F6A40AB4D19B61A9407 /* icomoon.ttf */,
+				BB401E2ADD0B42AC9202297E /* icomoon.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -203,7 +203,7 @@
 				ADD781E6B3EB4EDB92E2F618 /* Inter-SemiBold.ttf in Resources */,
 				74D5850411CB489FA4A82D49 /* BootSplash.storyboard in Resources */,
 				8E44AA57DF7A498BB89F89D1 /* Colors.xcassets in Resources */,
-				03980445CFCE4BAB9D97480E /* icomoon.ttf in Resources */,
+				600CF97201324B788C10CB2D /* icomoon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,3 +14,4 @@ export { MultiSelect } from './MultiSelect';
 export { Select } from './Select';
 export { MaskedInput } from './MaskedInput';
 export { DateTimeInputPicker } from './DateTimeInputPicker';
+export type { SelectItem } from './Select';
