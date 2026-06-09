@@ -19,6 +19,8 @@ export enum IconNames {
   user = 'user',
   calendar = 'calendar',
   search = 'search',
+  chevronDown = 'chevron-down',
+  checked = 'checked',
 }
 
 export const IconSet = createIconSetFromIcoMoon(config);

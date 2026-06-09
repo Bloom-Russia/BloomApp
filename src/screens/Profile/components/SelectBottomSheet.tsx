@@ -1,5 +1,15 @@
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { Block, Colors, ESpacings, Icon, IconNames, Row, SelectItem, Typography } from '@UIKit';
+import {
+  Block,
+  Colors,
+  ESize,
+  ESpacings,
+  Icon,
+  IconNames,
+  Row,
+  SelectItem,
+  Typography,
+} from '@UIKit';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, TextInput, TouchableOpacity } from 'react-native';
 import styled from 'styled-components';
@@ -88,10 +98,13 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
             paddingVertical={ESpacings.s16}
             justifyContent={'space-between'}
             alignItems={'center'}
-            backgroundColor={selectedItem?.id === item.id ? Colors.gray : Colors.transparent}
           >
-            <Typography.B14 color={Colors.white}>{item.name}</Typography.B14>
-            {selectedItem?.id === item.id && <Icon name="check" size={20} color={Colors.primary} />}
+            <Typography.B14 color={selectedItem?.id === item.id ? Colors.primary : Colors.white}>
+              {item.name}
+            </Typography.B14>
+            {selectedItem?.id === item.id && (
+              <Icon name={IconNames.checked} size={20} color={Colors.primary} />
+            )}
           </StyledItem>
         </TouchableOpacity>
       ),
@@ -125,7 +138,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
           >
             <Typography.B14 color={Colors.white}>{label || 'Выберите значение'}</Typography.B14>
             <TouchableOpacity onPress={handleClose}>
-              <Icon name={IconNames.cancel} size={24} color={Colors.white} />
+              <Icon name={IconNames.cancel} size={ESize.s32} color={Colors.white} />
             </TouchableOpacity>
           </Heading>
 
@@ -148,7 +161,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
                 />
                 {searchQuery.length > 0 && (
                   <TouchableOpacity onPress={clearSearch}>
-                    <Icon name={IconNames.cancel} size={20} color={Colors.gray} />
+                    <Icon name={IconNames.cancel} size={ESize.s32} color={Colors.gray} />
                   </TouchableOpacity>
                 )}
               </Row>

@@ -60,7 +60,7 @@ const SelectComponent: React.FC<SelectProps> = ({
           <Typography.R14 color={selectedValue ? Colors.white : Colors.gray}>
             {getSelectedLabel()}
           </Typography.R14>
-          <Icon name={IconNames.success} size={20} color={Colors.white} />
+          <Icon name={IconNames.chevronDown} size={20} color={Colors.white} />
         </SelectContainer>
       </TouchableOpacity>
 
