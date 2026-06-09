@@ -25,7 +25,8 @@ const parseDateFromString = (digits: string): Date | null => {
   if (isNaN(day) || isNaN(month) || isNaN(year)) {
     return null;
   }
-  const date = new Date(year, month, day);
+  // Создаем дату в полдень, чтобы избежать проблем с часовыми поясами
+  const date = new Date(year, month, day, 12, 0, 0);
   if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return null;
   }
@@ -44,7 +45,7 @@ type Props = {
   errorText?: string;
   title?: string;
   marginBottom?: number;
-  value: string; // внешнее значение – используется только для начальной установки
+  value: string;
   setValue: (value: string) => void;
 };
 
@@ -60,10 +61,8 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   value: externalValue,
   setValue: setExternalValue,
 }) => {
-  // Внутреннее состояние для текста в поле
   const [inputValue, setInputValue] = useState(externalValue || (date ? formatDate(date) : ''));
 
-  // Синхронизация внешнего date с внутренним полем (например, если родитель сбросил дату)
   useEffect(() => {
     if (date) {
       const formatted = formatDate(date);
@@ -71,16 +70,12 @@ export const DateTimeInputPicker: React.FC<Props> = ({
         setInputValue(formatted);
         setExternalValue(formatted);
       }
-    } else if (!inputValue) {
-      // если дата null и поле пустое – ничего не делаем
     } else if (!externalValue && inputValue) {
-      // частный случай: родитель очистил date, но в поле что-то есть – очищаем
       setInputValue('');
       setExternalValue('');
     }
   }, [date, externalValue, inputValue, setExternalValue]);
 
-  // Если внешнее значение изменилось (например, при сбросе формы) – обновляем внутреннее
   useEffect(() => {
     if (externalValue !== inputValue) {
       setInputValue(externalValue);
@@ -91,28 +86,34 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   const onDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
-      setDate(selectedDate);
-      const formatted = formatDate(selectedDate);
+      // Нормализуем дату, устанавливая время на полдень
+      const normalizedDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        12,
+        0,
+        0,
+      );
+      setDate(normalizedDate);
+      const formatted = formatDate(normalizedDate);
       setInputValue(formatted);
       setExternalValue(formatted);
     }
   };
 
-  // Обработка ручного ввода через маску
   const handleTextChange = (masked: string, unmasked: string) => {
-    setInputValue(masked); // обновляем отображаемый текст
-    setExternalValue(masked); // сообщаем родителю (для валидации и т.п.)
+    setInputValue(masked);
+    setExternalValue(masked);
 
     if (unmasked.length === 8) {
       const parsedDate = parseDateFromString(unmasked);
       if (parsedDate) {
         setDate(parsedDate);
       } else {
-        // невалидная дата – сбрасываем date, но текст остается
         setDate(null);
       }
     } else {
-      // введено меньше 8 цифр – дата неполная
       setDate(null);
     }
   };
@@ -145,7 +146,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
 
       {showDatePicker && (
         <DateTimePicker
-          value={date || new Date(1990, 0, 1)}
+          value={date || new Date(1990, 0, 1, 12, 0, 0)}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDateChange}
