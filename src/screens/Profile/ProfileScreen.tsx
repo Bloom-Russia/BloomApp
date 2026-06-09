@@ -1,3 +1,4 @@
+// ProfileScreen.tsx
 import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,8 +12,11 @@ import {
   Input,
   MaskedInput,
   MultiSelect,
+  MultiSelectBottomSheet,
+  MultiSelectItem,
   ScreenContainer,
   Select,
+  SelectBottomSheet,
   SelectItem,
   Typography,
 } from '@UIKit';
@@ -21,7 +25,6 @@ import isEqual from 'react-fast-compare';
 import { Alert, ScrollView, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
-import { SelectBottomSheet } from './components/SelectBottomSheet';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
@@ -43,7 +46,7 @@ const CITIES_OF_RUSSIA: SelectItem[] = [
   { id: '15', name: 'Волгоград' },
 ];
 
-const BEAUTY_PROFESSIONS: SelectItem[] = [
+const BEAUTY_PROFESSIONS: MultiSelectItem[] = [
   { id: '1', name: 'Парикмахер' },
   { id: '2', name: 'Косметолог' },
   { id: '3', name: 'Визажист' },
@@ -76,6 +79,8 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
+  const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
   const { showAlert, AlertComponent } = useCustomAlert();
 
   const filteredCities = useMemo(() => {
@@ -86,6 +91,15 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       city.name.toLowerCase().includes(citySearchQuery.toLowerCase()),
     );
   }, [citySearchQuery]);
+
+  const filteredProfessions = useMemo(() => {
+    if (!professionsSearchQuery.trim()) {
+      return BEAUTY_PROFESSIONS;
+    }
+    return BEAUTY_PROFESSIONS.filter((profession) =>
+      profession.name.toLowerCase().includes(professionsSearchQuery.toLowerCase()),
+    );
+  }, [professionsSearchQuery]);
 
   const openCamera = useCallback(() => {
     ImagePicker.openCamera({
@@ -149,6 +163,19 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     setSelectedCity(city.id);
     setIsCitySheetVisible(false);
     setCitySearchQuery('');
+  }, []);
+
+  const handleProfessionsConfirm = useCallback((values: string[]) => {
+    setSelectedProfessions(values);
+    setIsProfessionsSheetVisible(false);
+    setProfessionsSearchQuery('');
+  }, []);
+
+  const handleProfessionsClose = useCallback(() => {
+    setTimeout(() => {
+      setIsProfessionsSheetVisible(false);
+      setProfessionsSearchQuery('');
+    }, 300);
   }, []);
 
   const validateForm = useCallback(() => {
@@ -268,8 +295,9 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={firstName}
             onChangeValue={setFirstName}
             title={'Имя'}
-            errorText={'Введите имя'}
             marginBottom={ESpacings.s12}
+            errorText={'Введите имя'}
+            isError
           />
 
           <Input
@@ -277,8 +305,9 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={lastName}
             onChangeValue={setLastName}
             title={'Фамилия'}
-            errorText={'Введите фамилию'}
             marginBottom={ESpacings.s12}
+            errorText={'Введите фамилию'}
+            isError
           />
 
           <Input
@@ -325,17 +354,9 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={telegram}
             onChangeValue={setTelegram}
             marginBottom={ESpacings.s12}
-            errorText={'Введите Telegram'}
           />
 
-          <MaskedInput
-            title={'Max'}
-            phone={max}
-            setPhone={setMax}
-            marginBottom={ESpacings.s12}
-            errorText={'Введите Max'}
-            isError
-          />
+          <MaskedInput title={'Max'} phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
 
           <Input
             placeholder={'Стаж (лет)'}
@@ -345,6 +366,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             keyboardType={'numeric'}
             marginBottom={ESpacings.s12}
             errorText={'Введите Стаж'}
+            isError
           />
 
           <Select
@@ -354,16 +376,19 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s12}
             label="Город"
             errorText={'Выберите город'}
+            isError
           />
 
           <MultiSelect
             placeholder={'Выберите профессии'}
             items={BEAUTY_PROFESSIONS}
             selectedValues={selectedProfessions}
+            onPress={() => setIsProfessionsSheetVisible(true)}
             onSelect={setSelectedProfessions}
             label="Профессии"
             marginBottom={ESpacings.s12}
             errorText={'Выберите профессии'}
+            isError
           />
 
           <Typography.B20
@@ -384,6 +409,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             height={100}
             marginBottom={ESpacings.s24}
             errorText={'Введите адрес студии'}
+            isError
           />
 
           <Button
@@ -411,6 +437,20 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
         onClose={selectBottomSheetOnClose}
         searchPlaceholder="Поиск города"
         showSearch={true}
+      />
+
+      <MultiSelectBottomSheet
+        visible={isProfessionsSheetVisible}
+        label="Выберите профессии"
+        items={filteredProfessions}
+        searchQuery={professionsSearchQuery}
+        onSearchChange={setProfessionsSearchQuery}
+        selectedValues={selectedProfessions}
+        onConfirm={handleProfessionsConfirm}
+        onClose={handleProfessionsClose}
+        searchPlaceholder="Поиск..."
+        showSearch={true}
+        maxSelected={undefined}
       />
     </ScreenContainer>
   );

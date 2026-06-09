@@ -2,6 +2,7 @@ import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import {
   Block,
   Colors,
+  ERounding,
   ESize,
   ESpacings,
   Icon,
@@ -102,9 +103,11 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
             <Typography.B14 color={selectedItem?.id === item.id ? Colors.primary : Colors.white}>
               {item.name}
             </Typography.B14>
-            {selectedItem?.id === item.id && (
-              <Icon name={IconNames.checked} size={20} color={Colors.primary} />
-            )}
+            <Checkbox>
+              {selectedItem?.id === item.id && (
+                <Icon name={IconNames.checked} size={16} color={Colors.primary} />
+              )}
+            </Checkbox>
           </StyledItem>
         </TouchableOpacity>
       ),
@@ -129,7 +132,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
         onChange={handleSheetChange}
         onClose={handleClose}
       >
-        <BottomSheetContent>
+        <Block flex={1}>
           <Heading
             paddingHorizontal={ESpacings.s16}
             paddingVertical={ESpacings.s16}
@@ -190,7 +193,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
               windowSize={10}
             />
           )}
-        </BottomSheetContent>
+        </Block>
       </BottomSheet>
     );
   },
@@ -206,14 +209,21 @@ const StyledItem = styled(Row)({
   borderBottomColor: Colors.gray,
 });
 
-const BottomSheetContent = styled(Block)({
-  flex: 1,
-});
-
 const SearchInput = styled(TextInput)({
   color: Colors.white,
   fontSize: 14,
   marginLeft: ESpacings.s8,
   padding: 0,
   flex: 1,
+});
+
+const Checkbox = styled(Block)({
+  width: 20,
+  height: 20,
+  borderRadius: ERounding.r4,
+  borderWidth: 2,
+  borderColor: Colors.white,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: Colors.white,
 });
