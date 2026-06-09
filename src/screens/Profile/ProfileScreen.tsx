@@ -20,7 +20,7 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Alert, ScrollView, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -81,6 +81,18 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
   const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
+
+  // Состояния для ошибок
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [birthDateError, setBirthDateError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [experienceError, setExperienceError] = useState(false);
+  const [cityError, setCityError] = useState(false);
+  const [professionsError, setProfessionsError] = useState(false);
+  const [studioAddressError, setStudioAddressError] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
   const { showAlert, AlertComponent } = useCustomAlert();
 
   const filteredCities = useMemo(() => {
@@ -161,12 +173,14 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   const handleCitySelect = useCallback((city: SelectItem) => {
     setSelectedCity(city.id);
+    setCityError(false);
     setIsCitySheetVisible(false);
     setCitySearchQuery('');
   }, []);
 
   const handleProfessionsConfirm = useCallback((values: string[]) => {
     setSelectedProfessions(values);
+    setProfessionsError(false);
     setIsProfessionsSheetVisible(false);
     setProfessionsSearchQuery('');
   }, []);
@@ -178,33 +192,88 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }, 300);
   }, []);
 
+  const scrollToTop = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
   const validateForm = useCallback(() => {
+    let isValid = true;
+
+    // Валидация имени
     if (!firstName.trim()) {
-      Alert.alert('Ошибка', 'Пожалуйста, введите имя');
-      return false;
+      setFirstNameError(true);
+      isValid = false;
+    } else {
+      setFirstNameError(false);
     }
+
+    // Валидация фамилии
     if (!lastName.trim()) {
-      Alert.alert('Ошибка', 'Пожалуйста, введите фамилию');
-      return false;
+      setLastNameError(true);
+      isValid = false;
+    } else {
+      setLastNameError(false);
     }
+
+    // Валидация даты рождения
     if (!birthDate) {
-      Alert.alert('Ошибка', 'Пожалуйста, выберите дату рождения');
-      return false;
+      setBirthDateError(true);
+      isValid = false;
+    } else {
+      setBirthDateError(false);
     }
-    if (!phone.trim()) {
-      Alert.alert('Ошибка', 'Пожалуйста, введите номер телефона');
-      return false;
+
+    // Валидация телефона
+    if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
+      setPhoneError(true);
+      isValid = false;
+    } else {
+      setPhoneError(false);
     }
+
+    // Валидация стажа
+    if (!experience.trim() || isNaN(Number(experience)) || Number(experience) < 0) {
+      setExperienceError(true);
+      isValid = false;
+    } else {
+      setExperienceError(false);
+    }
+
+    // Валидация города
     if (!selectedCity) {
-      Alert.alert('Ошибка', 'Пожалуйста, выберите город');
-      return false;
+      setCityError(true);
+      isValid = false;
+    } else {
+      setCityError(false);
     }
+
+    // Валидация профессий
     if (selectedProfessions.length === 0) {
-      Alert.alert('Ошибка', 'Пожалуйста, выберите хотя бы одну профессию');
-      return false;
+      setProfessionsError(true);
+      isValid = false;
+    } else {
+      setProfessionsError(false);
     }
-    return true;
-  }, [firstName, lastName, birthDate, phone, selectedCity, selectedProfessions]);
+
+    // Валидация адреса студии
+    if (!studioAddress.trim()) {
+      setStudioAddressError(true);
+      isValid = false;
+    } else {
+      setStudioAddressError(false);
+    }
+
+    return isValid;
+  }, [
+    firstName,
+    lastName,
+    birthDate,
+    phone,
+    experience,
+    selectedCity,
+    selectedProfessions,
+    studioAddress,
+  ]);
 
   const getSelectedCityName = useCallback(() => {
     if (!selectedCity) {
@@ -222,40 +291,43 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!validateForm()) {
-      return;
-    }
+    setTimeout(async () => {
+      if (!validateForm()) {
+        scrollToTop();
+        return;
+      }
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    // Имитация отправки данных на сервер
-    try {
-      const formData = {
-        firstName,
-        lastName,
-        patronymic,
-        birthDate: birthDate?.toISOString(),
-        phone,
-        telegram,
-        max,
-        experience,
-        avatar,
-        city: selectedCity,
-        professions: selectedProfessions,
-        studioAddress,
-      };
+      // Имитация отправки данных на сервер
+      try {
+        const formData = {
+          firstName,
+          lastName,
+          patronymic,
+          birthDate: birthDate?.toISOString(),
+          phone,
+          telegram,
+          max,
+          experience,
+          avatar,
+          city: selectedCity,
+          professions: selectedProfessions,
+          studioAddress,
+        };
 
-      console.log('Form data:', formData);
+        console.log('Form data:', formData);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      Alert.alert('Успех', 'Данные успешно сохранены!');
-    } catch (error) {
-      console.error('Не удалось сохранить данные', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить данные');
-    } finally {
-      setIsLoading(false);
-    }
+        Alert.alert('Успех', 'Данные успешно сохранены!');
+      } catch (error) {
+        console.error('Не удалось сохранить данные', error);
+        Alert.alert('Ошибка', 'Не удалось сохранить данные');
+      } finally {
+        setIsLoading(false);
+      }
+    }, 100);
   }, [
     firstName,
     lastName,
@@ -270,6 +342,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     selectedProfessions,
     studioAddress,
     validateForm,
+    scrollToTop,
   ]);
 
   return (
@@ -279,6 +352,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       paddingHorizontal={ESpacings.s16}
     >
       <ScrollView
+        ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: ESpacings.s24 }}
         keyboardShouldPersistTaps="handled"
@@ -293,21 +367,27 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           <Input
             placeholder={'Имя'}
             value={firstName}
-            onChangeValue={setFirstName}
+            onChangeValue={(value) => {
+              setFirstName(value);
+              setFirstNameError(false);
+            }}
             title={'Имя'}
             marginBottom={ESpacings.s12}
             errorText={'Введите имя'}
-            isError
+            isError={firstNameError}
           />
 
           <Input
             placeholder={'Фамилия'}
             value={lastName}
-            onChangeValue={setLastName}
+            onChangeValue={(value) => {
+              setLastName(value);
+              setLastNameError(false);
+            }}
             title={'Фамилия'}
             marginBottom={ESpacings.s12}
             errorText={'Введите фамилию'}
-            isError
+            isError={lastNameError}
           />
 
           <Input
@@ -320,7 +400,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
           <DateTimeInputPicker
             date={birthDate}
-            setDate={setBirthDate}
+            setDate={(date) => {
+              setBirthDate(date);
+              setBirthDateError(false);
+            }}
             showDatePicker={showDatePicker}
             setShowDatePicker={setShowDatePicker}
             title={'Дата рождения'}
@@ -328,7 +411,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s12}
             value={birthday}
             setValue={setBirthday}
-            isError
+            isError={birthDateError}
           />
 
           <Typography.B20
@@ -342,10 +425,13 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           <MaskedInput
             title={'Телефон'}
             phone={phone}
-            setPhone={setPhone}
+            setPhone={(value) => {
+              setPhone(value);
+              setPhoneError(false);
+            }}
             marginBottom={ESpacings.s12}
-            errorText={'Введите Телефон'}
-            isError
+            errorText={'Введите корректный номер телефона'}
+            isError={phoneError}
           />
 
           <Input
@@ -362,11 +448,14 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             placeholder={'Стаж (лет)'}
             title={'Стаж'}
             value={experience}
-            onChangeValue={setExperience}
+            onChangeValue={(text) => {
+              setExperience(text);
+              setExperienceError(false);
+            }}
             keyboardType={'numeric'}
             marginBottom={ESpacings.s12}
-            errorText={'Введите Стаж'}
-            isError
+            errorText={'Введите корректный стаж'}
+            isError={experienceError}
           />
 
           <Select
@@ -376,7 +465,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s12}
             label="Город"
             errorText={'Выберите город'}
-            isError
+            isError={cityError}
           />
 
           <MultiSelect
@@ -384,11 +473,14 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             items={BEAUTY_PROFESSIONS}
             selectedValues={selectedProfessions}
             onPress={() => setIsProfessionsSheetVisible(true)}
-            onSelect={setSelectedProfessions}
+            onSelect={(values) => {
+              setSelectedProfessions(values);
+              setProfessionsError(false);
+            }}
             label="Профессии"
             marginBottom={ESpacings.s12}
-            errorText={'Выберите профессии'}
-            isError
+            errorText={'Выберите хотя бы одну профессию'}
+            isError={professionsError}
           />
 
           <Typography.B20
@@ -402,14 +494,17 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           <Input
             placeholder={'Адрес студии'}
             value={studioAddress}
-            onChangeValue={setStudioAddress}
+            onChangeValue={(text) => {
+              setStudioAddress(text);
+              setStudioAddressError(false);
+            }}
             multiline={true}
             textAlignVertical={'top'}
             numberOfLines={4}
             height={100}
             marginBottom={ESpacings.s24}
             errorText={'Введите адрес студии'}
-            isError
+            isError={studioAddressError}
           />
 
           <Button
