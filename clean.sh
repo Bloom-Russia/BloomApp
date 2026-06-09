@@ -248,7 +248,7 @@ update_gradle_wrapper() {
         echo "🔄 Проверка версии gradle wrapper..."
 
         # Используем совместимую версию Gradle для React Native
-        local target_gradle_version="9.0.0"  # Более стабильная версия для RN
+        local target_gradle_version="9.1.0"  # Более стабильная версия для RN
 
         # Читаем текущую версию из файла
         local gradle_file="android/gradle/wrapper/gradle-wrapper.properties"

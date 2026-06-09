@@ -6,9 +6,10 @@ import styled from 'styled-components';
 type MaskInputProps = {
   phone: string;
   setPhone: (phone: string) => void;
-  error?: string;
+  errorText?: string;
   title?: string;
   marginBottom?: number;
+  isError?: boolean;
 };
 
 export const MaskedInput: React.FC<MaskInputProps> = ({
@@ -16,7 +17,8 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
   setPhone,
   marginBottom = 0,
   title,
-  error,
+  errorText,
+  isError,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
@@ -26,7 +28,7 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
         </Typography.B14>
       ) : null}
       <StyledMaskInput
-        error={!!error}
+        isError={isError}
         color={Colors.white}
         value={phone}
         onChangeText={(_masked, unmasked) => setPhone(unmasked)}
@@ -54,9 +56,9 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
         keyboardType="numeric"
         placeholderTextColor={Colors.white}
       />
-      {error ? (
+      {isError ? (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
-          {error}
+          {errorText}
         </Typography.B14>
       ) : null}
     </Block>
@@ -65,10 +67,10 @@ export const MaskedInput: React.FC<MaskInputProps> = ({
 
 const StyledMaskInput = styled(MaskInput)<{
   color: string;
-  error?: boolean;
-}>(({ error, color }) => ({
+  isError?: boolean;
+}>(({ isError, color }) => ({
   borderWidth: 1,
-  borderColor: error ? Colors.red : Colors.white,
+  borderColor: isError ? Colors.red : Colors.white,
   borderRadius: ERounding.r14,
   paddingHorizontal: ESpacings.s16,
   height: ESize.s48,

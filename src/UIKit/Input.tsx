@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageSourcePropType, KeyboardTypeOptions, TextInput, TextInputProps } from 'react-native';
+import { KeyboardTypeOptions, TextInput, TextInputProps } from 'react-native';
 import styled from 'styled-components';
 
 import { Colors, ERounding, ESpacings, Typography } from './constants';
@@ -15,13 +15,12 @@ type Props = {
   autoCapitalize?: TextInputProps['autoCapitalize'];
   disabled?: boolean;
   maxLength?: number;
-  icon?: ImageSourcePropType;
-  onIconPress?: () => void;
-  error?: string;
+  errorText?: string;
   multiline?: boolean;
   numberOfLines?: number;
   height?: number;
   textAlignVertical?: string;
+  isError?: boolean;
 };
 
 export const Input: React.FC<Props> = ({
@@ -34,11 +33,12 @@ export const Input: React.FC<Props> = ({
   maxLength,
   autoCapitalize,
   title,
-  error,
+  errorText,
   multiline,
   numberOfLines = 1,
   height = 48,
   textAlignVertical = 'center',
+  isError,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
@@ -63,11 +63,11 @@ export const Input: React.FC<Props> = ({
         autoCapitalize={autoCapitalize}
         autoCorrect={false}
         autoComplete="off"
-        error={!!error}
+        isError={isError}
       />
-      {error ? (
+      {isError ? (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
-          {error}
+          {errorText}
         </Typography.B14>
       ) : null}
     </Block>
@@ -78,11 +78,11 @@ const StyledInput = styled(TextInput)<{
   color: string;
   height: number;
   textAlignVertical: string;
-  error?: boolean;
-}>(({ color, height, textAlignVertical, error }) => ({
+  isError?: boolean;
+}>(({ color, height, textAlignVertical, isError }) => ({
   borderRadius: ERounding.r14,
   overflow: 'hidden',
-  borderColor: error ? Colors.red : Colors.white,
+  borderColor: isError ? Colors.red : Colors.white,
   borderWidth: 1,
   paddingHorizontal: ESpacings.s14,
   fontSize: 14,

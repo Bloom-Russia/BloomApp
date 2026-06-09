@@ -26,11 +26,12 @@ interface MultiSelectProps {
   selectedValues: string[];
   onSelect: (values: string[]) => void;
   label?: string;
-  error?: string;
   disabled?: boolean;
   marginBottom?: number;
   marginTop?: number;
   maxSelected?: number;
+  isError?: boolean;
+  errorText?: string;
 }
 
 const MultiSelectComponent: React.FC<MultiSelectProps> = ({
@@ -39,11 +40,12 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
   selectedValues,
   onSelect,
   label,
-  error,
+  errorText,
   disabled = false,
   marginBottom = 0,
   marginTop = 0,
   maxSelected,
+  isError,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempSelectedValues, setTempSelectedValues] = useState<string[]>(selectedValues);
@@ -141,7 +143,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
           flexDirection={'row'}
           justifyContent={'space-between'}
           alignItems={'center'}
-          style={[styles.selectContainer, error && styles.errorBorder]}
+          style={[styles.selectContainer, isError && styles.errorBorder]}
         >
           <Typography.R14
             color={selectedValues.length > 0 ? Colors.white : Colors.gray}
@@ -158,9 +160,9 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
         </Block>
       </TouchableOpacity>
 
-      {error && (
+      {isError && (
         <Typography.B14 marginTop={ESpacings.s4} color={Colors.error}>
-          {error}
+          {errorText}
         </Typography.B14>
       )}
 
@@ -316,7 +318,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
 const styles = StyleSheet.create({
   selectContainer: {
     borderWidth: 1,
-    borderColor: Colors.gray,
+    borderColor: Colors.white,
   },
   selectText: {
     flex: 1,

@@ -217,10 +217,15 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   ]);
 
   return (
-    <ScreenContainer title={'Редактирование профиля'} paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer
+      scrollEnabled={false}
+      title={'Редактирование профиля'}
+      paddingHorizontal={ESpacings.s16}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: ESpacings.s24 }}
+        keyboardShouldPersistTaps="handled"
       >
         <Block padding={ESpacings.s16}>
           <Block alignItems={'center'} marginBottom={ESpacings.s24}>
@@ -233,7 +238,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={firstName}
             onChangeValue={setFirstName}
             title={'Имя'}
-            error={'Введите имя'}
+            errorText={'Введите имя'}
             marginBottom={ESpacings.s12}
           />
 
@@ -242,7 +247,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={lastName}
             onChangeValue={setLastName}
             title={'Фамилия'}
-            error={'Введите фамилию'}
+            errorText={'Введите фамилию'}
             marginBottom={ESpacings.s12}
           />
 
@@ -261,10 +266,11 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             showDatePicker={showDatePicker}
             setShowDatePicker={setShowDatePicker}
             title={'Дата рождения'}
-            error={'Введите дату рождения'}
+            errorText={'Введите дату рождения'}
             marginBottom={ESpacings.s12}
             value={birthday}
             setValue={setBirthday}
+            isError
           />
 
           {/* Контактная информация */}
@@ -281,7 +287,8 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             phone={phone}
             setPhone={setPhone}
             marginBottom={ESpacings.s12}
-            error={'Введите Телефон'}
+            errorText={'Введите Телефон'}
+            isError
           />
 
           <Input
@@ -290,7 +297,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             value={telegram}
             onChangeValue={setTelegram}
             marginBottom={ESpacings.s12}
-            error={'Введите Telegram'}
+            errorText={'Введите Telegram'}
           />
 
           <MaskedInput
@@ -298,7 +305,8 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             phone={max}
             setPhone={setMax}
             marginBottom={ESpacings.s12}
-            error={'Введите Max'}
+            errorText={'Введите Max'}
+            isError
           />
 
           <Input
@@ -308,29 +316,29 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             onChangeValue={setExperience}
             keyboardType={'numeric'}
             marginBottom={ESpacings.s12}
-            error={'Введите Стаж'}
+            errorText={'Введите Стаж'}
           />
 
-          {/* Выбор города */}
           <Select
-            placeholder={'Выберите город *'}
+            placeholder={'Выберите город'}
             items={CITIES_OF_RUSSIA}
             selectedValue={selectedCity}
             onSelect={setSelectedCity}
             marginBottom={ESpacings.s12}
             label="Город"
-            error={'Выберите город'}
+            errorText={'Выберите город'}
+            searchPlaceholder={'Поиск города'}
+            showSearch
           />
 
-          {/* Множественный выбор профессий */}
           <MultiSelect
-            placeholder={'Выберите профессии *'}
+            placeholder={'Выберите профессии'}
             items={BEAUTY_PROFESSIONS}
             selectedValues={selectedProfessions}
             onSelect={setSelectedProfessions}
             label="Профессии"
             marginBottom={ESpacings.s12}
-            error={'Выберите профессии'}
+            errorText={'Выберите профессии'}
           />
 
           {/* Адрес студии */}
@@ -351,7 +359,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             numberOfLines={4}
             height={100}
             marginBottom={ESpacings.s24}
-            error={'Введите адрес студии'}
+            errorText={'Введите адрес студии'}
           />
 
           {/* Кнопка отправки */}

@@ -1,18 +1,9 @@
-import { Block, Colors, ESpacings, Icon, IconNames, Typography } from '@UIKit';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { Block, Colors, ERounding, ESpacings, Icon, IconNames, Row, Typography } from '@UIKit';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import {
-  Animated,
-  Dimensions,
-  FlatList,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { TextInput, TouchableOpacity } from 'react-native';
+import styled from 'styled-components';
 
 export interface SelectItem {
   id: string;
@@ -25,11 +16,15 @@ interface SelectProps {
   selectedValue: string | null;
   onSelect: (value: string) => void;
   label?: string;
-  error?: string;
+  errorText?: string;
+  isError?: boolean;
   disabled?: boolean;
   marginBottom?: number;
   marginTop?: number;
+  showSearch?: boolean;
+  searchPlaceholder?: string;
 }
+const keyExtractor = (item: SelectItem) => item.id;
 
 const SelectComponent: React.FC<SelectProps> = ({
   placeholder = 'Выберите значение',
@@ -37,40 +32,47 @@ const SelectComponent: React.FC<SelectProps> = ({
   selectedValue,
   onSelect,
   label,
-  error,
+  errorText,
+  isError,
   disabled = false,
   marginBottom = 0,
   marginTop = 0,
+  showSearch = true,
+  searchPlaceholder = 'Поиск...',
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectItem | null>(
     selectedValue ? items.find((item) => item.id === selectedValue) || null : null,
   );
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (modalVisible) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(slideAnim, {
-        toValue: SCREEN_HEIGHT,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['50%', '85%'], []);
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return items;
     }
-  }, [modalVisible, slideAnim]);
+    return items.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [items, searchQuery]);
+
+  const handleOpenPress = useCallback(() => {
+    if (!disabled) {
+      setSearchQuery('');
+      bottomSheetRef.current?.expand();
+    }
+  }, [disabled]);
+
+  const handleClosePress = useCallback(() => {
+    bottomSheetRef.current?.close();
+  }, []);
 
   const handleSelect = useCallback(
     (item: SelectItem) => {
       setSelectedItem(item);
       onSelect(item.id);
-      setModalVisible(false);
+      handleClosePress();
     },
-    [onSelect],
+    [onSelect, handleClosePress],
   );
 
   const getSelectedLabel = useCallback(() => {
@@ -80,6 +82,27 @@ const SelectComponent: React.FC<SelectProps> = ({
     return placeholder;
   }, [selectedItem, placeholder]);
 
+  const renderItem = useCallback(
+    ({ item }: { item: SelectItem }) => (
+      <TouchableOpacity onPress={() => handleSelect(item)} activeOpacity={0.7}>
+        <SelectItem
+          padding={ESpacings.s16}
+          justifyContent={'space-between'}
+          alignItems={'center'}
+          backgroundColor={selectedItem?.id === item.id ? Colors.gray : Colors.transparent}
+        >
+          <Typography.B14 color={Colors.white}>{item.name}</Typography.B14>
+          {selectedItem?.id === item.id && <Icon name="check" size={20} color={Colors.primary} />}
+        </SelectItem>
+      </TouchableOpacity>
+    ),
+    [selectedItem, handleSelect],
+  );
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
   return (
     <Block marginBottom={marginBottom} marginTop={marginTop}>
       {label && (
@@ -88,133 +111,128 @@ const SelectComponent: React.FC<SelectProps> = ({
         </Typography.B14>
       )}
 
-      <TouchableOpacity
-        onPress={() => !disabled && setModalVisible(true)}
-        activeOpacity={disabled ? 1 : 0.7}
-      >
-        <Block
+      <TouchableOpacity onPress={handleOpenPress} activeOpacity={disabled ? 1 : 0.7}>
+        <SelectContainer
           backgroundColor={disabled ? Colors.gray : Colors.black}
-          borderRadius={8}
+          borderRadius={ERounding.r8}
           paddingHorizontal={ESpacings.s12}
           paddingVertical={ESpacings.s14}
-          flexDirection={'row'}
           justifyContent={'space-between'}
           alignItems={'center'}
-          style={[styles.selectContainer, error && styles.errorBorder]}
+          isError={isError}
         >
-          <Typography.R14
-            color={selectedItem ? Colors.white : Colors.gray}
-            style={styles.selectText}
-          >
+          <Typography.R14 color={selectedItem ? Colors.white : Colors.gray}>
             {getSelectedLabel()}
           </Typography.R14>
-          <Icon
-            name={modalVisible ? IconNames.cancel : IconNames.success}
-            size={20}
-            color={Colors.white}
-          />
-        </Block>
+          <Icon name={IconNames.success} size={20} color={Colors.white} />
+        </SelectContainer>
       </TouchableOpacity>
 
-      {error && (
+      {isError && (
         <Typography.B14 marginTop={ESpacings.s8} color={Colors.error}>
-          {error}
+          {errorText}
         </Typography.B14>
       )}
 
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        android_keyboardInputMode="adjustResize"
+        backgroundStyle={{
+          backgroundColor: Colors.gray,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: Colors.white,
+        }}
       >
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View
-                style={[
-                  styles.modalContent,
-                  {
-                    transform: [{ translateY: slideAnim }],
-                  },
-                ]}
-              >
-                <Block backgroundColor={Colors.gray} borderRadius={12} overflow="hidden">
-                  {/* Заголовок */}
-                  <Block
-                    padding={ESpacings.s16}
-                    borderBottomWidth={1}
-                    borderBottomColor={Colors.gray}
-                    flexDirection={'row'}
-                    justifyContent={'space-between'}
-                    alignItems={'center'}
-                  >
-                    <Typography.B14 color={Colors.white}>
-                      {label || 'Выберите значение'}
-                    </Typography.B14>
-                    <TouchableOpacity onPress={() => setModalVisible(false)}>
-                      <Icon name={IconNames.cancel} size={24} color={Colors.white} />
-                    </TouchableOpacity>
-                  </Block>
+        <BottomSheetContent>
+          <Heading padding={ESpacings.s16} justifyContent={'space-between'} alignItems={'center'}>
+            <Typography.B14 color={Colors.white}>{label || 'Выберите значение'}</Typography.B14>
+            <TouchableOpacity onPress={handleClosePress}>
+              <Icon name={IconNames.cancel} size={24} color={Colors.white} />
+            </TouchableOpacity>
+          </Heading>
 
-                  {/* Список опций */}
-                  <FlatList
-                    data={items}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity onPress={() => handleSelect(item)} activeOpacity={0.7}>
-                        <Block
-                          padding={ESpacings.s16}
-                          borderBottomWidth={1}
-                          borderBottomColor={Colors.gray}
-                          flexDirection={'row'}
-                          justifyContent={'space-between'}
-                          alignItems={'center'}
-                          backgroundColor={
-                            selectedItem?.id === item.id ? Colors.gray : Colors.transparent
-                          }
-                        >
-                          <Typography.B14 color={Colors.white}>{item.name}</Typography.B14>
-                          {selectedItem?.id === item.id && (
-                            <Icon name="check" size={20} color={Colors.primary} />
-                          )}
-                        </Block>
-                      </TouchableOpacity>
-                    )}
-                    showsVerticalScrollIndicator={false}
-                  />
-                </Block>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+          {showSearch && (
+            <Block paddingHorizontal={ESpacings.s16} paddingBottom={ESpacings.s12}>
+              <Row
+                alignItems={'center'}
+                backgroundColor={Colors.black}
+                borderRadius={ERounding.r8}
+                paddingHorizontal={ESpacings.s12}
+                paddingVertical={ESpacings.s8}
+              >
+                <Icon name={IconNames.fingerprint} size={20} color={Colors.gray} />
+                <SearchInput
+                  placeholder={searchPlaceholder}
+                  placeholderTextColor={Colors.gray}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                  <TouchableOpacity onPress={clearSearch}>
+                    <Icon name={IconNames.cancel} size={20} color={Colors.gray} />
+                  </TouchableOpacity>
+                )}
+              </Row>
+            </Block>
+          )}
+
+          {filteredItems.length === 0 ? (
+            <Block flex={1} justifyContent={'center'} alignItems={'center'} padding={ESpacings.s32}>
+              <Icon name={IconNames.faceId} size={48} color={Colors.gray} />
+              <Typography.B14 marginTop={ESpacings.s16} color={Colors.gray} textAlign={'center'}>
+                Ничего не найдено
+              </Typography.B14>
+            </Block>
+          ) : (
+            <BottomSheetFlatList
+              data={filteredItems}
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingBottom: ESpacings.s16,
+              }}
+              keyboardShouldPersistTaps="handled"
+            />
+          )}
+        </BottomSheetContent>
+      </BottomSheet>
     </Block>
   );
 };
 
-const styles = StyleSheet.create({
-  selectContainer: {
-    borderWidth: 1,
-    borderColor: Colors.gray,
-  },
-  selectText: {
-    flex: 1,
-  },
-  errorBorder: {
-    borderColor: Colors.error,
-    borderWidth: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    maxHeight: SCREEN_HEIGHT * 0.7,
-    marginHorizontal: ESpacings.s16,
-    marginBottom: ESpacings.s16,
-  },
+export const Select = memo(SelectComponent, isEqual);
+
+const Heading = styled(Row)({
+  borderBottomWidth: 1,
+  borderBottomColor: Colors.gray,
 });
 
-export const Select = memo(SelectComponent, isEqual);
+const SelectItem = styled(Row)({
+  borderBottomWidth: 1,
+  borderBottomColor: Colors.gray,
+});
+
+const SelectContainer = styled(Block)<{
+  isError?: boolean;
+}>(({ isError }) => ({
+  borderWidth: 1,
+  borderColor: isError ? Colors.red : Colors.white,
+  flexDirection: 'row',
+}));
+
+const BottomSheetContent = styled(Block)({
+  flex: 1,
+});
+
+const SearchInput = styled(TextInput)({
+  color: Colors.white,
+  fontSize: 14,
+  marginLeft: ESpacings.s8,
+  padding: 0,
+  flex: 1,
+});

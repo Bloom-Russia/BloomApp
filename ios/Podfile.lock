@@ -2835,7 +2835,7 @@ PODS:
     - RNFBApp
     - SocketRocket
     - Yoga
-  - RNGestureHandler (2.30.0):
+  - RNGestureHandler (3.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2986,7 +2986,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNReanimated (4.2.1):
+  - RNReanimated (4.4.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3013,11 +3013,12 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.2.1)
+    - RNReanimated/apple (= 4.4.1)
+    - RNReanimated/common (= 4.4.1)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated (4.2.1):
+  - RNReanimated/apple (4.4.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3044,11 +3045,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.2.1)
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNReanimated/reanimated/apple (4.2.1):
+  - RNReanimated/common (4.4.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3165,7 +3165,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNWorklets (0.7.2):
+  - RNWorklets (0.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3192,10 +3192,11 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets (= 0.7.2)
+    - RNWorklets/apple (= 0.9.1)
+    - RNWorklets/common (= 0.9.1)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets (0.7.2):
+  - RNWorklets/apple (0.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3222,10 +3223,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNWorklets/worklets/apple (= 0.7.2)
     - SocketRocket
     - Yoga
-  - RNWorklets/worklets/apple (0.7.2):
+  - RNWorklets/common (0.9.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3671,15 +3671,15 @@ SPEC CHECKSUMS:
   RNDateTimePicker: ea25d20659754bfe1014e0d5905d21dbc18ff705
   RNFBApp: ce5d5119eb41391b0300340dcb332ba4548c0aa1
   RNFBMessaging: 3143f20f4bdfeb273f8a7162dd72887e6043200d
-  RNGestureHandler: c6327cf6e2bd384dc90351ccfff0da8142d62f54
+  RNGestureHandler: d3d2422c0bd18a6dd3d8c62613566f5897020c3e
   RNImageCropPicker: 5432d75a3bc7209dc8b6ab189fcfe19bd6339fb9
   RNKeychain: 76d042fc1dfba47f3945920bc82e0bce9ad1ff55
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
   RNPermissions: a779c2d1cea11fb46c5a7d2b5162fbf7a3bf2060
-  RNReanimated: fbcb7fd8da5b0b088401542c58fb5d266388f1cf
+  RNReanimated: 256489c591f96e42aa80460de7169e1d0ff633dc
   RNScreens: d6413aeb1878cdafd3c721e2c5218faf5d5d3b13
   RNVectorIcons: e355dd0998d6b9020e560922a66614eb9636501b
-  RNWorklets: 01efdd402d236a13651ea5ea5437ca85a44e7afa
+  RNWorklets: c8478950982ef7542807c9219a9f86b561fa8bd1
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   TOCropViewController: 797deaf39c90e6e9ddd848d88817f6b9a8a09888
   Yoga: 33b53536a0500d039f2cd78caf1d5d68712d3af7

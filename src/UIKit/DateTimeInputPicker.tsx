@@ -40,7 +40,8 @@ type Props = {
   setDate: (date: Date | null) => void;
   showDatePicker: boolean;
   setShowDatePicker: (showDatePicker: boolean) => void;
-  error?: string;
+  isError?: boolean;
+  errorText?: string;
   title?: string;
   marginBottom?: number;
   value: string; // внешнее значение – используется только для начальной установки
@@ -53,7 +54,8 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   showDatePicker,
   setShowDatePicker,
   title,
-  error,
+  errorText,
+  isError,
   marginBottom,
   value: externalValue,
   setValue: setExternalValue,
@@ -125,7 +127,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
 
       <Block>
         <StyledMaskInput
-          error={!!error}
+          isError={isError}
           color={Colors.white}
           value={inputValue}
           onChangeText={handleTextChange}
@@ -151,9 +153,9 @@ export const DateTimeInputPicker: React.FC<Props> = ({
         />
       )}
 
-      {error && (
+      {isError && (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
-          {error}
+          {errorText}
         </Typography.B14>
       )}
     </Block>
@@ -168,10 +170,10 @@ const AbsoluteContainer = styled(Block)({
 
 const StyledMaskInput = styled(MaskInput)<{
   color: string;
-  error?: boolean;
-}>(({ error, color }) => ({
+  isError?: boolean;
+}>(({ isError, color }) => ({
   borderWidth: 1,
-  borderColor: error ? Colors.red : Colors.white,
+  borderColor: isError ? Colors.red : Colors.white,
   borderRadius: ERounding.r14,
   paddingLeft: ESpacings.s16,
   paddingRight: ESpacings.s24,

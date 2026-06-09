@@ -6,11 +6,11 @@ import { Block, Colors } from '@UIKit';
 import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import styled from 'styled-components';
 
-// Создаем внутренний компонент для использования safe area
 const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +44,17 @@ const App: React.FC = () => {
   }
 
   return (
-    <AuthProvider>
-      <KeyboardProvider>
-        <SafeAreaProvider>
-          <NotificationCoordinator />
-          <AppNavigation />
-        </SafeAreaProvider>
-      </KeyboardProvider>
-    </AuthProvider>
+    // eslint-disable-next-line react-native/no-inline-styles
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <KeyboardProvider>
+          <SafeAreaProvider>
+            <NotificationCoordinator />
+            <AppNavigation />
+          </SafeAreaProvider>
+        </KeyboardProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 };
 
