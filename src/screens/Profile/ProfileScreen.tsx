@@ -25,7 +25,6 @@ import { SelectBottomSheet } from './components/SelectBottomSheet';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
-// Данные для выпадающих списков
 const CITIES_OF_RUSSIA: SelectItem[] = [
   { id: '1', name: 'Москва' },
   { id: '2', name: 'Санкт-Петербург' },
@@ -75,13 +74,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
   const [studioAddress, setStudioAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { showAlert, AlertComponent } = useCustomAlert();
-
-  // Состояния для BottomSheet города
   const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
+  const { showAlert, AlertComponent } = useCustomAlert();
 
-  // Фильтрация городов
   const filteredCities = useMemo(() => {
     if (!citySearchQuery.trim()) {
       return CITIES_OF_RUSSIA;
@@ -123,7 +119,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       });
   }, []);
 
-  // Функция для выбора аватарки
   const handleSelectAvatar = useCallback(() => {
     showAlert({
       title: 'Выберите аватар',
@@ -150,14 +145,12 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     });
   }, [openCamera, openGallery, showAlert]);
 
-  // Обработчик выбора города
   const handleCitySelect = useCallback((city: SelectItem) => {
     setSelectedCity(city.id);
     setIsCitySheetVisible(false);
     setCitySearchQuery('');
   }, []);
 
-  // Валидация формы
   const validateForm = useCallback(() => {
     if (!firstName.trim()) {
       Alert.alert('Ошибка', 'Пожалуйста, введите имя');
@@ -201,7 +194,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }, 300);
   }, []);
 
-  // Отправка формы
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
       return;
@@ -228,7 +220,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
       console.log('Form data:', formData);
 
-      // Здесь должен быть реальный API запрос
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       Alert.alert('Успех', 'Данные успешно сохранены!');
@@ -298,7 +289,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             marginBottom={ESpacings.s24}
           />
 
-          {/* Дата рождения */}
           <DateTimeInputPicker
             date={birthDate}
             setDate={setBirthDate}
@@ -312,7 +302,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             isError
           />
 
-          {/* Контактная информация */}
           <Typography.B20
             marginTop={ESpacings.s8}
             marginBottom={ESpacings.s16}
