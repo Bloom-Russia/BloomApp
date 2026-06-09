@@ -20,7 +20,7 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Alert, findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -82,6 +82,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
   const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
+  const [shouldScrollToError, setShouldScrollToError] = useState(false);
 
   // Состояния для ошибок
   const [firstNameError, setFirstNameError] = useState(false);
@@ -346,13 +347,29 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }, 300);
   }, []);
 
+  useEffect(() => {
+    if (shouldScrollToError) {
+      scrollToFirstError();
+      setShouldScrollToError(false);
+    }
+  }, [
+    shouldScrollToError,
+    scrollToFirstError,
+    firstNameError,
+    lastNameError,
+    birthDateError,
+    phoneError,
+    experienceError,
+    cityError,
+    professionsError,
+    studioAddressError,
+  ]);
+
   const handleSubmit = useCallback(async () => {
     const isValid = validateForm();
 
     if (!isValid) {
-      setTimeout(() => {
-        scrollToFirstError();
-      }, 100);
+      setShouldScrollToError(true);
       return;
     }
 
@@ -400,7 +417,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     selectedProfessions,
     studioAddress,
     validateForm,
-    scrollToFirstError,
   ]);
 
   return (
