@@ -10,10 +10,11 @@ export interface AuthResponseDataRequestVerificationCode {
 }
 
 export interface OnboardingSlide {
-  id: number;
+  id: string;
   title: string;
   description: string;
   imageUrl: string;
+  fullImageUrl: string;
   order: number;
 }
 

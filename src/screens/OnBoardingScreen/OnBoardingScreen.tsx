@@ -19,10 +19,11 @@ import { ActivityIndicator, FlatList, Image } from 'react-native';
 import styled from 'styled-components/native';
 
 interface OnboardingItem {
-  id: number;
+  id: string;
   title: string;
   description: string;
   imageUrl: string;
+  fullImageUrl: string;
   order: number;
 }
 
@@ -41,7 +42,7 @@ const ListEmptyComponent: React.FC = () => (
   </Block>
 );
 
-const keyExtractor = (item: OnboardingItem) => item.id.toString();
+const keyExtractor = (item: OnboardingItem) => item.id;
 
 const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -101,7 +102,7 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
     return (
       <Block flex={1}>
         <Block flex={1}>
-          <StyledImage source={{ uri: item.imageUrl }} resizeMode="cover" />
+          <StyledImage source={{ uri: item.fullImageUrl }} resizeMode="cover" />
         </Block>
         <Block paddingVertical={ESpacings.s16} alignItems={'center'} justifyContent={'center'}>
           <Typography.B16 color={Colors.white} marginBottom={ESpacings.s12}>
