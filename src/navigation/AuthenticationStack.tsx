@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnBoardingScreen, PinCodeScreen } from '@screens';
-import { useApp } from '@store';
+import { useAppStore } from '@store';
 import { Colors } from '@UIKit';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect } from 'react';
@@ -13,7 +13,7 @@ import { EScreens } from './types';
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const Authentication: React.FC<AuthorizationStackProps> = () => {
-  const { fetchCitiesAndProfession } = useApp();
+  const { fetchCitiesAndProfession } = useAppStore();
 
   const loadCitiesAndProfession = useCallback(async () => {
     const { success } = await fetchCitiesAndProfession();

@@ -120,3 +120,12 @@ export interface CheckPinStatusResponse {
   hasPin: boolean;
   isVerified: boolean;
 }
+
+export interface UserResponse {
+  user: {
+    id: string;
+    phoneNumber: string;
+    name?: string;
+    email?: string;
+  };
+}

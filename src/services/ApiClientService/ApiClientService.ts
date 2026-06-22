@@ -18,6 +18,7 @@ import {
   RequestCodeParams,
   SavePinParams,
   SavePinResponse,
+  UserResponse,
   VerifyCoderParams,
   VerifyPinCoderParams,
 } from './types';
@@ -237,6 +238,21 @@ class ApiClientService {
     }
 
     console.log('✅ Списки городов и профессий успешно получены');
+
+    return response.data;
+  }
+
+  // Получить пользователя по номеру телефона
+  static async getUserByPhoneNumber(phoneNumber: string): Promise<ApiResponse<UserResponse>> {
+    const response = await AxiosService.get<UserResponse>(`/api/users/user`, {
+      params: { phoneNumber },
+    });
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || 'Ошибка получения пользователя');
+    }
+
+    console.log(`✅ Пользователь с номером ${phoneNumber} успешно получен`);
 
     return response.data;
   }

@@ -2,7 +2,8 @@
 import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ICity, IProfession, useApp } from '@store';
+import { SecureStorageKeys, SecureStorageService } from '@services';
+import { ICity, IProfession, useAppStore, useUserStore } from '@store';
 import {
   Avatar,
   Block,
@@ -20,6 +21,7 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
+import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Alert, findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
@@ -29,14 +31,35 @@ import styled from 'styled-components/native';
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
-  const [firstName, setFirstName] = useState('');
+  const {
+    fetchUserByPhoneNumber,
+    user: { name, email: userEmail, phoneNumber },
+  } = useUserStore();
+
+  const loadUser = useCallback(async () => {
+    const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+    if (phone.success && phone.data) {
+      const { success } = await fetchUserByPhoneNumber(phone.data);
+      if (success) {
+        console.log('Пользователь успешно получен.');
+      }
+    } else {
+      console.error('Ошибка получения пользователя по номеру телефона.');
+    }
+  }, [fetchUserByPhoneNumber]);
+
+  useEffect(() => {
+    loadUser().then(noop);
+  }, [loadUser]);
+
+  const [firstName, setFirstName] = useState(name || '');
   const [lastName, setLastName] = useState('');
   const [patronymic, setPatronymic] = useState('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [birthday, setBirthday] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(phoneNumber);
+  const [email, setEmail] = useState(userEmail || '');
   const [telegram, setTelegram] = useState('');
   const [max, setMax] = useState('');
   const [experience, setExperience] = useState('');
@@ -66,7 +89,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   const {
     app: { cities, professions },
-  } = useApp();
+  } = useAppStore();
 
   // Refs для полей
   const firstNameRef = useRef<View>(null);

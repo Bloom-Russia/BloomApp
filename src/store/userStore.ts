@@ -4,27 +4,30 @@ import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
-import { AppActions, AppState } from './types/app';
+import { UserActions, UserState } from './types/user';
 
-const initialState: AppState = {
-  app: {
-    cities: [],
-    professions: [],
+const initialState: UserState = {
+  user: {
+    id: '',
+    phoneNumber: '',
+    name: '',
+    email: '',
+    isVerified: undefined,
   },
 };
 
-const appStore = create<AppState & AppActions>()(
+const userStore = create<UserState & UserActions>()(
   devtools(
     persist(
       (set) => ({
         ...initialState,
-        fetchCitiesAndProfession: async () =>
+        fetchUserByPhoneNumber: async (phoneNumber: string) =>
           // setAlertMessage?: (message: string | undefined | null) => void,
           // changeLoading?: (value: boolean) => void,
           {
-            const { data, success } = await ApiClientService.getCitiesAndProfession();
-            if (success && data.cities && data.professions) {
-              set({ app: { cities: data.cities, professions: data.professions } });
+            const { data, success } = await ApiClientService.getUserByPhoneNumber(phoneNumber);
+            if (success && data.user) {
+              set({ user: data.user });
               return { success };
             }
 
@@ -32,25 +35,25 @@ const appStore = create<AppState & AppActions>()(
           },
       }),
       {
-        name: 'app-storage',
+        name: 'user-storage',
         storage: createJSONStorage(() => AsyncStorage),
         partialize: (state) => ({
-          app: state.app,
+          user: state.user,
         }),
       },
     ),
     {
-      name: 'app-store',
+      name: 'user-store',
       enabled: __DEV__,
     },
   ),
 );
 
-export const useAppStore = () => {
-  return appStore(
+export const useUserStore = () => {
+  return userStore(
     useShallow((state) => ({
-      app: state.app,
-      fetchCitiesAndProfession: state.fetchCitiesAndProfession,
+      user: state.user,
+      fetchUserByPhoneNumber: state.fetchUserByPhoneNumber,
     })),
   );
 };
