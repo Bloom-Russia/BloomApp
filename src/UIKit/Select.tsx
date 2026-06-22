@@ -1,4 +1,3 @@
-// Select.tsx
 import { Block, Colors, ERounding, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import React, { memo, useCallback } from 'react';
 import isEqual from 'react-fast-compare';

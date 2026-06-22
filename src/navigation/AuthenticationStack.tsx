@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnBoardingScreen, PinCodeScreen } from '@screens';
-import { ApiClientService } from '@services';
+import { useApp } from '@store';
 import { Colors } from '@UIKit';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect } from 'react';
@@ -13,17 +13,14 @@ import { EScreens } from './types';
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const Authentication: React.FC<AuthorizationStackProps> = () => {
-  const loadCitiesAndProfession = useCallback(async () => {
-    try {
-      const response = await ApiClientService.getCitiesAndProfession();
+  const { fetchCitiesAndProfession } = useApp();
 
-      if (response?.success && response.data?.cities && response.data?.professions) {
-        //setOnboardingData(response.data.slides);
-      }
-    } catch (err) {
-      console.error('Ошибка загрузки списока всех городов и профессий:', err);
+  const loadCitiesAndProfession = useCallback(async () => {
+    const { success } = await fetchCitiesAndProfession();
+    if (!success) {
+      console.error('Ошибка загрузки списока всех городов и профессий.');
     }
-  }, []);
+  }, [fetchCitiesAndProfession]);
 
   // Загрузка списока всех городов и профессий
   useEffect(() => {

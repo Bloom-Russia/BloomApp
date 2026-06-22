@@ -28,7 +28,7 @@ export enum EScreens {
   // PROFILE
   PROFILE_SCREEN = 'ProfileScreen',
 
-  // OTHER SCREENS
+  // APP SCREENS
   BOOT_SPLASH_SCREEN = 'BootSplashScreen',
   ON_BOARDING_SCREEN = 'OnBoardingScreen',
 }

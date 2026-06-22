@@ -35,7 +35,8 @@
       "@contexts": ["src/contexts/index.ts"],
       "@services": ["src/services/index.ts"],
       "@config": ["src/config.ts"],
-      "@assets/*": ["assets/*"]
+      "@assets/*": ["assets/*"],
+      "@store": ["src/store/index.ts"]
     }
   },
   "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],

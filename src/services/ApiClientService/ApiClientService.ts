@@ -214,7 +214,7 @@ class ApiClientService {
 
   // Получение слайдов для онбординга
   static async getOnboardingSlides(): Promise<ApiResponse<OnboardingResponse>> {
-    const response = await AxiosService.get<OnboardingResponse>('/api/other/onboarding');
+    const response = await AxiosService.get<OnboardingResponse>('/api/app/onboarding');
 
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.message || 'Ошибка получения слайдов онбординга');
@@ -229,7 +229,7 @@ class ApiClientService {
   // Получение списока всех городов и профессий
   static async getCitiesAndProfession(): Promise<ApiResponse<CitiesAndProfessionResponse>> {
     const response = await AxiosService.get<CitiesAndProfessionResponse>(
-      '/api/other/cities-professions',
+      '/api/app/cities-professions',
     );
 
     if (!response.data.success || !response.data.data) {

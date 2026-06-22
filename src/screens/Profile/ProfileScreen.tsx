@@ -2,6 +2,7 @@
 import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ICity, IProfession, useApp } from '@store';
 import {
   Avatar,
   Block,
@@ -13,7 +14,6 @@ import {
   MaskedInput,
   MultiSelect,
   MultiSelectBottomSheet,
-  MultiSelectItem,
   ScreenContainer,
   Select,
   SelectBottomSheet,
@@ -27,39 +27,6 @@ import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
-
-const CITIES_OF_RUSSIA: SelectItem[] = [
-  { id: '1', name: 'Москва' },
-  { id: '2', name: 'Санкт-Петербург' },
-  { id: '3', name: 'Новосибирск' },
-  { id: '4', name: 'Екатеринбург' },
-  { id: '5', name: 'Казань' },
-  { id: '6', name: 'Нижний Новгород' },
-  { id: '7', name: 'Челябинск' },
-  { id: '8', name: 'Самара' },
-  { id: '9', name: 'Омск' },
-  { id: '10', name: 'Ростов-на-Дону' },
-  { id: '11', name: 'Уфа' },
-  { id: '12', name: 'Красноярск' },
-  { id: '13', name: 'Пермь' },
-  { id: '14', name: 'Воронеж' },
-  { id: '15', name: 'Волгоград' },
-];
-
-const BEAUTY_PROFESSIONS: MultiSelectItem[] = [
-  { id: '1', name: 'Парикмахер' },
-  { id: '2', name: 'Косметолог' },
-  { id: '3', name: 'Визажист' },
-  { id: '4', name: 'Маникюрщик' },
-  { id: '5', name: 'Педикюрщик' },
-  { id: '6', name: 'Бровист' },
-  { id: '7', name: 'Лэшмейкер' },
-  { id: '8', name: 'Массажист' },
-  { id: '9', name: 'Стилист' },
-  { id: '10', name: 'Шугаринг-мастер' },
-  { id: '11', name: 'Перманентный макияж' },
-  { id: '12', name: 'Трихолог' },
-];
 
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const [firstName, setFirstName] = useState('');
@@ -97,6 +64,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const { showAlert, AlertComponent } = useCustomAlert();
 
+  const {
+    app: { cities, professions },
+  } = useApp();
+
   // Refs для полей
   const firstNameRef = useRef<View>(null);
   const lastNameRef = useRef<View>(null);
@@ -109,21 +80,21 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   const filteredCities = useMemo(() => {
     if (!citySearchQuery.trim()) {
-      return CITIES_OF_RUSSIA;
+      return cities;
     }
-    return CITIES_OF_RUSSIA.filter((city) =>
+    return cities.filter((city: ICity) =>
       city.name.toLowerCase().includes(citySearchQuery.toLowerCase()),
     );
-  }, [citySearchQuery]);
+  }, [cities, citySearchQuery]);
 
   const filteredProfessions = useMemo(() => {
     if (!professionsSearchQuery.trim()) {
-      return BEAUTY_PROFESSIONS;
+      return professions;
     }
-    return BEAUTY_PROFESSIONS.filter((profession) =>
+    return professions.filter((profession: IProfession) =>
       profession.name.toLowerCase().includes(professionsSearchQuery.toLowerCase()),
     );
-  }, [professionsSearchQuery]);
+  }, [professions, professionsSearchQuery]);
 
   const openCamera = useCallback(() => {
     ImagePicker.openCamera({
@@ -336,9 +307,9 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     if (!selectedCity) {
       return null;
     }
-    const city = CITIES_OF_RUSSIA.find((c) => c.id === selectedCity);
+    const city = cities.find((c: ICity) => c.id === selectedCity);
     return city?.name || null;
-  }, [selectedCity]);
+  }, [cities, selectedCity]);
 
   const selectBottomSheetOnClose = useCallback(() => {
     setTimeout(() => {
@@ -569,7 +540,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           <View ref={professionsRef}>
             <MultiSelect
               placeholder={'Выберите профессии'}
-              items={BEAUTY_PROFESSIONS}
+              items={professions}
               selectedValues={selectedProfessions}
               onPress={() => setIsProfessionsSheetVisible(true)}
               onSelect={(values) => {
@@ -629,7 +600,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
         items={filteredCities}
         searchQuery={citySearchQuery}
         onSearchChange={setCitySearchQuery}
-        selectedItem={CITIES_OF_RUSSIA.find((c) => c.id === selectedCity) || null}
+        selectedItem={cities.find((c: ICity) => c.id === selectedCity) || null}
         onSelect={handleCitySelect}
         onClose={selectBottomSheetOnClose}
         searchPlaceholder="Поиск города"

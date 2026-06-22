@@ -26,6 +26,7 @@ module.exports = {
           '@config': './src/config.ts',
           '@services': './src/services/index.ts',
           '^@assets/(.+)': './assets/\\1',
+          '@store': './src/store/index.ts',
         },
       },
     ],
