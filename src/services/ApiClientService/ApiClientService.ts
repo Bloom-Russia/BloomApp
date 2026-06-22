@@ -11,6 +11,7 @@ import {
   AuthTokens,
   CheckPinParams,
   CheckPinStatusResponse,
+  CitiesAndProfessionResponse,
   LogoutRequest,
   LogoutResponse,
   OnboardingResponse,
@@ -221,6 +222,21 @@ class ApiClientService {
 
     await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, false);
     console.log('✅ Слайды онбординга успешно получены');
+
+    return response.data;
+  }
+
+  // Получение списока всех городов и профессий
+  static async getCitiesAndProfession(): Promise<ApiResponse<CitiesAndProfessionResponse>> {
+    const response = await AxiosService.get<CitiesAndProfessionResponse>(
+      '/api/other/cities-professions',
+    );
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.message || 'Ошибка получения списка городов и профессий');
+    }
+
+    console.log('✅ Списки городов и профессий успешно получены');
 
     return response.data;
   }

@@ -18,6 +18,17 @@ export interface OnboardingSlide {
   order: number;
 }
 
+export interface City {
+  id: string;
+  name: string;
+  country: string;
+}
+
+export interface Profession {
+  id: string;
+  name: string;
+}
+
 // Параметры запрос подтверждения кода
 export type VerifyCoderParams = {
   phone: string;
@@ -66,9 +77,13 @@ export type SavePinResponse = {
   };
 };
 
+export interface CitiesAndProfessionResponse {
+  cities: City[];
+  professions: Profession[];
+}
+
 export interface OnboardingResponse {
   slides: OnboardingSlide[];
-  completed: boolean;
 }
 
 export type RequestCodeParams = {
