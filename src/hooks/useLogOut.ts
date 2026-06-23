@@ -1,19 +1,20 @@
 import { useAuth } from '@contexts';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
+import { useUserStore } from '@store';
 import { useCallback } from 'react';
 import ReactNativeBiometrics from 'react-native-biometrics';
 
 export const useLogOut = () => {
   const { setIsVerified, isVerified } = useAuth();
+  const { clearUserData } = useUserStore();
 
   const logOutHandler = useCallback(async () => {
     const phoneNumber = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
     if (phoneNumber.success && phoneNumber.data) {
       const result = await ApiClientService.logOutWithToken({ phoneNumber: phoneNumber.data });
       if (result?.success) {
-        console.log('Успешный выход из системы');
+        clearUserData();
 
-        // Очищаем биометрические ключи ДО clearAll
         try {
           const biometrics = new ReactNativeBiometrics();
           const { keysExist } = await biometrics.biometricKeysExist();
@@ -25,16 +26,14 @@ export const useLogOut = () => {
           console.error('Ошибка удаления биометрических ключей:', error);
         }
 
-        // Очищаем все данные из SecureStorage (включая BIOMETRIC_ENABLED и BIOMETRIC_SETUP_COMPLETED и ONBOARDING_COMPLETED)
         await SecureStorageService.clearAll();
 
-        // Обновляем состояние авторизации
         await setIsVerified(!isVerified);
       }
     } else {
-      console.log('Ошибка выхода из системы');
+      console.error('Ошибка выхода из системы, номер телефона не найден.');
     }
-  }, [isVerified, setIsVerified]);
+  }, [clearUserData, isVerified, setIsVerified]);
 
   return { logOutHandler };
 };

@@ -16,4 +16,6 @@ export interface UserActions {
     setAlertMessage?: (message: string | undefined | null) => void,
     changeLoading?: (value: boolean) => void,
   ) => Promise<{ success: boolean }>;
+  clearUserData: () => void;
+  updateUser: () => { success: boolean };
 }

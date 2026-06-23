@@ -34,7 +34,7 @@ export type VerifyCoderParams = {
   phone: string;
   code: string;
   setIsVerified: (value: boolean) => Promise<void>;
-  errorCodeCallBack: () => void;
+  errorCodeCallBack: (message?: string) => void;
 };
 
 // Параметры запрос подтверждения pin кода

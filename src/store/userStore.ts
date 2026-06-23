@@ -21,18 +21,24 @@ const userStore = create<UserState & UserActions>()(
     persist(
       (set) => ({
         ...initialState,
-        fetchUserByPhoneNumber: async (phoneNumber: string) =>
-          // setAlertMessage?: (message: string | undefined | null) => void,
-          // changeLoading?: (value: boolean) => void,
-          {
-            const { data, success } = await ApiClientService.getUserByPhoneNumber(phoneNumber);
-            if (success && data.user) {
-              set({ user: data.user });
-              return { success };
-            }
-
-            return { success: false };
-          },
+        clearUserData: async () => {
+          set(initialState);
+          await AsyncStorage.removeItem('user-storage');
+        },
+        fetchUserByPhoneNumber: async (phoneNumber: string) => {
+          const { data, success } = await ApiClientService.getUserByPhoneNumber(phoneNumber);
+          if (success && data?.user) {
+            set({ user: data.user });
+            return { success };
+          }
+          return { success: false };
+        },
+        updateUser: () => {
+          set((state) => ({
+            user: { ...state.user },
+          }));
+          return { success: false };
+        },
       }),
       {
         name: 'user-storage',
@@ -54,6 +60,8 @@ export const useUserStore = () => {
     useShallow((state) => ({
       user: state.user,
       fetchUserByPhoneNumber: state.fetchUserByPhoneNumber,
+      clearUserData: state.clearUserData,
+      updateUser: state.updateUser,
     })),
   );
 };

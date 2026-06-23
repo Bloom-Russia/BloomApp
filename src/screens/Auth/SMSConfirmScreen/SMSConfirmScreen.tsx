@@ -38,23 +38,26 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   const { setIsVerified } = useAuth();
   const { AlertComponent, showAlert } = useCustomAlert();
 
-  const errorCodeCallBack = useCallback(() => {
-    codeRef.current?.clear();
-    showAlert({
-      title: 'Ошибка верификации кода',
-      type: 'error',
-      theme: 'dark',
-      showIcon: true,
-      buttons: [
-        {
-          text: 'Закрыть',
-          style: 'destructive',
-          showButtonIcon: true,
-          buttonIconName: IconNames.cancel,
-        },
-      ],
-    });
-  }, [showAlert]);
+  const errorCodeCallBack = useCallback(
+    (message?: string) => {
+      codeRef.current?.clear();
+      showAlert({
+        title: message || 'Ошибка верификации кода',
+        type: 'error',
+        theme: 'dark',
+        showIcon: true,
+        buttons: [
+          {
+            text: 'Закрыть',
+            style: 'destructive',
+            showButtonIcon: true,
+            buttonIconName: IconNames.cancel,
+          },
+        ],
+      });
+    },
+    [showAlert],
+  );
 
   const verifyCodeHandler = useCallback(
     async (inputCode: string) => {

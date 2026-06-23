@@ -1,5 +1,6 @@
 import { EScreens } from '@navigation';
 import { vibrate, VIBRATION_DURATION } from '@utils';
+import { isAxiosError } from 'axios';
 import AxiosService, { ApiResponse } from '../AxiosService';
 import NavigationService from '../NavigationService';
 import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
@@ -66,24 +67,47 @@ class ApiClientService {
     code,
     phone,
     setIsVerified,
+    errorCodeCallBack,
   }: VerifyCoderParams): Promise<ApiResponse<AuthResponseDataVerifyCode>> {
-    const response = await AxiosService.post<AuthResponseDataVerifyCode>('/api/auth/verify-code', {
-      phoneNumber: phone,
-      code,
-    });
+    try {
+      const response = await AxiosService.post<AuthResponseDataVerifyCode>(
+        '/api/auth/verify-code',
+        {
+          phoneNumber: phone,
+          code,
+        },
+      );
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Ошибка верификации кода');
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Ошибка верификации кода');
+      }
+
+      const responseData = response.data.data as unknown as AuthTokens;
+      const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
+
+      await SecureStorageService.saveTokens(accessToken, refreshToken);
+      await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
+      await setIsVerified(isVerified);
+
+      return response.data;
+    } catch (error) {
+      // Проверяем, является ли ошибка ошибкой axios
+      if (isAxiosError(error) && error.response?.data) {
+        const errorData = error.response.data as Record<string, unknown>;
+        const errorMessage =
+          typeof errorData.message === 'string'
+            ? errorData.message
+            : 'Произошла ошибка при выполнении запроса';
+        errorCodeCallBack?.(errorMessage);
+      } else if (error instanceof Error) {
+        errorCodeCallBack?.(error.message);
+      }
+
+      return {
+        success: false,
+        data: null,
+      };
     }
-
-    const responseData = response.data.data as unknown as AuthTokens;
-    const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
-
-    await SecureStorageService.saveTokens(accessToken, refreshToken);
-    await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
-    await setIsVerified(isVerified);
-
-    return response.data;
   }
 
   // Сохранение PIN кода
@@ -152,18 +176,39 @@ class ApiClientService {
   }
 
   // Выход пользователя из системы
+  // services/AuthService.ts
+
+  // Выход пользователя из системы
   static async logOutWithToken({
     phoneNumber,
   }: LogoutRequest): Promise<ApiResponse<LogoutResponse>> {
-    const response = await AxiosService.post<LogoutResponse>('/api/auth/logout', {
-      phoneNumber,
-    });
+    try {
+      const response = await AxiosService.post<LogoutResponse>('/api/auth/logout', {
+        phoneNumber,
+      });
 
-    if (response.data.success) {
       await SecureStorageService.clearAll();
-    }
 
-    return response.data;
+      if (response.data.success) {
+        return response.data;
+      }
+
+      return {
+        success: true,
+        message: 'Выход выполнен успешно',
+        data: null,
+      };
+    } catch (error) {
+      await SecureStorageService.clearAll();
+
+      console.error('Logout error:', error);
+
+      return {
+        success: true,
+        message: 'Выход выполнен (с очисткой локальных данных)',
+        data: null,
+      };
+    }
   }
 
   // Вход через биометрию

@@ -39,10 +39,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const loadUser = useCallback(async () => {
     const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
     if (phone.success && phone.data) {
-      const { success } = await fetchUserByPhoneNumber(phone.data);
-      if (success) {
-        console.log('Пользователь успешно получен.');
-      }
+      await fetchUserByPhoneNumber(phone.data);
     } else {
       console.error('Ошибка получения пользователя по номеру телефона.');
     }
@@ -51,6 +48,12 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   useEffect(() => {
     loadUser().then(noop);
   }, [loadUser]);
+
+  useEffect(() => {
+    setFirstName(name || '');
+    setEmail(userEmail || '');
+    setPhone(phoneNumber || '');
+  }, [name, userEmail, phoneNumber]);
 
   const [firstName, setFirstName] = useState(name || '');
   const [lastName, setLastName] = useState('');

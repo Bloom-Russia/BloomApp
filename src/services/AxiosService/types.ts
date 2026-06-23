@@ -8,8 +8,8 @@ export interface AxiosServiceConfig {
 
 // Интерфейс для стандартного ответа API
 export interface ApiResponse<T = any> {
-  data: T;
-  status: number;
+  data: T | null;
+  status?: number;
   message?: string;
   success: boolean;
   meta?: Record<string, any>;
