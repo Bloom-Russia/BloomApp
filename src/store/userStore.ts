@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ApiClientService } from '@services';
+import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
@@ -11,9 +11,19 @@ const initialState: UserState = {
     id: '',
     phoneNumber: '',
     name: '',
+    lastName: '',
+    patronymic: '',
+    birthday: '',
     email: '',
-    isVerified: false,
+    experience: '',
+    city: null,
+    professions: [],
+    address: '',
+    telegram: '',
+    max: '',
+    avatar: '',
     isUserDataComplete: false,
+    isVerified: false,
   },
 };
 
@@ -34,10 +44,22 @@ const userStore = create<UserState & UserActions>()(
           }
           return { success: false };
         },
-        updateUser: () => {
-          set((state) => ({
-            user: { ...state.user },
-          }));
+        updateUser: async (userData, messagePhoneNumberIsChanged) => {
+          const { data, success } = await ApiClientService.updateUser(userData);
+          if (success && data?.user) {
+            const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+            if (phone.success && phone.data) {
+              if (phone.data !== data.user.phoneNumber) {
+                messagePhoneNumberIsChanged();
+                await SecureStorageService.saveValue(
+                  SecureStorageKeys.PHONE_NUMBER,
+                  data.user.phoneNumber,
+                );
+              }
+            }
+            set({ user: data.user });
+            return { success: true };
+          }
           return { success: false };
         },
       }),

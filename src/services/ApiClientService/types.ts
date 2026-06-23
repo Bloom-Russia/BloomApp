@@ -40,7 +40,7 @@ export interface UpdateUserRequest {
   name: string;
   lastName: string;
   patronymic?: string;
-  birthDate: string;
+  birthday: string;
   telegram?: string;
   experience: string;
   max?: string;

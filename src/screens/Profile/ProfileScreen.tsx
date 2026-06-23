@@ -1,8 +1,7 @@
-// ProfileScreen.tsx
 import { useCustomAlert } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { SecureStorageKeys, SecureStorageService } from '@services';
+import { SecureStorageKeys, SecureStorageService, UpdateUserRequest } from '@services';
 import { ICity, IProfession, useAppStore, useUserStore } from '@store';
 import {
   Avatar,
@@ -11,6 +10,7 @@ import {
   Colors,
   DateTimeInputPicker,
   ESpacings,
+  IconNames,
   Input,
   MaskedInput,
   MultiSelect,
@@ -24,7 +24,7 @@ import {
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import { Alert, findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
+import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import styled from 'styled-components/native';
 
@@ -33,8 +33,44 @@ type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const {
     fetchUserByPhoneNumber,
-    user: { name, email: userEmail, phoneNumber },
+    updateUser,
+    user: {
+      name,
+      email: userEmail,
+      phoneNumber,
+      lastName: userLastName,
+      patronymic: userPatronymic,
+      birthday: userBirthday,
+      telegram: userTelegram,
+      experience: userExperience,
+      max: userMax,
+      city: userCity,
+      avatar: userAvatar,
+      professions: userProfessions,
+      address,
+    },
   } = useUserStore();
+  console.log('userCity:', userCity);
+  console.log('userProfessions:', userProfessions);
+  const { AlertComponent, showAlert } = useCustomAlert();
+
+  const messagePhoneNumberIsChanged = useCallback(() => {
+    showAlert({
+      title: 'Вы изменили номер телефона',
+      message: 'При следующем входе в приложение используйте новый номер',
+      type: 'info',
+      theme: 'dark',
+      showIcon: true,
+      buttons: [
+        {
+          text: 'Закрыть',
+          style: 'destructive',
+          showButtonIcon: true,
+          buttonIconName: IconNames.cancel,
+        },
+      ],
+    });
+  }, [showAlert]);
 
   const loadUser = useCallback(async () => {
     const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
@@ -53,42 +89,66 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     setFirstName(name || '');
     setEmail(userEmail || '');
     setPhone(phoneNumber || '');
-  }, [name, userEmail, phoneNumber]);
+    setLastName(userLastName || '');
+    setPatronymic(userPatronymic || '');
+    setBirthday(userBirthday || '');
+    setTelegram(userTelegram || '');
+    setMax(userMax || '');
+    setExperience(userExperience || '');
+    setAvatar(userAvatar || '');
+    setSelectedCity(userCity || '');
+    setSelectedProfessions(userProfessions || []);
+    setStudioAddress(address || '');
+  }, [
+    name,
+    userEmail,
+    phoneNumber,
+    userLastName,
+    userPatronymic,
+    userBirthday,
+    userTelegram,
+    userMax,
+    userExperience,
+    userAvatar,
+    userCity,
+    userProfessions,
+    address,
+  ]);
 
-  const [firstName, setFirstName] = useState(name || '');
-  const [lastName, setLastName] = useState('');
-  const [patronymic, setPatronymic] = useState('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [patronymic, setPatronymic] = useState<string>('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [birthday, setBirthday] = useState<string>('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [phone, setPhone] = useState(phoneNumber);
-  const [email, setEmail] = useState(userEmail || '');
-  const [telegram, setTelegram] = useState('');
-  const [max, setMax] = useState('');
-  const [experience, setExperience] = useState('');
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
-  const [studioAddress, setStudioAddress] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
-  const [citySearchQuery, setCitySearchQuery] = useState('');
-  const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
-  const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
-  const [shouldScrollToError, setShouldScrollToError] = useState(false);
+  const [phone, setPhone] = useState<string>(phoneNumber);
+  const [email, setEmail] = useState<string>(userEmail || '');
+  const [telegram, setTelegram] = useState<string>(userTelegram || '');
+  const [max, setMax] = useState<string>(userMax || '');
+  const [experience, setExperience] = useState<string>(userExperience || '');
+  const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
+  const [selectedCity, setSelectedCity] = useState<string | null>(userCity || null);
+  const [selectedProfessions, setSelectedProfessions] = useState<string[]>(userProfessions || []);
+  const [studioAddress, setStudioAddress] = useState<string>(address || '');
+
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCitySheetVisible, setIsCitySheetVisible] = useState<boolean>(false);
+  const [citySearchQuery, setCitySearchQuery] = useState<string>('');
+  const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState<boolean>(false);
+  const [professionsSearchQuery, setProfessionsSearchQuery] = useState<string>('');
+  const [shouldScrollToError, setShouldScrollToError] = useState<boolean>(false);
 
   // Состояния для ошибок
-  const [firstNameError, setFirstNameError] = useState(false);
-  const [lastNameError, setLastNameError] = useState(false);
-  const [birthDateError, setBirthDateError] = useState(false);
-  const [phoneError, setPhoneError] = useState(false);
-  const [experienceError, setExperienceError] = useState(false);
-  const [cityError, setCityError] = useState(false);
-  const [professionsError, setProfessionsError] = useState(false);
-  const [studioAddressError, setStudioAddressError] = useState(false);
+  const [firstNameError, setFirstNameError] = useState<boolean>(false);
+  const [lastNameError, setLastNameError] = useState<boolean>(false);
+  const [birthDateError, setBirthDateError] = useState<boolean>(false);
+  const [phoneError, setPhoneError] = useState<boolean>(false);
+  const [experienceError, setExperienceError] = useState<boolean>(false);
+  const [cityError, setCityError] = useState<boolean>(false);
+  const [professionsError, setProfessionsError] = useState<boolean>(false);
+  const [studioAddressError, setStudioAddressError] = useState<boolean>(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const { showAlert, AlertComponent } = useCustomAlert();
 
   const {
     app: { cities, professions },
@@ -365,55 +425,47 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const handleSubmit = useCallback(async () => {
     const isValid = validateForm();
 
-    if (!isValid) {
+    if (!isValid || !selectedCity || !birthday) {
       setShouldScrollToError(true);
       return;
     }
 
     setIsLoading(true);
 
-    // Имитация отправки данных на сервер
-    try {
-      const formData = {
-        firstName,
-        lastName,
-        patronymic,
-        birthDate: birthDate?.toISOString(),
-        phone,
-        telegram,
-        max,
-        experience,
-        avatar,
-        city: selectedCity,
-        professions: selectedProfessions,
-        studioAddress,
-      };
+    const formData: UpdateUserRequest = {
+      name: firstName,
+      lastName: lastName,
+      patronymic: patronymic,
+      birthday: birthday,
+      telegram: telegram,
+      experience: experience,
+      max: max,
+      city: selectedCity,
+      professions: selectedProfessions,
+      email: email,
+      address: studioAddress,
+      phoneNumber: phone,
+      avatar: avatar,
+    };
 
-      console.log('Form data:', formData);
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      Alert.alert('Успех', 'Данные успешно сохранены!');
-    } catch (error) {
-      console.error('Не удалось сохранить данные', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить данные');
-    } finally {
-      setIsLoading(false);
-    }
+    await updateUser(formData, messagePhoneNumberIsChanged).finally(() => setIsLoading(false));
   }, [
+    validateForm,
+    selectedCity,
+    birthday,
     firstName,
     lastName,
     patronymic,
-    birthDate,
-    phone,
     telegram,
-    max,
     experience,
-    avatar,
-    selectedCity,
+    max,
     selectedProfessions,
+    email,
     studioAddress,
-    validateForm,
+    phone,
+    avatar,
+    updateUser,
+    messagePhoneNumberIsChanged,
   ]);
 
   return (
@@ -438,6 +490,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           <View ref={firstNameRef}>
             <Input
               placeholder={'Имя'}
+              autoCapitalize="sentences"
               value={firstName}
               onChangeValue={(value) => {
                 setFirstName(value);
@@ -451,9 +504,19 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             />
           </View>
 
+          <Input
+            placeholder={'Отчество'}
+            autoCapitalize="sentences"
+            value={patronymic}
+            onChangeValue={setPatronymic}
+            title={'Отчество'}
+            marginBottom={ESpacings.s24}
+          />
+
           <View ref={lastNameRef}>
             <Input
               placeholder={'Фамилия'}
+              autoCapitalize="sentences"
               value={lastName}
               onChangeValue={(value) => {
                 setLastName(value);
@@ -466,14 +529,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
               autoComplete={'family-name'}
             />
           </View>
-
-          <Input
-            placeholder={'Отчество'}
-            value={patronymic}
-            onChangeValue={setPatronymic}
-            title={'Отчество'}
-            marginBottom={ESpacings.s24}
-          />
 
           <View ref={birthDateRef}>
             <DateTimeInputPicker

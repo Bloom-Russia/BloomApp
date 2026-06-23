@@ -32,7 +32,7 @@ export const Input: React.FC<Props> = ({
   placeholder,
   disabled,
   maxLength,
-  autoCapitalize,
+  autoCapitalize = 'none',
   title,
   errorText,
   multiline,

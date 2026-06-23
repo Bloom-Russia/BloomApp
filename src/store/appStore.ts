@@ -18,18 +18,15 @@ const appStore = create<AppState & AppActions>()(
     persist(
       (set) => ({
         ...initialState,
-        fetchCitiesAndProfession: async () =>
-          // setAlertMessage?: (message: string | undefined | null) => void,
-          // changeLoading?: (value: boolean) => void,
-          {
-            const { data, success } = await ApiClientService.getCitiesAndProfession();
-            if (success && data?.cities && data?.professions) {
-              set({ app: { cities: data.cities, professions: data.professions } });
-              return { success };
-            }
+        fetchCitiesAndProfession: async () => {
+          const { data, success } = await ApiClientService.getCitiesAndProfession();
+          if (success && data?.cities && data?.professions) {
+            set({ app: { cities: data.cities, professions: data.professions } });
+            return { success };
+          }
 
-            return { success: false };
-          },
+          return { success: false };
+        },
       }),
       {
         name: 'app-storage',

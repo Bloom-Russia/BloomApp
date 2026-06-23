@@ -1,8 +1,20 @@
+import { UpdateUserRequest } from '@services';
+
 export interface User {
   id: string;
   phoneNumber: string;
   name?: string;
   email?: string;
+  lastName?: string;
+  patronymic?: string;
+  birthday?: string;
+  telegram?: string;
+  experience?: string;
+  max?: string;
+  city?: string | null;
+  professions?: string[];
+  address?: string;
+  avatar?: string;
   isVerified?: boolean;
   isUserDataComplete?: boolean;
 }
@@ -12,11 +24,10 @@ export interface UserState {
 }
 
 export interface UserActions {
-  fetchUserByPhoneNumber: (
-    phoneNumber: string,
-    setAlertMessage?: (message: string | undefined | null) => void,
-    changeLoading?: (value: boolean) => void,
-  ) => Promise<{ success: boolean }>;
+  fetchUserByPhoneNumber: (phoneNumber: string) => Promise<{ success: boolean }>;
   clearUserData: () => void;
-  updateUser: () => { success: boolean };
+  updateUser: (
+    userData: UpdateUserRequest,
+    messagePhoneNumberIsChanged: () => void,
+  ) => Promise<{ success: boolean }>;
 }
