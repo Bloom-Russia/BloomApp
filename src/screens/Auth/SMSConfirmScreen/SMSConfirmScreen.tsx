@@ -78,7 +78,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   const resendCode = useCallback(async () => {
     setStartTime(Date.now());
     codeRef.current?.clear();
-    await ApiClientService.resendCode({ phone });
+    await ApiClientService.resendCode({ phoneNumber: phone });
   }, [phone]);
 
   const handleChangePhone = useCallback(() => {

@@ -23,7 +23,7 @@ const appStore = create<AppState & AppActions>()(
           // changeLoading?: (value: boolean) => void,
           {
             const { data, success } = await ApiClientService.getCitiesAndProfession();
-            if (success && data.cities && data.professions) {
+            if (success && data?.cities && data?.professions) {
               set({ app: { cities: data.cities, professions: data.professions } });
               return { success };
             }

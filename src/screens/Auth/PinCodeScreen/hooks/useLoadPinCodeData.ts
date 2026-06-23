@@ -28,7 +28,7 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode }: Props) => {
 
       if (response?.success && response?.data) {
         hasPin = response.data.hasPin;
-      } else if (response?.data.hasPin !== undefined) {
+      } else if (response?.data?.hasPin) {
         hasPin = response.data.hasPin;
       }
 

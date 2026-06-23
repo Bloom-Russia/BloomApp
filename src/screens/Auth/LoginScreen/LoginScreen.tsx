@@ -132,7 +132,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
     }
     try {
       showLoader();
-      await ApiClientService.requestVerificationCode({ phone });
+      await ApiClientService.requestVerificationCode({ phoneNumber: phone });
       // После успешной отправки выполняем навигацию на экран ввода кода из авторизации
       // navigation.navigate('VerificationScreen', { phone });
     } catch (error: unknown) {

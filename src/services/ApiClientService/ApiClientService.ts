@@ -6,19 +6,17 @@ import NavigationService from '../NavigationService';
 import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
 import UnifiedNotificationService from '../UnifiedNotificationService';
 import {
-  AuthResponseDataRequestVerificationCode,
+  AuthResponseDataResponseVerificationCode,
   AuthResponseDataVerifyCode,
   AuthResponseDataVerifyPinCode,
   AuthTokens,
-  CheckPinParams,
   CheckPinStatusResponse,
   CitiesAndProfessionResponse,
-  LogoutRequest,
   LogoutResponse,
   OnboardingResponse,
-  RequestCodeParams,
   SavePinParams,
   SavePinResponse,
+  UpdateUserRequest,
   UserResponse,
   VerifyCoderParams,
   VerifyPinCoderParams,
@@ -27,20 +25,22 @@ import {
 class ApiClientService {
   // Запрос кода подтверждения
   static async requestVerificationCode({
-    phone,
-  }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode>> {
+    phoneNumber,
+  }: {
+    phoneNumber: string;
+  }): Promise<ApiResponse<AuthResponseDataResponseVerificationCode>> {
     const fcmToken = await UnifiedNotificationService.getFCMToken();
-    const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
+    const response = await AxiosService.post<AuthResponseDataResponseVerificationCode>(
       '/api/auth/send-code',
       {
-        phoneNumber: `+7${phone}`,
+        phoneNumber: `+7${phoneNumber}`,
         fcmToken,
       },
     );
 
     if (response.data.success) {
       NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
-        phone: `+7${phone}`,
+        phone: `+7${phoneNumber}`,
       });
     }
 
@@ -49,13 +49,15 @@ class ApiClientService {
 
   // Повторный запрос кода подтверждения
   static async resendCode({
-    phone,
-  }: RequestCodeParams): Promise<ApiResponse<AuthResponseDataRequestVerificationCode>> {
+    phoneNumber,
+  }: {
+    phoneNumber: string;
+  }): Promise<ApiResponse<AuthResponseDataResponseVerificationCode>> {
     const fcmToken = await UnifiedNotificationService.getFCMToken();
-    const response = await AxiosService.post<AuthResponseDataRequestVerificationCode>(
+    const response = await AxiosService.post<AuthResponseDataResponseVerificationCode>(
       '/api/auth/send-code',
       {
-        phoneNumber: phone,
+        phoneNumber,
         fcmToken,
       },
     );
@@ -154,7 +156,9 @@ class ApiClientService {
   // Проверка статуса PIN-кода
   static async checkPinStatus({
     phoneNumber,
-  }: CheckPinParams): Promise<ApiResponse<CheckPinStatusResponse>> {
+  }: {
+    phoneNumber: string;
+  }): Promise<ApiResponse<CheckPinStatusResponse>> {
     const response = await AxiosService.get<CheckPinStatusResponse>('/api/auth/check-pin', {
       params: { phoneNumber },
     });
@@ -176,12 +180,11 @@ class ApiClientService {
   }
 
   // Выход пользователя из системы
-  // services/AuthService.ts
-
-  // Выход пользователя из системы
   static async logOutWithToken({
     phoneNumber,
-  }: LogoutRequest): Promise<ApiResponse<LogoutResponse>> {
+  }: {
+    phoneNumber: string;
+  }): Promise<ApiResponse<LogoutResponse>> {
     try {
       const response = await AxiosService.post<LogoutResponse>('/api/auth/logout', {
         phoneNumber,
@@ -282,8 +285,6 @@ class ApiClientService {
       throw new Error(response.data.message || 'Ошибка получения списка городов и профессий');
     }
 
-    console.log('✅ Списки городов и профессий успешно получены');
-
     return response.data;
   }
 
@@ -300,6 +301,22 @@ class ApiClientService {
     console.log(`✅ Пользователь с номером ${phoneNumber} успешно получен`);
 
     return response.data;
+  }
+
+  // Обновить данные пользователя
+  static async updateUser(userData: UpdateUserRequest): Promise<ApiResponse<UserResponse>> {
+    try {
+      const response = await AxiosService.put<UserResponse>(`/api/users/update`, userData);
+
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.message || 'Ошибка обновления пользователя');
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('❌ Ошибка обновления пользователя:', error);
+      throw error;
+    }
   }
 }
 

@@ -1,14 +1,3 @@
-// Интерфейсы для ответов
-
-export interface AuthResponseDataRequestVerificationCode {
-  success: boolean;
-  message: string;
-  data?: {
-    phoneNumber: string;
-    expiresIn: number;
-  };
-}
-
 export interface OnboardingSlide {
   id: string;
   title: string;
@@ -29,7 +18,6 @@ export interface Profession {
   name: string;
 }
 
-// Параметры запрос подтверждения кода
 export type VerifyCoderParams = {
   phone: string;
   code: string;
@@ -37,29 +25,43 @@ export type VerifyCoderParams = {
   errorCodeCallBack: (message?: string) => void;
 };
 
-// Параметры запрос подтверждения pin кода
 export type VerifyPinCoderParams = {
   phoneNumber: string;
   pinCode: string;
 };
 
-// Параметры для сохраненния PIN
 export type SavePinParams = {
   phoneNumber: string;
   pinCode: string;
 };
 
-// Параметры для проверки есть ли PIN
-export type CheckPinParams = {
+// Интерфейсы для запросов
+export interface UpdateUserRequest {
+  name: string;
+  lastName: string;
+  patronymic?: string;
+  birthDate: string;
+  telegram?: string;
+  experience: string;
+  max?: string;
+  city: string;
+  professions: string[];
+  email?: string;
+  address: string;
   phoneNumber: string;
-};
-
-// Тип для запроса на выход
-export interface LogoutRequest {
-  phoneNumber: string;
+  avatar?: string;
 }
 
-// Тип для ответа на выход
+// Интерфейсы для ответов
+export interface AuthResponseDataResponseVerificationCode {
+  success: boolean;
+  message: string;
+  data?: {
+    phoneNumber: string;
+    expiresIn: number;
+  };
+}
+
 export interface LogoutResponse {
   success: boolean;
   message: string;
@@ -86,11 +88,6 @@ export interface OnboardingResponse {
   slides: OnboardingSlide[];
 }
 
-export type RequestCodeParams = {
-  phone: string;
-};
-
-// Интерфейсы для ответов
 export interface AuthResponseDataVerifyCode {
   success: boolean;
   message: string;
