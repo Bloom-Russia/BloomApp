@@ -12,7 +12,8 @@ const initialState: UserState = {
     phoneNumber: '',
     name: '',
     email: '',
-    isVerified: undefined,
+    isVerified: false,
+    isUserDataComplete: false,
   },
 };
 
@@ -28,7 +29,7 @@ const userStore = create<UserState & UserActions>()(
         fetchUserByPhoneNumber: async (phoneNumber: string) => {
           const { data, success } = await ApiClientService.getUserByPhoneNumber(phoneNumber);
           if (success && data?.user) {
-            set({ user: data.user });
+            set({ user: { ...data.user, isUserDataComplete: data?.isUserDataComplete } });
             return { success };
           }
           return { success: false };
