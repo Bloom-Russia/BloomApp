@@ -7,12 +7,12 @@ export interface AxiosServiceConfig {
 }
 
 // Интерфейс для стандартного ответа API
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T | null;
   status?: number;
   message?: string;
   success: boolean;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 }
 
 // Интерфейсы для событий

@@ -18,11 +18,19 @@ export interface Profession {
   name: string;
 }
 
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  userId: string;
+  isVerified: boolean;
+  phoneNumber: string;
+  hasPin: boolean;
+}
+
 export type VerifyCoderParams = {
   phone: string;
   code: string;
   setIsVerified: (value: boolean) => Promise<void>;
-  errorCodeCallBack: (message?: string) => void;
 };
 
 export type VerifyPinCoderParams = {
@@ -102,15 +110,6 @@ export interface AuthResponseDataVerifyPinCode {
     userId: string;
     isVerified: boolean;
   };
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  userId: string;
-  isVerified: boolean;
-  phoneNumber: string;
-  hasPin: boolean;
 }
 
 export interface CheckPinStatusResponse {

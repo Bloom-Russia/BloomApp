@@ -19,8 +19,5 @@ export interface AppState {
 }
 
 export interface AppActions {
-  fetchCitiesAndProfession: (
-    setAlertMessage?: (message: string | undefined | null) => void,
-    changeLoading?: (value: boolean) => void,
-  ) => Promise<{ success: boolean }>;
+  fetchCitiesAndProfession: () => Promise<{ success: boolean }>;
 }

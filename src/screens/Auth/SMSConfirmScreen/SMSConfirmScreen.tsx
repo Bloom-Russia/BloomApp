@@ -64,10 +64,14 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
       setCode(inputCode);
       if (inputCode.length === CELL_COUNT) {
         await ApiClientService.verifyCode({
-          phone,
-          code: inputCode,
-          setIsVerified,
-          errorCodeCallBack,
+          params: {
+            phone,
+            code: inputCode,
+            setIsVerified,
+          },
+          options: {
+            errorCodeCallBack,
+          },
         });
       }
     },

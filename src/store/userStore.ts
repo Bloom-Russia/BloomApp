@@ -37,7 +37,9 @@ const userStore = create<UserState & UserActions>()(
           await AsyncStorage.removeItem('user-storage');
         },
         fetchUserByPhoneNumber: async (phoneNumber: string) => {
-          const { data, success } = await ApiClientService.getUserByPhoneNumber(phoneNumber);
+          const { data, success } = await ApiClientService.getUserByPhoneNumber({
+            phoneNumber,
+          });
           if (success && data?.user) {
             set({ user: { ...data.user, isUserDataComplete: data?.isUserDataComplete } });
             return { success };
@@ -46,7 +48,9 @@ const userStore = create<UserState & UserActions>()(
         },
         updateUser: async (userData, messagePhoneNumberIsChanged) => {
           try {
-            const { data, success } = await ApiClientService.updateUser(userData);
+            const { data, success } = await ApiClientService.updateUser({
+              params: userData,
+            });
             if (!success || !data?.user) {
               return { success: false };
             }

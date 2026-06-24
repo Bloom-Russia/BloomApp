@@ -331,8 +331,10 @@ const PinCodeScreenComponent: React.FC<
 
       if (success && phoneNumber && publicKey) {
         await ApiClientService.saveBiometricKey({
-          phoneNumber,
-          publicKey,
+          params: {
+            phoneNumber,
+            publicKey,
+          },
         });
         await saveBiometricsStatus(true);
         // ✅ Биометрические ключи успешно сохранены
@@ -623,8 +625,10 @@ const PinCodeScreenComponent: React.FC<
         showLoader();
 
         await ApiClientService.verifyPinCode({
-          phoneNumber,
-          pinCode: pin,
+          params: {
+            phoneNumber,
+            pinCode: pin,
+          },
         });
 
         setCurrentPin('');
@@ -672,8 +676,10 @@ const PinCodeScreenComponent: React.FC<
         showLoader();
 
         await ApiClientService.savePinCode({
-          phoneNumber,
-          pinCode: pin,
+          params: {
+            phoneNumber,
+            pinCode: pin,
+          },
         });
 
         setCurrentPin('');

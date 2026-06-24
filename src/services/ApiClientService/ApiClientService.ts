@@ -1,10 +1,10 @@
 import { EScreens } from '@navigation';
-import { vibrate, VIBRATION_DURATION } from '@utils';
-import { isAxiosError } from 'axios';
-import AxiosService, { ApiResponse } from '../AxiosService';
+import { ApiResponse } from '@services';
+import { normalizePhoneNumber, vibrate, VIBRATION_DURATION } from '@utils';
 import NavigationService from '../NavigationService';
 import { SecureStorageKeys, SecureStorageService } from '../SecureStorageService';
 import UnifiedNotificationService from '../UnifiedNotificationService';
+import { makeRequest, RequestOptions } from './makeRequest';
 import {
   AuthResponseDataResponseVerificationCode,
   AuthResponseDataVerifyCode,
@@ -26,149 +26,176 @@ class ApiClientService {
   // Запрос кода подтверждения
   static async requestVerificationCode({
     phoneNumber,
+    options,
   }: {
     phoneNumber: string;
+    options?: RequestOptions;
   }): Promise<ApiResponse<AuthResponseDataResponseVerificationCode>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
     const fcmToken = await UnifiedNotificationService.getFCMToken();
-    const response = await AxiosService.post<AuthResponseDataResponseVerificationCode>(
-      '/api/auth/send-code',
+
+    const result = await makeRequest<AuthResponseDataResponseVerificationCode>(
       {
-        phoneNumber: `+7${phoneNumber}`,
-        fcmToken,
+        type: 'POST',
+        url: '/api/auth/send-code',
+        data: {
+          phoneNumber: normalizePhoneNumber(phoneNumber),
+          fcmToken,
+        },
       },
+      { errorCodeCallBack, changeLoading },
     );
 
-    if (response.data.success) {
+    if (result.success) {
       NavigationService.navigate(EScreens.SMS_CONFIRM_SCREEN as any, {
-        phone: `+7${phoneNumber}`,
+        phone: normalizePhoneNumber(phoneNumber),
       });
     }
 
-    return response.data;
+    return result;
   }
 
   // Повторный запрос кода подтверждения
   static async resendCode({
     phoneNumber,
+    options,
   }: {
     phoneNumber: string;
+    options?: RequestOptions;
   }): Promise<ApiResponse<AuthResponseDataResponseVerificationCode>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
     const fcmToken = await UnifiedNotificationService.getFCMToken();
-    const response = await AxiosService.post<AuthResponseDataResponseVerificationCode>(
-      '/api/auth/send-code',
+
+    return makeRequest<AuthResponseDataResponseVerificationCode>(
       {
-        phoneNumber,
-        fcmToken,
+        type: 'POST',
+        url: '/api/auth/send-code',
+        data: {
+          phoneNumber,
+          fcmToken,
+        },
       },
+      { errorCodeCallBack, changeLoading },
     );
-    return response.data;
   }
 
   // Верификация кода подтверждения
   static async verifyCode({
-    code,
-    phone,
-    setIsVerified,
-    errorCodeCallBack,
-  }: VerifyCoderParams): Promise<ApiResponse<AuthResponseDataVerifyCode>> {
-    try {
-      const response = await AxiosService.post<AuthResponseDataVerifyCode>(
-        '/api/auth/verify-code',
-        {
+    params,
+    options,
+  }: {
+    params: VerifyCoderParams;
+    options?: RequestOptions;
+  }): Promise<ApiResponse<AuthResponseDataVerifyCode>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
+    const { code, phone, setIsVerified } = params;
+
+    const result = await makeRequest<AuthResponseDataVerifyCode>(
+      {
+        type: 'POST',
+        url: '/api/auth/verify-code',
+        data: {
           phoneNumber: phone,
           code,
         },
-      );
+      },
+      { errorCodeCallBack, changeLoading },
+    );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Ошибка верификации кода');
-      }
-
-      const responseData = response.data.data as unknown as AuthTokens;
-      const { accessToken, refreshToken, isVerified, phoneNumber } = responseData;
+    if (result.success && result.data) {
+      const tokens = result.data as unknown as AuthTokens;
+      const { accessToken, refreshToken, isVerified, phoneNumber } = tokens;
 
       await SecureStorageService.saveTokens(accessToken, refreshToken);
       await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
       await setIsVerified(isVerified);
-
-      return response.data;
-    } catch (error) {
-      // Проверяем, является ли ошибка ошибкой axios
-      if (isAxiosError(error) && error.response?.data) {
-        const errorData = error.response.data as Record<string, unknown>;
-        const errorMessage =
-          typeof errorData.message === 'string'
-            ? errorData.message
-            : 'Произошла ошибка при выполнении запроса';
-        errorCodeCallBack?.(errorMessage);
-      } else if (error instanceof Error) {
-        errorCodeCallBack?.(error.message);
-      }
-
-      return {
-        success: false,
-        data: null,
-      };
     }
+
+    return result;
   }
 
   // Сохранение PIN кода
   static async savePinCode({
-    pinCode,
-    phoneNumber,
-  }: SavePinParams): Promise<ApiResponse<SavePinResponse>> {
-    const response = await AxiosService.post<SavePinResponse>('/api/auth/save-pin', {
-      phoneNumber,
-      pinCode,
-    });
+    params,
+    options,
+  }: {
+    params: SavePinParams;
+    options?: RequestOptions;
+  }): Promise<ApiResponse<SavePinResponse>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
+    const { pinCode, phoneNumber } = params;
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Ошибка сохранения PIN-кода');
+    const result = await makeRequest<SavePinResponse>(
+      {
+        type: 'POST',
+        url: '/api/auth/save-pin',
+        data: {
+          phoneNumber,
+          pinCode,
+        },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
+
+    if (result.success) {
+      vibrate(VIBRATION_DURATION.LONG);
+      await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
     }
 
-    vibrate(VIBRATION_DURATION.LONG);
-    await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
-
-    return response.data;
+    return result;
   }
 
   // Верификация PIN кода
   static async verifyPinCode({
-    pinCode,
-    phoneNumber,
-  }: VerifyPinCoderParams): Promise<ApiResponse<AuthResponseDataVerifyPinCode>> {
-    const response = await AxiosService.post<AuthResponseDataVerifyPinCode>(
-      '/api/auth/verify-pin',
+    params,
+    options,
+  }: {
+    params: VerifyPinCoderParams;
+    options?: RequestOptions;
+  }): Promise<ApiResponse<AuthResponseDataVerifyPinCode>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
+    const { pinCode, phoneNumber } = params;
+
+    const result = await makeRequest<AuthResponseDataVerifyPinCode>(
       {
-        phoneNumber,
-        pinCode,
+        type: 'POST',
+        url: '/api/auth/verify-pin',
+        data: {
+          phoneNumber,
+          pinCode,
+        },
       },
+      { errorCodeCallBack, changeLoading },
     );
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Неверный PIN-код');
+    if (result.success) {
+      vibrate(VIBRATION_DURATION.LONG);
     }
 
-    vibrate(VIBRATION_DURATION.LONG);
-    return response.data;
+    return result;
   }
 
   // Проверка статуса PIN-кода
   static async checkPinStatus({
     phoneNumber,
+    options,
   }: {
     phoneNumber: string;
+    options?: RequestOptions;
   }): Promise<ApiResponse<CheckPinStatusResponse>> {
-    const response = await AxiosService.get<CheckPinStatusResponse>('/api/auth/check-pin', {
-      params: { phoneNumber },
-    });
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Ошибка проверки PIN-кода');
-    }
+    const result = await makeRequest<CheckPinStatusResponse>(
+      {
+        type: 'GET',
+        url: '/api/auth/check-pin',
+        params: { phoneNumber },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
 
-    if (response.data.data) {
-      const hasPin = response.data.data.hasPin;
+    if (result.success && result.data) {
+      const hasPin = result.data.hasPin;
       if (hasPin) {
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
       } else {
@@ -176,147 +203,180 @@ class ApiClientService {
       }
     }
 
-    return response.data;
+    return result;
   }
 
   // Выход пользователя из системы
   static async logOutWithToken({
     phoneNumber,
+    options,
   }: {
     phoneNumber: string;
+    options?: RequestOptions;
   }): Promise<ApiResponse<LogoutResponse>> {
-    try {
-      const response = await AxiosService.post<LogoutResponse>('/api/auth/logout', {
-        phoneNumber,
-      });
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-      await SecureStorageService.clearAll();
+    const result = await makeRequest<LogoutResponse>(
+      {
+        type: 'POST',
+        url: '/api/auth/logout',
+        data: { phoneNumber },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
 
-      if (response.data.success) {
-        return response.data;
-      }
+    await SecureStorageService.clearAll();
 
-      return {
-        success: true,
-        message: 'Выход выполнен успешно',
-        data: null,
-      };
-    } catch (error) {
-      await SecureStorageService.clearAll();
-
-      console.error('Logout error:', error);
-
+    // Если запрос не удался, всё равно возвращаем успех
+    if (!result.success) {
       return {
         success: true,
         message: 'Выход выполнен (с очисткой локальных данных)',
         data: null,
       };
     }
+
+    return result;
   }
 
   // Вход через биометрию
   static async loginWithBiometrics({
     phoneNumber,
+    options,
   }: {
     phoneNumber: string;
+    options?: RequestOptions;
   }): Promise<ApiResponse<AuthTokens>> {
-    const response = await AxiosService.post<AuthTokens>('/api/auth/biometric-login', {
-      phoneNumber,
-    });
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Ошибка биометрического входа');
+    const result = await makeRequest<AuthTokens>(
+      {
+        type: 'POST',
+        url: '/api/auth/biometric-login',
+        data: { phoneNumber },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
+
+    if (result.success && result.data) {
+      const { accessToken, refreshToken, phoneNumber: userPhone } = result.data;
+      await SecureStorageService.saveTokens(accessToken, refreshToken);
+      await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, userPhone);
+      vibrate(VIBRATION_DURATION.LONG);
     }
 
-    const { accessToken, refreshToken, phoneNumber: userPhone } = response.data.data;
-
-    await SecureStorageService.saveTokens(accessToken, refreshToken);
-    await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, userPhone);
-
-    vibrate(VIBRATION_DURATION.LONG);
-
-    return response.data;
+    return result;
   }
 
   // Сохранение биометрического ключа на сервере
   static async saveBiometricKey({
-    phoneNumber,
-    publicKey,
+    params,
+    options,
   }: {
-    phoneNumber: string;
-    publicKey: string;
+    params: {
+      phoneNumber: string;
+      publicKey: string;
+    };
+    options?: RequestOptions;
   }): Promise<ApiResponse<{ message: string }>> {
-    const response = await AxiosService.post<{ message: string }>('/api/auth/biometric-key', {
-      phoneNumber,
-      publicKey,
-    });
+    const { errorCodeCallBack, changeLoading } = options || {};
+    const { phoneNumber, publicKey } = params;
 
-    if (!response.data.success) {
-      throw new Error(response.data.message || 'Ошибка сохранения биометрического ключа');
+    const result = await makeRequest<{ message: string }>(
+      {
+        type: 'POST',
+        url: '/api/auth/biometric-key',
+        data: {
+          phoneNumber,
+          publicKey,
+        },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
+
+    if (result.success) {
+      console.log('✅ Биометрический ключ успешно сохранен на сервере');
+      vibrate(VIBRATION_DURATION.SHORT);
     }
 
-    console.log('✅ Биометрический ключ успешно сохранен на сервере');
-    vibrate(VIBRATION_DURATION.SHORT);
-
-    return response.data;
+    return result;
   }
 
   // Получение слайдов для онбординга
-  static async getOnboardingSlides(): Promise<ApiResponse<OnboardingResponse>> {
-    const response = await AxiosService.get<OnboardingResponse>('/api/app/onboarding');
+  static async getOnboardingSlides(
+    options?: RequestOptions,
+  ): Promise<ApiResponse<OnboardingResponse>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Ошибка получения слайдов онбординга');
-    }
-
-    await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, false);
-    console.log('✅ Слайды онбординга успешно получены');
-
-    return response.data;
-  }
-
-  // Получение списока всех городов и профессий
-  static async getCitiesAndProfession(): Promise<ApiResponse<CitiesAndProfessionResponse>> {
-    const response = await AxiosService.get<CitiesAndProfessionResponse>(
-      '/api/app/cities-professions',
+    const result = await makeRequest<OnboardingResponse>(
+      {
+        type: 'GET',
+        url: '/api/app/onboarding',
+      },
+      { errorCodeCallBack, changeLoading },
     );
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Ошибка получения списка городов и профессий');
+    if (result.success) {
+      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, false);
+      console.log('✅ Слайды онбординга успешно получены');
     }
 
-    return response.data;
+    return result;
+  }
+
+  // Получение списка всех городов и профессий
+  static async getCitiesAndProfession(
+    options?: RequestOptions,
+  ): Promise<ApiResponse<CitiesAndProfessionResponse>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
+
+    return makeRequest<CitiesAndProfessionResponse>(
+      {
+        type: 'GET',
+        url: '/api/app/cities-professions',
+      },
+      { errorCodeCallBack, changeLoading },
+    );
   }
 
   // Получить пользователя по номеру телефона
-  static async getUserByPhoneNumber(phoneNumber: string): Promise<ApiResponse<UserResponse>> {
-    const response = await AxiosService.get<UserResponse>(`/api/users/user`, {
-      params: { phoneNumber },
-    });
+  static async getUserByPhoneNumber({
+    phoneNumber,
+    options,
+  }: {
+    phoneNumber: string;
+    options?: RequestOptions;
+  }): Promise<ApiResponse<UserResponse>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.message || 'Ошибка получения пользователя');
-    }
-
-    console.log(`✅ Пользователь с номером ${phoneNumber} успешно получен`);
-
-    return response.data;
+    return makeRequest<UserResponse>(
+      {
+        type: 'GET',
+        url: '/api/users/user',
+        params: { phoneNumber },
+      },
+      { errorCodeCallBack, changeLoading },
+    );
   }
 
   // Обновить данные пользователя
-  static async updateUser(userData: UpdateUserRequest): Promise<ApiResponse<UserResponse>> {
-    try {
-      const response = await AxiosService.put<UserResponse>(`/api/users/update`, userData);
+  static async updateUser({
+    params,
+    options,
+  }: {
+    params: UpdateUserRequest;
+    options?: RequestOptions;
+  }): Promise<ApiResponse<UserResponse>> {
+    const { errorCodeCallBack, changeLoading } = options || {};
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.message || 'Ошибка обновления пользователя');
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error('❌ Ошибка обновления пользователя:', error);
-      throw error;
-    }
+    return makeRequest<UserResponse>(
+      {
+        type: 'PUT',
+        url: '/api/users/update',
+        data: params,
+      },
+      { errorCodeCallBack, changeLoading },
+    );
   }
 }
 

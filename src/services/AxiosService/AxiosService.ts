@@ -1,4 +1,3 @@
-// AxiosService.ts - исправленная версия с правильной типизацией заголовков
 import { SecureStorageKeys } from '@services';
 import axios, {
   AxiosError,

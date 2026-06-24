@@ -1,5 +1,5 @@
+import { SecureStorageKeys } from '@services';
 import Keychain, { ACCESSIBLE } from 'react-native-keychain';
-import { SecureStorageKeys } from './SecureStorageKeys';
 import { SecureStorageOptions, SecureStorageResult, Tokens } from './types';
 
 /**

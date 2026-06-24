@@ -318,7 +318,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }
 
     // Валидация даты рождения
-    if (!birthDate) {
+    if (!birthday) {
       setBirthDateError(true);
       isValid = false;
     } else {
@@ -369,11 +369,11 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   }, [
     firstName,
     lastName,
-    birthDate,
+    birthday,
     phone,
     experience,
     selectedCity,
-    selectedProfessions,
+    selectedProfessions.length,
     studioAddress,
   ]);
 
@@ -692,11 +692,3 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 };
 
 export const ProfileScreen = memo(ProfileScreenComponent, isEqual);
-
-// const AlertContainer = styled(Block)({
-//   position: 'absolute',
-//   top: 0,
-//   left: 0,
-//   right: 0,
-//   flex: 1,
-// });
