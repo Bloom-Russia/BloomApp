@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useUserStore } from '@store';
 import { Colors, ESize, ESpacings, Icon, IconNames, TAB_BAR_HEIGHT, Typography } from '@UIKit';
 import React, { memo, useMemo } from 'react';
 import isEqual from 'react-fast-compare';
@@ -60,6 +61,10 @@ const TAB_CONFIGS = [
 ] as const;
 
 const TabBarNavigatorComponent: React.FC = () => {
+  const {
+    user: { isUserDataComplete },
+  } = useUserStore();
+
   const tabScreens = useMemo(
     () =>
       TAB_CONFIGS.map((config) => ({
@@ -80,7 +85,10 @@ const TabBarNavigatorComponent: React.FC = () => {
   );
 
   return (
-    <Tab.Navigator screenOptions={SCREEN_OPTIONS} initialRouteName={EScreens.PROFILE_STACK}>
+    <Tab.Navigator
+      screenOptions={SCREEN_OPTIONS}
+      initialRouteName={isUserDataComplete ? EScreens.HOME_STACK : EScreens.PROFILE_STACK}
+    >
       {tabScreens.map((screen) => (
         <Tab.Screen
           key={screen.name}
