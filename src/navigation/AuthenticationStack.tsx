@@ -1,7 +1,9 @@
+import { useLoading } from '@hooks';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnBoardingScreen, PinCodeScreen } from '@screens';
-import { useAppStore } from '@store';
-import { Colors } from '@UIKit';
+import { SecureStorageKeys, SecureStorageService } from '@services';
+import { useAppStore, useUserStore } from '@store';
+import { Colors, Spinner } from '@UIKit';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect } from 'react';
 import isEqual from 'react-fast-compare';
@@ -14,18 +16,30 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const Authentication: React.FC<AuthorizationStackProps> = () => {
   const { fetchCitiesAndProfession } = useAppStore();
+  const { fetchUserByPhoneNumber } = useUserStore();
+  const { loading, showLoader, hideLoader } = useLoading();
 
-  const loadCitiesAndProfession = useCallback(async () => {
-    const { success } = await fetchCitiesAndProfession();
-    if (!success) {
-      console.error('Ошибка загрузки списока всех городов и профессий.');
+  const loadAppData = useCallback(async () => {
+    try {
+      showLoader();
+      const { success, data } = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+      if (success && data) {
+        await Promise.all([fetchCitiesAndProfession(), fetchUserByPhoneNumber(data)]);
+      }
+    } catch {
+      console.error('Ошибка загрузки данных пользователя или онбординга.');
+    } finally {
+      hideLoader();
     }
-  }, [fetchCitiesAndProfession]);
+  }, [fetchCitiesAndProfession, fetchUserByPhoneNumber, hideLoader, showLoader]);
 
-  // Загрузка списока всех городов и профессий
   useEffect(() => {
-    loadCitiesAndProfession().then(noop);
-  }, [loadCitiesAndProfession]);
+    loadAppData().then(noop);
+  }, [loadAppData]);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <>

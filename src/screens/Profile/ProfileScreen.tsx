@@ -1,7 +1,7 @@
 import { useCustomAlert, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { SecureStorageKeys, SecureStorageService, UpdateUserRequest } from '@services';
+import { UpdateUserRequest } from '@services';
 import { ICity, IProfession, useAppStore, useUserStore } from '@store';
 import {
   Avatar,
@@ -22,7 +22,6 @@ import {
   Typography,
 } from '@UIKit';
 import { normalizePhoneNumber } from '@utils';
-import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
@@ -32,7 +31,6 @@ type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens
 
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   const {
-    fetchUserByPhoneNumber,
     updateUser,
     user: {
       name,
@@ -74,19 +72,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       ],
     });
   }, [logOutHandler, showAlert]);
-
-  const loadUser = useCallback(async () => {
-    const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
-    if (phone.success && phone.data) {
-      await fetchUserByPhoneNumber(phone.data);
-    } else {
-      console.error('Ошибка получения пользователя по номеру телефона.');
-    }
-  }, [fetchUserByPhoneNumber]);
-
-  useEffect(() => {
-    loadUser().then(noop);
-  }, [loadUser]);
 
   useEffect(() => {
     setFirstName(name || '');

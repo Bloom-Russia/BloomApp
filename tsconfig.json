@@ -16,7 +16,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-native",
-
+    "ignoreDeprecations": "5.0",
     /* Строгие проверки TypeScript */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
