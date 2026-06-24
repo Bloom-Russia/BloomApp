@@ -156,7 +156,6 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
               >
                 <Icon name={IconNames.search} size={20} color={Colors.gray} />
                 <SearchInput
-                  autoComplete={'off'}
                   placeholder={searchPlaceholder}
                   placeholderTextColor={Colors.gray}
                   value={searchQuery}

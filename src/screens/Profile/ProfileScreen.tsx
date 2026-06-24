@@ -333,7 +333,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
     }
 
     // Валидация даты рождения
-    if (!birthday) {
+    if (!birthDate) {
       setBirthDateError(true);
       isValid = false;
     } else {
@@ -384,11 +384,11 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   }, [
     firstName,
     lastName,
-    birthday,
+    birthDate,
     phone,
     experience,
     selectedCity,
-    selectedProfessions.length,
+    selectedProfessions,
     studioAddress,
   ]);
 
@@ -490,23 +490,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             </TouchableOpacity>
           </Block>
 
-          <View ref={lastNameRef}>
-            <Input
-              placeholder={'Фамилия'}
-              autoCapitalize="sentences"
-              value={lastName}
-              onChangeValue={(value) => {
-                setLastName(value);
-                setLastNameError(false);
-              }}
-              title={'Фамилия'}
-              marginBottom={ESpacings.s12}
-              errorText={'Введите фамилию'}
-              isError={lastNameError}
-              autoComplete={'family-name'}
-            />
-          </View>
-
           <View ref={firstNameRef}>
             <Input
               placeholder={'Имя'}
@@ -532,6 +515,23 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
             title={'Отчество'}
             marginBottom={ESpacings.s24}
           />
+
+          <View ref={lastNameRef}>
+            <Input
+              placeholder={'Фамилия'}
+              autoCapitalize="sentences"
+              value={lastName}
+              onChangeValue={(value) => {
+                setLastName(value);
+                setLastNameError(false);
+              }}
+              title={'Фамилия'}
+              marginBottom={ESpacings.s12}
+              errorText={'Введите фамилию'}
+              isError={lastNameError}
+              autoComplete={'family-name'}
+            />
+          </View>
 
           <View ref={birthDateRef}>
             <DateTimeInputPicker
