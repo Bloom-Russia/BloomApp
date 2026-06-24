@@ -1,3 +1,4 @@
+import { useLoading } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
@@ -9,13 +10,14 @@ import {
   ESize,
   ESpacings,
   Row,
+  Spinner,
   Typography,
   WINDOW_WIDTH,
 } from '@UIKit';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import { ActivityIndicator, FlatList, Image } from 'react-native';
+import { FlatList, Image } from 'react-native';
 import styled from 'styled-components/native';
 
 interface OnboardingItem {
@@ -47,12 +49,12 @@ const keyExtractor = (item: OnboardingItem) => item.id;
 const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [onboardingData, setOnboardingData] = useState<OnboardingItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const flatListRef = useRef<FlatList>(null);
+  const { loading, showLoader, hideLoader } = useLoading();
 
   const loadOnboardingSlides = useCallback(async () => {
     try {
-      setLoading(true);
+      showLoader();
 
       const response = await ApiClientService.getOnboardingSlides();
 
@@ -62,9 +64,9 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
     } catch (err) {
       console.error('Ошибка загрузки онбординга:', err);
     } finally {
-      setLoading(false);
+      hideLoader();
     }
-  }, []);
+  }, [hideLoader, showLoader]);
 
   // Загрузка слайдов онбординга
   useEffect(() => {
@@ -134,16 +136,7 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
   }, []);
 
   if (loading) {
-    return (
-      <Block
-        flex={1}
-        backgroundColor={Colors.black}
-        justifyContent={'center'}
-        alignItems={'center'}
-      >
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </Block>
-    );
+    return <Spinner />;
   }
 
   return (

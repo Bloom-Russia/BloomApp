@@ -1,9 +1,18 @@
 import { RoundLogoAppImage } from '@assets/images';
-import { useCustomAlert } from '@hooks';
+import { useCustomAlert, useLoading } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
-import { Block, Colors, ESpacings, IconNames, Row, ScreenContainer, Typography } from '@UIKit';
+import {
+  AbsoluteSpinner,
+  Block,
+  Colors,
+  ESpacings,
+  IconNames,
+  Row,
+  ScreenContainer,
+  Typography,
+} from '@UIKit';
 import { vibrate, VIBRATION_DURATION } from '@utils';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -45,6 +54,7 @@ const PinCodeScreenComponent: React.FC<
   const { AlertComponent, showAlert, hideAlert } = useCustomAlert();
   const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
   const { handleExitApp } = useHandleExitApp(showAlert);
+  const { loading, showLoader, hideLoader } = useLoading();
 
   const setErrorMessageWithTimeout = useCallback(
     (message: string) => {
@@ -83,7 +93,7 @@ const PinCodeScreenComponent: React.FC<
         SecureStorageKeys.ONBOARDING_COMPLETED,
       );
 
-      const isOnboardingCompleted = success && onboardingCompleted === 'true';
+      const isOnboardingCompleted = success && !!onboardingCompleted;
 
       if (isOnboardingCompleted) {
         // Если онбординг уже пройден, идем сразу в приложение
@@ -160,7 +170,7 @@ const PinCodeScreenComponent: React.FC<
         enabled ? 'true' : 'false',
       );
 
-      // Если enabled === true, отмечаем что настройка была завершена
+      // Если enabled true, отмечаем что настройка была завершена
       if (enabled) {
         await SecureStorageService.saveValue(SecureStorageKeys.BIOMETRIC_SETUP_COMPLETED, 'true');
       }
@@ -285,6 +295,7 @@ const PinCodeScreenComponent: React.FC<
         );
 
         if (phoneSuccess && phoneNumber) {
+          showLoader();
           await ApiClientService.loginWithBiometrics({ phoneNumber });
           setHasAuthenticated(true);
           // Проверяем статус онбординга перед переходом
@@ -292,13 +303,14 @@ const PinCodeScreenComponent: React.FC<
           return true;
         }
       } else if (error) {
-        console.log('❌ Биометрическая аутентификация не удалась:', error);
+        console.error('❌ Биометрическая аутентификация не удалась:', error);
       }
       return false;
     } catch (error) {
       console.error('❌ Ошибка при биометрической аутентификации:', error);
       return false;
     } finally {
+      hideLoader();
       isAuthenticatingRef.current = false;
       setIsProcessing(false);
     }
@@ -309,7 +321,9 @@ const PinCodeScreenComponent: React.FC<
     hasAuthenticated,
     initBiometrics,
     resetBiometricsStatus,
+    showLoader,
     checkAndNavigateAfterAuth,
+    hideLoader,
   ]);
 
   // Сохранение биометрических ключей
@@ -322,6 +336,7 @@ const PinCodeScreenComponent: React.FC<
     }
 
     try {
+      showLoader();
       const { available } = await biometrics.current.isSensorAvailable();
 
       if (!available) {
@@ -350,8 +365,10 @@ const PinCodeScreenComponent: React.FC<
     } catch (error) {
       console.error('❌ Ошибка сохранения биометрических ключей:', error);
       return false;
+    } finally {
+      hideLoader();
     }
-  }, [initBiometrics, saveBiometricsStatus]);
+  }, [hideLoader, initBiometrics, saveBiometricsStatus, showLoader]);
 
   // Единая функция для настройки биометрии (двухшаговая)
   const setupBiometrics = useCallback(
@@ -654,6 +671,8 @@ const PinCodeScreenComponent: React.FC<
           return;
         }
 
+        showLoader();
+
         await ApiClientService.verifyPinCode({
           phoneNumber,
           pinCode: pin,
@@ -682,10 +701,11 @@ const PinCodeScreenComponent: React.FC<
         setCurrentPin('');
         vibrate(VIBRATION_DURATION.ERROR);
       } finally {
+        hideLoader();
         setIsProcessing(false);
       }
     },
-    [setErrorMessageWithTimeout, checkAndNavigateAfterAuth],
+    [showLoader, hideLoader, checkAndNavigateAfterAuth, setErrorMessageWithTimeout],
   );
 
   const handleConfirmPin = useCallback(
@@ -699,6 +719,8 @@ const PinCodeScreenComponent: React.FC<
           setErrorMessageWithTimeout('Номер телефона не найден!');
           return;
         }
+
+        showLoader();
 
         await ApiClientService.savePinCode({
           phoneNumber,
@@ -719,10 +741,11 @@ const PinCodeScreenComponent: React.FC<
         setConfirmPin('');
         setPinMode(PinMode.SET);
       } finally {
+        hideLoader();
         setIsProcessing(false);
       }
     },
-    [checkAndShowBiometricsSetup, setErrorMessageWithTimeout],
+    [checkAndShowBiometricsSetup, hideLoader, setErrorMessageWithTimeout, showLoader],
   );
 
   const handlePinComplete = useCallback(
@@ -902,6 +925,7 @@ const PinCodeScreenComponent: React.FC<
       </KeyboardContainer>
 
       <AlertComponent />
+      {loading ? <AbsoluteSpinner /> : null}
     </ScreenContainer>
   );
 });

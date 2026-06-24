@@ -426,7 +426,7 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
                     }
 
                     // Определяем, нужно ли показывать иконку (только если явно true)
-                    const showIcon = button.showButtonIcon === true;
+                    const showIcon = !!button.showButtonIcon;
                     // Используем переданную иконку только если она есть
                     const buttonIconName = button.buttonIconName || null;
 
