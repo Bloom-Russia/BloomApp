@@ -27,7 +27,6 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import isEqual from 'react-fast-compare';
 import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
-import styled from 'styled-components/native';
 
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
@@ -57,12 +56,13 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
   const messagePhoneNumberIsChanged = useCallback(() => {
     showAlert({
-      title: 'Номер изменен',
-      message: 'Для входа используйте новый номер телефона',
+      title: 'Номер телефона изменен',
+      message: 'Авторизуйтесь с новым номером телефона.',
       type: 'info',
       theme: 'dark',
       showIcon: true,
       cancelable: false,
+      onDismiss: async () => await logOutHandler(),
       buttons: [
         {
           text: 'Выход',
@@ -674,9 +674,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
         </Block>
       </ScrollView>
 
-      <AlertContainer>
-        <AlertComponent />
-      </AlertContainer>
+      <AlertComponent />
 
       <SelectBottomSheet
         visible={isCitySheetVisible}
@@ -710,10 +708,10 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
 
 export const ProfileScreen = memo(ProfileScreenComponent, isEqual);
 
-const AlertContainer = styled(Block)({
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  height: 500,
-});
+// const AlertContainer = styled(Block)({
+//   position: 'absolute',
+//   top: 0,
+//   left: 0,
+//   right: 0,
+//   flex: 1,
+// });

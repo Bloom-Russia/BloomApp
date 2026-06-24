@@ -96,10 +96,8 @@ const PinCodeScreenComponent: React.FC<
       const isOnboardingCompleted = success && !!onboardingCompleted;
 
       if (isOnboardingCompleted) {
-        // Если онбординг уже пройден, идем сразу в приложение
         navigation.replace(EScreens.TABS_STACK);
       } else {
-        // Если нет - показываем онбординг
         navigation.replace(EScreens.ON_BOARDING_SCREEN);
       }
     } catch (error) {
@@ -113,14 +111,7 @@ const PinCodeScreenComponent: React.FC<
   const initBiometrics = useCallback(async () => {
     try {
       biometrics.current = new ReactNativeBiometrics();
-      const { available, biometryType } = await biometrics.current.isSensorAvailable();
-
-      console.log('📱 Биометрия инициализирована:', {
-        available,
-        biometryType,
-        platform: Platform.OS,
-      });
-
+      const { available } = await biometrics.current.isSensorAvailable();
       setIsBiometricsSupported(available);
 
       return available;
@@ -141,7 +132,7 @@ const PinCodeScreenComponent: React.FC<
 
       // Если настройка не была завершена, считаем биометрию отключенной
       if (!setupSuccess || setupCompleted !== 'true') {
-        console.log('🔐 Биометрия еще не была настроена, устанавливаем isBiometricsEnabled=false');
+        // 🔐 Биометрия еще не была настроена, устанавливаем isBiometricsEnabled false
         setIsBiometricsEnabled(false);
         return false;
       }
@@ -152,7 +143,6 @@ const PinCodeScreenComponent: React.FC<
       );
       const enabled = success && data === 'true';
       setIsBiometricsEnabled(enabled);
-      console.log('🔐 Статус биометрии загружен:', { enabled, setupCompleted });
       return enabled;
     } catch (error) {
       console.error('Ошибка загрузки статуса биометрии:', error);
@@ -211,15 +201,9 @@ const PinCodeScreenComponent: React.FC<
             SecureStorageKeys.BIOMETRIC_ENABLED,
           );
 
-          console.log('🔍 Проверка статуса биометрии при монтировании:', {
-            keysExist,
-            setupCompleted,
-            enabled,
-          });
-
           // Если нет ключей, но статус говорит что есть - сбрасываем
           if (!keysExist && (setupCompleted === 'true' || enabled === 'true')) {
-            console.log('⚠️ Обнаружен некорректный статус биометрии, сбрасываем...');
+            // ⚠️ Обнаружен некорректный статус биометрии, сбрасываем
             await resetBiometricsStatus();
           }
         } catch (error) {
@@ -241,13 +225,6 @@ const PinCodeScreenComponent: React.FC<
       isAuthenticatingRef.current ||
       hasAuthenticated
     ) {
-      console.log('⏸️ Биометрическая аутентификация пропущена:', {
-        isBiometricsEnabled,
-        isBiometricsSupported,
-        isProcessing,
-        isAuthenticating: isAuthenticatingRef.current,
-        hasAuthenticated,
-      });
       return false;
     }
 
@@ -267,7 +244,7 @@ const PinCodeScreenComponent: React.FC<
       const { available } = await biometrics.current.isSensorAvailable();
 
       if (!available) {
-        console.log('❌ Биометрия недоступна');
+        // ❌ Биометрия недоступна
         await resetBiometricsStatus();
         return false;
       }
@@ -276,7 +253,7 @@ const PinCodeScreenComponent: React.FC<
       if (Platform.OS === 'ios') {
         const { keysExist } = await biometrics.current.biometricKeysExist();
         if (!keysExist) {
-          console.log('❌ Биометрические ключи не найдены');
+          // ❌ Биометрические ключи не найдены
           await resetBiometricsStatus();
           return false;
         }
@@ -340,7 +317,7 @@ const PinCodeScreenComponent: React.FC<
       const { available } = await biometrics.current.isSensorAvailable();
 
       if (!available) {
-        console.log('❌ Биометрия недоступна для сохранения');
+        // ❌ Биометрия недоступна для сохранения
         return false;
       }
 
@@ -358,7 +335,7 @@ const PinCodeScreenComponent: React.FC<
           publicKey,
         });
         await saveBiometricsStatus(true);
-        console.log('✅ Биометрические ключи успешно сохранены');
+        // ✅ Биометрические ключи успешно сохранены
         return true;
       }
       return false;
@@ -401,8 +378,6 @@ const PinCodeScreenComponent: React.FC<
       try {
         const { available, biometryType } = await biometrics.current.isSensorAvailable();
 
-        console.log('📱 Результат проверки биометрии:', { available, biometryType });
-
         if (!available) {
           console.log('❌ Биометрия недоступна');
           if (shouldNavigateOnCancel) {
@@ -440,21 +415,17 @@ const PinCodeScreenComponent: React.FC<
               showButtonIcon: true,
               buttonIconName: isFaceId ? IconNames.faceId : IconNames.fingerprint,
               onPress: async () => {
-                console.log('👆 Пользователь выбрал "Настроить"');
                 if (!biometrics.current) {
                   setErrorMessageWithTimeout('Биометрия недоступна');
                   return;
                 }
 
                 try {
-                  // ТОЛЬКО ОДИН вызов simplePrompt - для подтверждения настройки
-                  console.log('🔐 Запрос биометрии для настройки...');
+                  // 🔐 Запрос биометрии для настройки
                   const authResult = await biometrics.current.simplePrompt({
                     promptMessage: `Подтвердите использование ${biometricName}`,
                     cancelButtonText: 'Отмена',
                   });
-
-                  console.log('📱 Результат simplePrompt:', { success: authResult.success });
 
                   if (authResult.success) {
                     console.log('✅ Биометрия подтверждена, сохраняем ключи...');
@@ -462,42 +433,20 @@ const PinCodeScreenComponent: React.FC<
                     if (success) {
                       console.log('✅ Ключи сохранены, устанавливаем hasAuthenticated=true');
                       setHasAuthenticated(true);
-
-                      showAlert({
-                        title: 'Биометрия настроена',
-                        message: `${biometricName} успешно настроен для входа`,
-                        type: 'info',
-                        theme: 'dark',
-                        showIcon: true,
-                        buttons: [
-                          {
-                            text: 'Продолжить',
-                            style: 'default',
-                            onPress: async () => {
-                              console.log(
-                                '👆 Пользователь нажал "Продолжить", переходим в приложение',
-                              );
-                              await checkAndNavigateAfterAuth();
-                            },
-                          },
-                        ],
-                      });
+                      await checkAndNavigateAfterAuth();
                     } else {
-                      console.log('❌ Не удалось сохранить ключи');
                       setErrorMessageWithTimeout('Не удалось настроить биометрию');
                       if (shouldNavigateOnCancel) {
                         await checkAndNavigateAfterAuth();
                       }
                     }
                   } else {
-                    console.log('❌ Пользователь отменил подтверждение биометрии');
                     setErrorMessageWithTimeout('Настройка биометрии отменена');
                     if (shouldNavigateOnCancel) {
                       await checkAndNavigateAfterAuth();
                     }
                   }
-                } catch (error) {
-                  console.error('❌ Ошибка при настройке:', error);
+                } catch {
                   setErrorMessageWithTimeout('Произошла ошибка при настройке биометрии');
                 }
               },
