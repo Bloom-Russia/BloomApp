@@ -1,3 +1,4 @@
+// auth.ts
 import { EScreens } from '@navigation';
 import { ApiResponse } from '@services';
 import { normalizePhoneNumber, vibrate, VIBRATION_DURATION } from '@utils';
@@ -11,20 +12,16 @@ import {
   AuthResponseDataVerifyPinCode,
   AuthTokens,
   CheckPinStatusResponse,
-  CitiesAndProfessionResponse,
   LogoutResponse,
-  OnboardingResponse,
   SavePinParams,
   SavePinResponse,
-  UpdateUserRequest,
-  UserResponse,
   VerifyCoderParams,
   VerifyPinCoderParams,
 } from './types';
 
-class ApiClientService {
+export const AuthApi = {
   // Запрос кода подтверждения
-  static async requestVerificationCode({
+  async requestVerificationCode({
     phoneNumber,
     options,
   }: {
@@ -53,10 +50,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Повторный запрос кода подтверждения
-  static async resendCode({
+  async resendCode({
     phoneNumber,
     options,
   }: {
@@ -77,10 +74,10 @@ class ApiClientService {
       },
       { errorCodeCallBack, changeLoading },
     );
-  }
+  },
 
   // Верификация кода подтверждения
-  static async verifyCode({
+  async verifyCode({
     params,
     options,
   }: {
@@ -112,10 +109,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Сохранение PIN кода
-  static async savePinCode({
+  async savePinCode({
     params,
     options,
   }: {
@@ -143,10 +140,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Верификация PIN кода
-  static async verifyPinCode({
+  async verifyPinCode({
     params,
     options,
   }: {
@@ -173,10 +170,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Проверка статуса PIN-кода
-  static async checkPinStatus({
+  async checkPinStatus({
     phoneNumber,
     options,
   }: {
@@ -204,10 +201,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Выход пользователя из системы
-  static async logOutWithToken({
+  async logOutWithToken({
     phoneNumber,
     options,
   }: {
@@ -237,10 +234,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Вход через биометрию
-  static async loginWithBiometrics({
+  async loginWithBiometrics({
     phoneNumber,
     options,
   }: {
@@ -266,10 +263,10 @@ class ApiClientService {
     }
 
     return result;
-  }
+  },
 
   // Сохранение биометрического ключа на сервере
-  static async saveBiometricKey({
+  async saveBiometricKey({
     params,
     options,
   }: {
@@ -300,84 +297,5 @@ class ApiClientService {
     }
 
     return result;
-  }
-
-  // Получение слайдов для онбординга
-  static async getOnboardingSlides(
-    options?: RequestOptions,
-  ): Promise<ApiResponse<OnboardingResponse>> {
-    const { errorCodeCallBack, changeLoading } = options || {};
-
-    const result = await makeRequest<OnboardingResponse>(
-      {
-        type: 'GET',
-        url: '/api/app/onboarding',
-      },
-      { errorCodeCallBack, changeLoading },
-    );
-
-    if (result.success) {
-      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, false);
-      console.log('✅ Слайды онбординга успешно получены');
-    }
-
-    return result;
-  }
-
-  // Получение списка всех городов и профессий
-  static async getCitiesAndProfession(
-    options?: RequestOptions,
-  ): Promise<ApiResponse<CitiesAndProfessionResponse>> {
-    const { errorCodeCallBack, changeLoading } = options || {};
-
-    return makeRequest<CitiesAndProfessionResponse>(
-      {
-        type: 'GET',
-        url: '/api/app/cities-professions',
-      },
-      { errorCodeCallBack, changeLoading },
-    );
-  }
-
-  // Получить пользователя по номеру телефона
-  static async getUserByPhoneNumber({
-    phoneNumber,
-    options,
-  }: {
-    phoneNumber: string;
-    options?: RequestOptions;
-  }): Promise<ApiResponse<UserResponse>> {
-    const { errorCodeCallBack, changeLoading } = options || {};
-
-    return makeRequest<UserResponse>(
-      {
-        type: 'GET',
-        url: '/api/users/user',
-        params: { phoneNumber },
-      },
-      { errorCodeCallBack, changeLoading },
-    );
-  }
-
-  // Обновить данные пользователя
-  static async updateUser({
-    params,
-    options,
-  }: {
-    params: UpdateUserRequest;
-    options?: RequestOptions;
-  }): Promise<ApiResponse<UserResponse>> {
-    const { errorCodeCallBack, changeLoading } = options || {};
-
-    return makeRequest<UserResponse>(
-      {
-        type: 'PUT',
-        url: '/api/users/update',
-        params,
-      },
-      { errorCodeCallBack, changeLoading },
-    );
-  }
-}
-
-export default ApiClientService;
+  },
+};
