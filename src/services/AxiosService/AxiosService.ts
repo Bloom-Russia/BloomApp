@@ -341,11 +341,11 @@ class AxiosService {
    */
   public static async post<T = unknown, R = AxiosResponse<ApiResponse<T>>>(
     url: string,
-    data?: unknown,
+    params?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
     const instance = this.getInstance();
-    return instance.post<ApiResponse<T>, R>(url, data, config);
+    return instance.post<ApiResponse<T>, R>(url, params, config);
   }
 
   /**
@@ -353,11 +353,11 @@ class AxiosService {
    */
   public static async put<T = unknown, R = AxiosResponse<ApiResponse<T>>>(
     url: string,
-    data?: unknown,
+    params?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
     const instance = this.getInstance();
-    return instance.put<ApiResponse<T>, R>(url, data, config);
+    return instance.put<ApiResponse<T>, R>(url, params, config);
   }
 
   /**
@@ -365,11 +365,11 @@ class AxiosService {
    */
   public static async patch<T = unknown, R = AxiosResponse<ApiResponse<T>>>(
     url: string,
-    data?: unknown,
+    params?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<R> {
     const instance = this.getInstance();
-    return instance.patch<ApiResponse<T>, R>(url, data, config);
+    return instance.patch<ApiResponse<T>, R>(url, params, config);
   }
 
   /**

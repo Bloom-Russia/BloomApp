@@ -38,7 +38,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/send-code',
-        data: {
+        params: {
           phoneNumber: normalizePhoneNumber(phoneNumber),
           fcmToken,
         },
@@ -70,7 +70,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/send-code',
-        data: {
+        params: {
           phoneNumber,
           fcmToken,
         },
@@ -94,7 +94,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/verify-code',
-        data: {
+        params: {
           phoneNumber: phone,
           code,
         },
@@ -129,7 +129,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/save-pin',
-        data: {
+        params: {
           phoneNumber,
           pinCode,
         },
@@ -160,7 +160,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/verify-pin',
-        data: {
+        params: {
           phoneNumber,
           pinCode,
         },
@@ -220,7 +220,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/logout',
-        data: { phoneNumber },
+        params: { phoneNumber },
       },
       { errorCodeCallBack, changeLoading },
     );
@@ -253,7 +253,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/biometric-login',
-        data: { phoneNumber },
+        params: { phoneNumber },
       },
       { errorCodeCallBack, changeLoading },
     );
@@ -286,7 +286,7 @@ class ApiClientService {
       {
         type: 'POST',
         url: '/api/auth/biometric-key',
-        data: {
+        params: {
           phoneNumber,
           publicKey,
         },
@@ -373,7 +373,7 @@ class ApiClientService {
       {
         type: 'PUT',
         url: '/api/users/update',
-        data: params,
+        params,
       },
       { errorCodeCallBack, changeLoading },
     );

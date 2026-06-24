@@ -10,8 +10,7 @@ export type RequestOptions = {
 export type ApiMethod = {
   type: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'UPLOAD';
   url: string;
-  data?: unknown;
-  params?: Record<string, unknown>;
+  params?: unknown;
   formData?: FormData;
 };
 
@@ -30,13 +29,13 @@ export async function makeRequest<T>(
         response = await AxiosService.get(method.url, { params: method.params });
         break;
       case 'POST':
-        response = await AxiosService.post(method.url, method.data);
+        response = await AxiosService.post(method.url, method.params);
         break;
       case 'PUT':
-        response = await AxiosService.put(method.url, method.data);
+        response = await AxiosService.put(method.url, method.params);
         break;
       case 'PATCH':
-        response = await AxiosService.patch(method.url, method.data);
+        response = await AxiosService.patch(method.url, method.params);
         break;
       case 'DELETE':
         response = await AxiosService.delete(method.url);
