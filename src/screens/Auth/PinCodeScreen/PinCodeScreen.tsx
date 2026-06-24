@@ -51,7 +51,7 @@ const PinCodeScreenComponent: React.FC<
   const isAuthenticatingRef = useRef<boolean>(false);
   const hasInitialAuthRef = useRef<boolean>(false);
 
-  const { AlertComponent, showAlert, hideAlert } = useCustomAlert();
+  const { showAlert, hideAlert } = useCustomAlert();
   const { loadPinCodeData } = useLoadPinCodeData({ setIsPinCodeSet, setPinMode });
   const { handleExitApp } = useHandleExitApp(showAlert);
   const { loading, showLoader, hideLoader } = useLoading();
@@ -873,7 +873,6 @@ const PinCodeScreenComponent: React.FC<
         </KeyboardRow>
       </KeyboardContainer>
 
-      <AlertComponent />
       {loading ? <AbsoluteSpinner /> : null}
     </ScreenContainer>
   );

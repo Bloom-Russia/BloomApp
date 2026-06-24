@@ -52,7 +52,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
   } = useUserStore();
 
   const { logOutHandler } = useLogOut();
-  const { AlertComponent, showAlert } = useCustomAlert();
+  const { showAlert } = useCustomAlert();
 
   const messagePhoneNumberIsChanged = useCallback(() => {
     showAlert({
@@ -673,8 +673,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
           />
         </Block>
       </ScrollView>
-
-      <AlertComponent />
 
       <SelectBottomSheet
         visible={isCitySheetVisible}
