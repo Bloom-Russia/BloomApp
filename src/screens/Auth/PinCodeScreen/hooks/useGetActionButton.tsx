@@ -1,7 +1,6 @@
 import { ESize, Icon, IconNames } from '@UIKit';
 import React, { useCallback } from 'react';
 import { Platform } from 'react-native';
-import ReactNativeBiometrics from 'react-native-biometrics';
 import { BiometricKeyButton, DeleteButtonInRow } from '../components';
 
 type Props = {
@@ -9,21 +8,6 @@ type Props = {
   onPressBiometricsButton: () => void;
   hasEnteredSymbols: boolean;
   isPinCodeSet: boolean;
-};
-
-const reactNativeBiometrics = new ReactNativeBiometrics();
-
-export const checkForFaceIDSupport = async () => {
-  if (Platform.OS === 'ios') {
-    try {
-      const { available, biometryType } = await reactNativeBiometrics.isSensorAvailable();
-      return available && biometryType === 'FaceID';
-    } catch (error) {
-      console.error('❌ Ошибка проверки биометрии:', error);
-      return false;
-    }
-  }
-  return false;
 };
 
 export const useGetActionButton = ({
