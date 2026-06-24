@@ -1,4 +1,4 @@
-import { useCustomAlert, useLoading } from '@hooks';
+import { useLoading } from '@hooks';
 import { useNavigation } from '@react-navigation/native';
 import React, { memo, ReactNode, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
@@ -62,7 +62,6 @@ const ScreenContainerComponent: React.FC<Props> = ({
   icon,
 }) => {
   const { loading, hideLoader, showLoader } = useLoading();
-  const { AlertComponent } = useCustomAlert();
 
   const handleReload = useCallback(async () => {
     if (reload) {
@@ -92,7 +91,6 @@ const ScreenContainerComponent: React.FC<Props> = ({
         >
           {children}
         </StyledScrollView>
-        <AlertComponent />
       </Block>
     );
   }
@@ -108,7 +106,6 @@ const ScreenContainerComponent: React.FC<Props> = ({
       <Block flex={1} paddingHorizontal={paddingHorizontal}>
         {children}
       </Block>
-      <AlertComponent />
     </Block>
   );
 };

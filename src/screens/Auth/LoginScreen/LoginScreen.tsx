@@ -32,7 +32,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const [phone, setPhone] = React.useState<string>('');
   const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
   const { loading, showLoader, hideLoader } = useLoading();
-  const { showAlert } = useCustomAlert();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const setPhoneHandler = useCallback((value: string) => {
     if (value.length === CONSTANTS.MIN_PHONE_LENGTH) {
@@ -165,6 +165,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
           color={Colors.blue}
         />
       </Block>
+      <AlertComponent />
     </ScreenContainer>
   );
 };

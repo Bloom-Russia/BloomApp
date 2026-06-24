@@ -36,7 +36,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   const [code, setCode] = useState<string>('');
   const [startTime, setStartTime] = useState(Date.now());
   const { setIsVerified } = useAuth();
-  const { showAlert } = useCustomAlert();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const errorCodeCallBack = useCallback(
     (message?: string) => {
@@ -118,6 +118,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
           textColor={Colors.black}
         />
       </Block>
+      <AlertComponent />
     </ScreenContainer>
   );
 };
