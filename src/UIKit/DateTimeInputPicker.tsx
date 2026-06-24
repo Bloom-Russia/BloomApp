@@ -1,5 +1,6 @@
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Block, Colors, ERounding, ESize, ESpacings, Icon, IconNames, Typography } from '@UIKit';
+import { parseDateFromString } from '@utils';
 import React, { useEffect, useState } from 'react';
 import { Platform, TouchableOpacity } from 'react-native';
 import MaskInput from 'react-native-mask-input';
@@ -13,27 +14,6 @@ const formatDate = (date: Date | null): string => {
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
   return `${day}.${month}.${year}`;
-};
-
-const parseDateFromString = (digits: string): Date | null => {
-  if (digits.length !== 8) {
-    return null;
-  }
-  const day = parseInt(digits.slice(0, 2), 10);
-  const month = parseInt(digits.slice(2, 4), 10) - 1;
-  const year = parseInt(digits.slice(4, 8), 10);
-  if (isNaN(day) || isNaN(month) || isNaN(year)) {
-    return null;
-  }
-  // Создаем дату в полдень, чтобы избежать проблем с часовыми поясами
-  const date = new Date(year, month, day, 12, 0, 0);
-  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
-    return null;
-  }
-  if (date > new Date()) {
-    return null;
-  }
-  return date;
 };
 
 type Props = {
@@ -86,14 +66,10 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   const onDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
-      // Нормализуем дату, устанавливая время на полдень
       const normalizedDate = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
-        12,
-        0,
-        0,
       );
       setDate(normalizedDate);
       const formatted = formatDate(normalizedDate);
@@ -146,7 +122,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
 
       {showDatePicker && (
         <DateTimePicker
-          value={date || new Date(1990, 0, 1, 12, 0, 0)}
+          value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDateChange}
