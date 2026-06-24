@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ProfileScreen } from '@screens';
+import { EditProfileScreen, ProfileScreen } from '@screens';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
 import { ProfileStackParamList, ProfileStackProps } from './navigationTypes';
@@ -15,6 +15,7 @@ const Profile: React.FC<ProfileStackProps> = () => {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name={EScreens.PROFILE_SCREEN} component={ProfileScreen} />
+        <Stack.Screen name={EScreens.EDIT_PROFILE_SCREEN} component={EditProfileScreen} />
       </Stack.Navigator>
     </>
   );

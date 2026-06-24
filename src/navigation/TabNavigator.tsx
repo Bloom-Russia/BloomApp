@@ -59,9 +59,7 @@ const TAB_CONFIGS = [
   },
 ] as const;
 
-// Основной компонент
 const TabBarNavigatorComponent: React.FC = () => {
-  // Мемоизированный массив таб-скринов
   const tabScreens = useMemo(
     () =>
       TAB_CONFIGS.map((config) => ({

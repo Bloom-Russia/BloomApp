@@ -49,6 +49,7 @@ export type MyWorksStackParamList = {
 
 export type ProfileStackParamList = {
   [EScreens.PROFILE_SCREEN]: undefined;
+  [EScreens.EDIT_PROFILE_SCREEN]: undefined;
 };
 
 // export type RootModalsStackParamList = {
