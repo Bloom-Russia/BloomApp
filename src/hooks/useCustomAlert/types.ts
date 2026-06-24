@@ -65,7 +65,7 @@ export interface CustomAlertConfig {
   theme?: 'light' | 'dark';
   buttons?: CustomAlertButton[];
   cancelable?: boolean;
-  onDismiss?: () => void;
+  onDismiss?: () => void | Promise<void>;
   showIcon?: boolean;
   showDivider?: boolean;
   borderRadius?: number;

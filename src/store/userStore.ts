@@ -45,22 +45,27 @@ const userStore = create<UserState & UserActions>()(
           return { success: false };
         },
         updateUser: async (userData, messagePhoneNumberIsChanged) => {
-          const { data, success } = await ApiClientService.updateUser(userData);
-          if (success && data?.user) {
-            const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
-            if (phone.success && phone.data) {
-              if (phone.data !== data.user.phoneNumber) {
-                messagePhoneNumberIsChanged();
-                await SecureStorageService.saveValue(
-                  SecureStorageKeys.PHONE_NUMBER,
-                  data.user.phoneNumber,
-                );
-              }
+          try {
+            const { data, success } = await ApiClientService.updateUser(userData);
+            if (!success || !data?.user) {
+              return { success: false };
             }
+
+            if (data.phoneIsChanged) {
+              await SecureStorageService.saveValue(
+                SecureStorageKeys.PHONE_NUMBER,
+                data.user.phoneNumber,
+              );
+              messagePhoneNumberIsChanged();
+              return { success: true };
+            }
+
             set({ user: data.user });
             return { success: true };
+          } catch {
+            console.error('❌ Ошибка обновления пользователя:');
+            return { success: false };
           }
-          return { success: false };
         },
       }),
       {

@@ -126,4 +126,5 @@ export interface UserResponse {
     email?: string;
   };
   isUserDataComplete?: boolean;
+  phoneIsChanged?: boolean;
 }

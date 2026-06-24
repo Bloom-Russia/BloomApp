@@ -120,3 +120,25 @@ export { VIBRATION_DURATION } from './constans';
 // Вспомогательная функция для задержки
 export const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export const normalizePhoneNumber = (phone: string): string => {
+  // Удаляем все нецифровые символы
+  const cleaned = phone.replace(/\D/g, '');
+
+  // Если номер начинается с 8, меняем на 7
+  if (cleaned.startsWith('8')) {
+    return `+7${cleaned.slice(1)}`;
+  }
+
+  // Если номер начинается с 7, добавляем +
+  if (cleaned.startsWith('7')) {
+    return `+${cleaned}`;
+  }
+
+  // Если номер уже содержит +7 (без пробелов), возвращаем как есть
+  if (phone.startsWith('+7')) {
+    return `+7${cleaned}`;
+  }
+
+  return `+7${cleaned}`;
+};

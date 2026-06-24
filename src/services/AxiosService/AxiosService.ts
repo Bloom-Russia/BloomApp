@@ -27,6 +27,7 @@ class AxiosService {
   private static instance: AxiosInstance | null = null;
   private static isInitialized = false;
   private static isRefreshing = false;
+  private static isProcessingUnauthorized = false;
   private static failedRequests: Array<{
     resolve: (value: AxiosResponse) => void;
     reject: (error: unknown) => void;
@@ -422,29 +423,91 @@ class AxiosService {
    * Обработка ошибки 401 (Unauthorized)
    */
   private static async handleUnauthorized(): Promise<void> {
-    const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
-    if (phone.success && phone.data) {
-      try {
-        await this.post('/api/auth/logout', {
-          phoneNumber: phone.data,
-        });
-      } catch (error) {
-        console.error('[AxiosService] Ошибка при logout:', error);
+    try {
+      console.warn('[AxiosService] 🔐 Сессия истекла или недействительна');
+
+      // ✅ Флаг для предотвращения рекурсии
+      if (this.isProcessingUnauthorized) {
+        console.warn('[AxiosService] ⏳ Уже обрабатываем unauthorized');
+        return;
       }
 
-      SecureStorageService.clearAll()
-        .then(() => {
-          console.warn('[AxiosService] Сессия истекла. Токены очищены.');
-        })
-        .catch((clearError: unknown) => {
-          console.error('[AxiosService] Ошибка очистки токенов:', clearError);
-        });
+      this.isProcessingUnauthorized = true;
 
+      // 1. Получаем номер телефона
+      const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
+
+      // 2. Пытаемся выполнить logout (без обработки ошибок)
+      if (phone.success && phone.data) {
+        try {
+          // ✅ Отключаем интерцептор для этого запроса
+          await this.post('/api/auth/logout', {
+            phoneNumber: phone.data,
+          }).catch(() => {
+            // Игнорируем ошибки logout
+            console.warn('[AxiosService] Logout запрос не удался, продолжаем очистку');
+          });
+        } catch {
+          // Игнорируем любые ошибки
+          console.warn('[AxiosService] Ошибка при logout, продолжаем очистку');
+        }
+      }
+
+      // 3. ✅ Очищаем ВСЕ данные (с await)
+      try {
+        await SecureStorageService.clearAll();
+        console.log('[AxiosService] ✅ Токены очищены');
+      } catch (clearError) {
+        console.error('[AxiosService] ❌ Ошибка очистки токенов:', clearError);
+      }
+
+      // 4. ✅ Сбрасываем состояние AxiosService
+      try {
+        await this.reset();
+        console.log('[AxiosService] ✅ Состояние сброшено');
+      } catch (resetError) {
+        console.error('[AxiosService] ❌ Ошибка сброса состояния:', resetError);
+        // Даже при ошибке - принудительно сбрасываем
+        this.instance = null;
+        this.isInitialized = false;
+      }
+
+      // 5. ✅ Очищаем заголовки
+      if (this.instance) {
+        try {
+          delete this.instance.defaults.headers.common.Authorization;
+        } catch {
+          // Игнорируем
+        }
+      }
+
+      // 6. ✅ Очищаем очередь запросов
+      this.failedRequests = [];
+      this.isRefreshing = false;
+
+      // 7. ✅ Оповещаем приложение
       this.emitUnauthorized({
         timestamp: Date.now(),
-        message: 'Сессия истекла',
+        message: 'Сессия истекла или недействительна',
         code: 'SESSION_EXPIRED',
       });
+
+      console.log('[AxiosService] ✅ Обработка unauthorized завершена');
+    } catch (error) {
+      console.error('[AxiosService] ❌ Критическая ошибка при обработке unauthorized:', error);
+
+      // ✅ Даже при критической ошибке - пытаемся очистить данные
+      try {
+        await SecureStorageService.clearAll();
+        this.instance = null;
+        this.isInitialized = false;
+        this.failedRequests = [];
+        this.isRefreshing = false;
+      } catch {
+        // Игнорируем
+      }
+    } finally {
+      this.isProcessingUnauthorized = false;
     }
   }
 
@@ -509,6 +572,54 @@ class AxiosService {
    */
   public static isServiceInitialized(): boolean {
     return this.isInitialized;
+  }
+
+  /**
+   * 🔄 Сброс состояния AxiosService (при смене номера, выходе и т.д.)
+   */
+  public static async reset(): Promise<void> {
+    try {
+      console.log('🔄 Сброс AxiosService...');
+
+      // 1. Очищаем заголовки
+      if (this.instance) {
+        if (this.instance.defaults.headers.common) {
+          delete this.instance.defaults.headers.common.Authorization;
+        } else {
+          const headers = this.instance.defaults.headers as HeadersType;
+          delete headers.Authorization;
+        }
+      }
+
+      // 2. Сбрасываем состояние
+      this.isRefreshing = false;
+      this.failedRequests = [];
+
+      // 3. Пересоздаем инстанс
+      this.instance = null;
+      this.isInitialized = false;
+
+      // 4. Очищаем токены в SecureStorage
+      await SecureStorageService.clearAll();
+
+      console.log('✅ AxiosService успешно сброшен');
+    } catch (error) {
+      console.error('❌ Ошибка сброса AxiosService:', error);
+      // Даже при ошибке - сбрасываем состояние
+      this.instance = null;
+      this.isInitialized = false;
+      this.isRefreshing = false;
+      this.failedRequests = [];
+    }
+  }
+
+  /**
+   * 🔄 Переинициализация (после сброса)
+   */
+  public static async reinitialize(): Promise<void> {
+    await this.reset();
+    await this.initializeWithAppDefaults();
+    console.log('✅ AxiosService переинициализирован');
   }
 }
 

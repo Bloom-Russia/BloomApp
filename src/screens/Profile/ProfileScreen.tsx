@@ -1,4 +1,4 @@
-import { useCustomAlert } from '@hooks';
+import { useCustomAlert, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SecureStorageKeys, SecureStorageService, UpdateUserRequest } from '@services';
@@ -21,6 +21,7 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
+import { normalizePhoneNumber } from '@utils';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
@@ -50,27 +51,29 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       address,
     },
   } = useUserStore();
-  console.log('userCity:', userCity);
-  console.log('userProfessions:', userProfessions);
+
+  const { logOutHandler } = useLogOut();
   const { AlertComponent, showAlert } = useCustomAlert();
 
   const messagePhoneNumberIsChanged = useCallback(() => {
     showAlert({
-      title: 'Вы изменили номер телефона',
-      message: 'При следующем входе в приложение используйте новый номер',
+      title: 'Номер изменен',
+      message: 'Для входа используйте новый номер телефона',
       type: 'info',
       theme: 'dark',
       showIcon: true,
+      cancelable: false,
       buttons: [
         {
-          text: 'Закрыть',
-          style: 'destructive',
+          text: 'Выход',
+          style: 'default',
           showButtonIcon: true,
-          buttonIconName: IconNames.cancel,
+          buttonIconName: IconNames.signOut,
+          onPress: async () => await logOutHandler(),
         },
       ],
     });
-  }, [showAlert]);
+  }, [logOutHandler, showAlert]);
 
   const loadUser = useCallback(async () => {
     const phone = await SecureStorageService.getValue(SecureStorageKeys.PHONE_NUMBER);
@@ -444,7 +447,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = () => {
       professions: selectedProfessions,
       email: email,
       address: studioAddress,
-      phoneNumber: phone,
+      phoneNumber: normalizePhoneNumber(phone),
       avatar: avatar,
     };
 
