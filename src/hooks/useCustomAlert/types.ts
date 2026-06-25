@@ -76,6 +76,7 @@ export interface CustomAlertConfig {
   onInputChange?: (text: string) => void;
   customBackgroundColor?: string;
   customAccentColor?: string;
+  autoHide?: boolean;
 }
 
 /**
@@ -100,6 +101,7 @@ export interface CustomAlertState extends Omit<CustomAlertConfig, 'buttons' | 'i
   onInputChange?: (text: string) => void; // Обработчик изменения поля ввода
   customBackgroundColor?: string; // Кастомный цвет фона
   customAccentColor?: string; // Кастомный акцентный цвет
+  autoHida?: boolean;
 }
 
 /**

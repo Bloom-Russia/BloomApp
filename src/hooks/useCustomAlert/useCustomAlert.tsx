@@ -1,6 +1,6 @@
-// useCustomAlert.tsx
 import { Colors, ESize, Icon, IconNames } from '@UIKit';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Config from 'react-native-config';
 import {
   AlertContainer,
   Backdrop,
@@ -26,9 +26,7 @@ import {
   UseCustomAlertReturn,
 } from './types';
 
-/**
- * Альтернативный стиль с двойной тенью для еще большей насыщенности
- */
+//Альтернативный стиль с двойной тенью для еще большей насыщенности
 const getDoubleShadowStyles = (shadowColor: string): ShadowStyle => ({
   shadowColor,
   shadowOffset: {
@@ -50,7 +48,6 @@ const darkenColor = (color: string, percent: number = 25): string => {
   }
 
   try {
-    // Извлекаем компоненты цвета
     const hex = color.slice(1);
     const num = parseInt(hex, 16);
 
@@ -77,11 +74,7 @@ const darkenColor = (color: string, percent: number = 25): string => {
   }
 };
 
-// ==================== ХУК useCustomAlert ====================
-/**
- * Хук для создания и управления кастомным алертом
- * @returns Объект с методами управления алертом и компонентом для рендеринга
- */
+// Хук для создания и управления кастомным алертом
 export const useCustomAlert = (): UseCustomAlertReturn => {
   // ==================== СОСТОЯНИЕ ====================
   /**
@@ -105,9 +98,20 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
     onInputChange: undefined, // Обработчик изменения поля не задан
     customBackgroundColor: undefined, // Кастомный цвет фона не задан
     customAccentColor: undefined, // Кастомный акцентный цвет не задан
+    autoHide: false, // Автозакрытие отключено по умолчанию
   });
 
-  // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+  // Ref для хранения таймера автозакрытия
+  const autoHideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Очистка таймера автозакрытия
+  const clearAutoHideTimer = useCallback((): void => {
+    if (autoHideTimerRef.current) {
+      clearTimeout(autoHideTimerRef.current);
+      autoHideTimerRef.current = null;
+    }
+  }, []);
+
   /**
    * Получение цветовой схемы по типу алерта
    * Каждый тип алерта имеет свою цветовую палитру
@@ -196,54 +200,72 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
     [],
   );
 
-  // ==================== ПУБЛИЧНЫЕ МЕТОДЫ ====================
+  /**
+   * Скрыть алерт
+   * Просто устанавливает visible в false и очищает таймер
+   */
+  const hideAlert = useCallback((): void => {
+    clearAutoHideTimer(); // Очищаем таймер при закрытии
+    setAlertState((prev) => ({ ...prev, visible: false }));
+  }, [clearAutoHideTimer]);
+
   /**
    * Показать алерт с заданной конфигурацией
    * Устанавливает все параметры алерта и делает его видимым
    *
    * @param config - Конфигурация алерта
    */
-  const showAlert = useCallback((config: CustomAlertConfig): void => {
-    // Сохраняем переданные значения для showButtonIcon и buttonIconName (включая null)
-    const buttonsWithDefaults =
-      config.buttons?.map((button) => ({
-        ...button,
-        showButtonIcon: button.showButtonIcon ?? null, // Сохраняем null если передан null
-        buttonIconName: button.buttonIconName ?? null, // Сохраняем null если передан null
-      })) || [];
+  const showAlert = useCallback(
+    (config: CustomAlertConfig): void => {
+      // Очищаем предыдущий таймер если он был
+      clearAutoHideTimer();
 
-    setAlertState((prev) => ({
-      ...prev,
-      visible: true, // Делаем алерт видимым
-      title: config.title || '', // Устанавливаем заголовок или пустую строку
-      message: config.message || '', // Устанавливаем сообщение или пустую строку
-      type: config.type || 'info', // Устанавливаем тип или значение по умолчанию
-      theme: config.theme || 'dark', // Устанавливаем тему или значение по умолчанию
-      buttons: buttonsWithDefaults, // Устанавливаем кнопки с сохранением значений
-      cancelable: config.cancelable !== false, // По умолчанию можно закрывать
-      onDismiss: config.onDismiss, // Колбэк при закрытии
-      showIcon: config.showIcon !== false, // По умолчанию показываем иконку
-      showDivider: config.showDivider !== false, // По умолчанию показываем разделитель
-      borderRadius: config.borderRadius || 16, // Радиус или значение по умолчанию
-      shadow: config.shadow !== false, // Показывать тень по умолчанию (true), если false - тень скрывается
-      shadowColorDark: config.shadowColorDark || COLORS.SHADOW_RED_DARK, // Цвет тени для темной темы или значение по умолчанию
-      shadowColorLight: config.shadowColorLight || COLORS.SHADOW_RED_LIGHT, // Цвет тени для светлой темы или значение по умолчанию
-      input: config.input, // Конфигурация поля ввода
-      onInputChange: config.onInputChange, // Обработчик изменения поля ввода
-      customBackgroundColor: config.customBackgroundColor, // Кастомный цвет фона
-      customAccentColor: config.customAccentColor, // Кастомный акцентный цвет
-    }));
-  }, []);
+      // Сохраняем переданные значения для showButtonIcon и buttonIconName (включая null)
+      const buttonsWithDefaults =
+        config.buttons?.map((button) => ({
+          ...button,
+          showButtonIcon: button.showButtonIcon ?? null, // Сохраняем null если передан null
+          buttonIconName: button.buttonIconName ?? null, // Сохраняем null если передан null
+        })) || [];
 
-  /**
-   * Скрыть алерт
-   * Просто устанавливает visible в false
-   */
-  const hideAlert = useCallback((): void => {
-    setAlertState((prev) => ({ ...prev, visible: false })); // Скрываем алерт
-  }, []);
+      setAlertState((prev) => ({
+        ...prev,
+        visible: true, // Делаем алерт видимым
+        title: config.title || '', // Устанавливаем заголовок или пустую строку
+        message: config.message || '', // Устанавливаем сообщение или пустую строку
+        type: config.type || 'info', // Устанавливаем тип или значение по умолчанию
+        theme: config.theme || 'dark', // Устанавливаем тему или значение по умолчанию
+        buttons: buttonsWithDefaults, // Устанавливаем кнопки с сохранением значений
+        cancelable: config.cancelable !== false, // По умолчанию можно закрывать
+        onDismiss: config.onDismiss, // Колбэк при закрытии
+        showIcon: config.showIcon !== false, // По умолчанию показываем иконку
+        showDivider: config.showDivider !== false, // По умолчанию показываем разделитель
+        borderRadius: config.borderRadius || 16, // Радиус или значение по умолчанию
+        shadow: config.shadow !== false, // Показывать тень по умолчанию (true), если false - тень скрывается
+        shadowColorDark: config.shadowColorDark || COLORS.SHADOW_RED_DARK, // Цвет тени для темной темы или значение по умолчанию
+        shadowColorLight: config.shadowColorLight || COLORS.SHADOW_RED_LIGHT, // Цвет тени для светлой темы или значение по умолчанию
+        input: config.input, // Конфигурация поля ввода
+        onInputChange: config.onInputChange, // Обработчик изменения поля ввода
+        customBackgroundColor: config.customBackgroundColor, // Кастомный цвет фона
+        customAccentColor: config.customAccentColor, // Кастомный акцентный цвет
+        autoHide: config.autoHide || false, // Сохраняем значение autoHide
+      }));
 
-  // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+      // Запускаем таймер автозакрытия если включено
+      if (config.autoHide) {
+        // Используем timeout из .env или значение по умолчанию
+        autoHideTimerRef.current = setTimeout(() => {
+          hideAlert();
+          // Вызываем onDismiss если есть
+          if (config.onDismiss) {
+            config.onDismiss();
+          }
+        }, Number(Config.ERROR_TIMEOUT));
+      }
+    },
+    [clearAutoHideTimer, hideAlert],
+  );
+
   /**
    * Обработчик нажатия на фон (бекдроп)
    * Закрывает алерт, если он cancelable
@@ -266,15 +288,24 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
       // Выполняем пользовательский обработчик
       button.onPress?.();
 
+      // Очищаем таймер автозакрытия при нажатии на кнопку
+      clearAutoHideTimer();
+
       // Закрываем алерт, если не указано обратное
       if (button.closeOnPress !== false) {
         hideAlert(); // Скрываем алерт после нажатия
       }
     },
-    [hideAlert],
+    [clearAutoHideTimer, hideAlert],
   );
 
-  // ==================== КОМПОНЕНТ АЛЕРТА ====================
+  // Очищаем таймер при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      clearAutoHideTimer();
+    };
+  }, [clearAutoHideTimer]);
+
   /**
    * Компонент алерта
    * Мемоизирован для предотвращения лишних ререндеров
@@ -465,7 +496,6 @@ export const useCustomAlert = (): UseCustomAlertReturn => {
     return Component; // Возвращаем созданный компонент
   }, [alertState, getAlertColors, getThemeColors, handleBackdropPress, handleButtonPress]);
 
-  // ==================== ВОЗВРАЩАЕМЫЕ ЗНАЧЕНИЯ ====================
   return {
     showAlert, // Функция для показа алерта
     hideAlert, // Функция для скрытия алерта
