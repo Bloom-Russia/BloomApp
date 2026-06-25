@@ -1,10 +1,7 @@
 // user.ts
 import { ApiResponse } from '@services';
 import { makeRequest, RequestOptions } from './makeRequest';
-import {
-  UpdateUserRequest,
-  UserResponse,
-} from './types';
+import { UpdateUserRequest, UserResponse } from './types';
 
 export const UserApi = {
   // Получить пользователя по номеру телефона
@@ -42,6 +39,19 @@ export const UserApi = {
         type: 'PUT',
         url: '/api/users/update',
         params,
+      },
+      { errorCodeCallBack, changeLoading },
+    );
+  },
+
+  // Удалить пользователя
+  async deleteUser({ options }: { options?: RequestOptions }): Promise<ApiResponse> {
+    const { errorCodeCallBack, changeLoading } = options || {};
+
+    return makeRequest<UserResponse>(
+      {
+        type: 'DELETE',
+        url: '/api/users/delete',
       },
       { errorCodeCallBack, changeLoading },
     );

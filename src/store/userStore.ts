@@ -33,8 +33,8 @@ const userStore = create<UserState & UserActions>()(
       (set) => ({
         ...initialState,
         clearUserData: async () => {
-          set(initialState);
           await AsyncStorage.removeItem('user-storage');
+          set(initialState);
         },
         fetchUserByPhoneNumber: async ({ options }) => {
           const { errorCodeCallBack, changeLoading } = options || {};
@@ -53,41 +53,53 @@ const userStore = create<UserState & UserActions>()(
           });
           if (success && data?.user) {
             set({ user: { ...data.user, isUserDataComplete: data?.isUserDataComplete } });
-            return { success };
+            return { success: true };
           }
+          return { success: false };
+        },
+        deleteUser: async ({ options }) => {
+          const { errorCodeCallBack, changeLoading } = options || {};
+          const { success } = await ApiClientService.deleteUser({
+            options: {
+              errorCodeCallBack,
+              changeLoading,
+            },
+          });
+
+          if (success) {
+            return { success: true };
+          }
+
+          console.error('❌ Ошибка удаления пользователя:');
           return { success: false };
         },
         updateUser: async ({ params, options }) => {
           const { userData, messagePhoneNumberIsChanged } = params;
           const { errorCodeCallBack, changeLoading } = options || {};
 
-          try {
-            const { data, success } = await ApiClientService.updateUser({
-              params: userData,
-              options: {
-                errorCodeCallBack,
-                changeLoading,
-              },
-            });
-            if (!success || !data?.user) {
-              return { success: false };
-            }
-
-            if (data.phoneIsChanged) {
-              await SecureStorageService.saveValue(
-                SecureStorageKeys.PHONE_NUMBER,
-                data.user.phoneNumber,
-              );
-              messagePhoneNumberIsChanged();
-              return { success: true };
-            }
-
-            set({ user: data.user });
-            return { success: true };
-          } catch {
+          const { data, success } = await ApiClientService.updateUser({
+            params: userData,
+            options: {
+              errorCodeCallBack,
+              changeLoading,
+            },
+          });
+          if (!success || !data?.user) {
             console.error('❌ Ошибка обновления пользователя:');
             return { success: false };
           }
+
+          if (data.phoneIsChanged) {
+            await SecureStorageService.saveValue(
+              SecureStorageKeys.PHONE_NUMBER,
+              data.user.phoneNumber,
+            );
+            messagePhoneNumberIsChanged();
+            return { success: true };
+          }
+
+          set({ user: data.user });
+          return { success: true };
         },
       }),
       {
@@ -112,6 +124,7 @@ export const useUserStore = () => {
       fetchUserByPhoneNumber: state.fetchUserByPhoneNumber,
       clearUserData: state.clearUserData,
       updateUser: state.updateUser,
+      deleteUser: state.deleteUser,
     })),
   );
 };

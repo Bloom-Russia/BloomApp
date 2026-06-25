@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 import ReactNativeBiometrics from 'react-native-biometrics';
 
 export const useLogOut = (setIsLoading: (value: boolean) => void) => {
-  const { setIsVerified, isVerified } = useAuth();
+  const { setIsVerified } = useAuth();
   const { clearUserData } = useUserStore();
   const { setErrorMessageWithTimeout } = useErrorWithTimeout();
 
@@ -18,7 +18,7 @@ export const useLogOut = (setIsLoading: (value: boolean) => void) => {
       },
     });
     if (success) {
-      clearUserData();
+      await clearUserData();
 
       try {
         const biometrics = new ReactNativeBiometrics();
@@ -32,11 +32,11 @@ export const useLogOut = (setIsLoading: (value: boolean) => void) => {
 
       await SecureStorageService.clearAll();
 
-      await setIsVerified(!isVerified);
+      await setIsVerified(false);
     } else {
       console.error('Ошибка выхода из системы.');
     }
-  }, [clearUserData, isVerified, setErrorMessageWithTimeout, setIsLoading, setIsVerified]);
+  }, [clearUserData, setErrorMessageWithTimeout, setIsLoading, setIsVerified]);
 
   return { logOutHandler };
 };

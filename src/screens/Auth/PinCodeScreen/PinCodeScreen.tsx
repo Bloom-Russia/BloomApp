@@ -1,5 +1,5 @@
 import { RoundLogoAppImage } from '@assets/images';
-import { useErrorWithTimeout } from '@hooks';
+import { useErrorWithTimeout, useHandleExitApp } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
@@ -28,7 +28,7 @@ import {
   StyledDots,
   StyledImage,
 } from './components';
-import { useGetActionButton, useHandleExitApp, useLoadPinCodeData, useTitle } from './hooks';
+import { useGetActionButton, useLoadPinCodeData, useTitle } from './hooks';
 import { PinMode } from './types';
 
 const PinCodeScreenComponent: React.FC<
@@ -291,11 +291,6 @@ const PinCodeScreenComponent: React.FC<
   // Функция для настройки биометрии
   const setupBiometrics = useCallback(
     async (shouldNavigateOnCancel: boolean = true) => {
-      console.log('🔐 setupBiometrics вызван:', {
-        isBiometricsEnabled,
-        shouldNavigateOnCancel,
-      });
-
       // Если биометрия уже настроена - показываем аутентификацию
       if (isBiometricsEnabled) {
         const success = await authenticateWithBiometrics();
@@ -331,7 +326,7 @@ const PinCodeScreenComponent: React.FC<
         showAlert({
           title: 'Использовать биометрию для входа?',
           message: `Использовать ${biometricName} для быстрого и безопасного входа в приложение`,
-          type: 'info',
+          type: 'question',
           theme: 'dark',
           showIcon: true,
           buttons: [
@@ -341,7 +336,6 @@ const PinCodeScreenComponent: React.FC<
               showButtonIcon: true,
               buttonIconName: IconNames.cancel,
               onPress: async () => {
-                console.log('👆 Пользователь выбрал "Позже"');
                 await saveBiometricsStatus(false);
                 if (shouldNavigateOnCancel) {
                   await checkAndNavigateAfterAuth();
@@ -408,8 +402,6 @@ const PinCodeScreenComponent: React.FC<
 
   // Функция для проверки и показа диалога биометрии
   const checkAndShowBiometricsSetup = useCallback(async () => {
-    console.log('🔐 checkAndShowBiometricsSetup вызван');
-
     if (!biometrics.current) {
       await initBiometrics();
     }
@@ -427,29 +419,14 @@ const PinCodeScreenComponent: React.FC<
       SecureStorageKeys.BIOMETRIC_SETUP_COMPLETED,
     );
     const isSetupCompleted = setupSuccess && setupCompleted === 'true';
-
-    console.log('📊 Состояние биометрии:', {
-      isBiometricsEnabled,
-      isBiometricsSupported: isSupported,
-      isSetupCompleted,
-      isPinCodeSet,
-    });
-
     if (isSupported && !isSetupCompleted) {
-      console.log('✅ Показываем диалог настройки биометрии');
+      // ✅ Показываем диалог настройки биометрии
       await setupBiometrics(true);
     } else {
-      console.log('⏸️ Не показываем диалог биометрии');
+      // ⏸️ Не показываем диалог биометрии
       await checkAndNavigateAfterAuth();
     }
-  }, [
-    isBiometricsSupported,
-    isBiometricsEnabled,
-    isPinCodeSet,
-    initBiometrics,
-    setupBiometrics,
-    checkAndNavigateAfterAuth,
-  ]);
+  }, [isBiometricsSupported, initBiometrics, setupBiometrics, checkAndNavigateAfterAuth]);
 
   // Автоматический вход по биометрии
   useEffect(() => {

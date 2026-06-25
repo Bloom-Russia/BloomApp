@@ -34,7 +34,8 @@ export interface UserActions {
   }: {
     options?: RequestOptions;
   }) => Promise<{ success: boolean }>;
-  clearUserData: () => void;
+  deleteUser: ({ options }: { options?: RequestOptions }) => Promise<{ success: boolean }>;
+  clearUserData: () => Promise<void>;
   updateUser: ({
     options,
     params,

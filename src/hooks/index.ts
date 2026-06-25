@@ -4,6 +4,7 @@ export { useTimoutTimer } from './useTimoutTimer';
 export { useCustomAlert } from './useCustomAlert';
 export { useLogOut } from './useLogOut';
 export { useErrorWithTimeout } from './useErrorWithTimeout';
+export { useHandleExitApp } from './useHandleExitApp';
 
 export type {
   UseCustomAlertReturn,

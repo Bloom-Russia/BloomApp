@@ -243,11 +243,11 @@ export const AuthApi = {
     options?: RequestOptions;
   }): Promise<ApiResponse<LogoutResponse>> {
     const { errorCodeCallBack, changeLoading } = options || {};
-    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+    const { success: phoneNumberSuccess, data: phoneNumber } = await SecureStorageService.getValue(
       SecureStorageKeys.PHONE_NUMBER,
     );
 
-    if (!success || !phoneNumber) {
+    if (!phoneNumberSuccess || !phoneNumber) {
       console.error('Ошибка выхода из системы, номер телефона не найден.');
     }
 

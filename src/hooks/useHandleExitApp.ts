@@ -15,7 +15,7 @@ export const useHandleExitApp = (
     showAlert({
       title: 'Выход из приложения',
       message: 'Вы уверены, что хотите выйти из приложения?',
-      type: 'error',
+      type: 'question',
       theme: 'dark',
       showIcon: true,
       buttons: [
