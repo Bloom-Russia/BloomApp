@@ -34,18 +34,27 @@ type HeaderProps = {
 export const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon }) => {
   const navigation = useNavigation();
   return (
-    <Row marginBottom={ESpacings.s20} paddingHorizontal={ESpacings.s16} alignItems={'center'}>
-      {icon ? (
-        <StyledPressable onPress={onPressIcon || navigation.goBack}>
-          <Icon size={ESize.s24} color={Colors.white} name={IconNames.signOut} />
-        </StyledPressable>
-      ) : null}
-
+    <Row
+      marginBottom={ESpacings.s20}
+      paddingRight={ESpacings.s24}
+      alignItems={'center'}
+      paddingLeft={icon ? ESpacings.s56 : ESpacings.s24}
+    >
       <Row justifyContent={'center'} flex={1}>
-        <Typography.B16 numberOfLines={2} color={Colors.white}>
+        <Typography.B16 numberOfLines={1} color={Colors.white}>
           {title}
         </Typography.B16>
       </Row>
+      {icon ? (
+        <StyledPressable
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? 'rgba(255,255,255,0.2)' : Colors.transparent,
+          })}
+          onPress={onPressIcon || navigation.goBack}
+        >
+          <Icon size={ESize.s16} color={Colors.white} name={icon} />
+        </StyledPressable>
+      ) : null}
     </Row>
   );
 };
@@ -124,8 +133,14 @@ const StyledScrollView = styled(ScrollView).attrs<StyledScrollViewProps>(({ back
 const StyledPressable = styled(Pressable).attrs(() => ({
   android_ripple: {
     borderless: false,
-    color: Colors.ripple,
+    color: Colors.white,
   },
 }))({
   alignItems: 'center',
+  height: ESize.s32,
+  width: ESize.s32,
+  justifyContent: 'center',
+  borderWidth: 1,
+  borderColor: Colors.white,
+  borderRadius: ESize.s8,
 });

@@ -18,6 +18,15 @@ export interface AppState {
   app: App;
 }
 
+type RequestOptions = {
+  errorCodeCallBack?: (message?: string) => void;
+  changeLoading?: (value: boolean) => void;
+};
+
 export interface AppActions {
-  fetchCitiesAndProfession: () => Promise<{ success: boolean }>;
+  fetchCitiesAndProfession: ({
+    options,
+  }: {
+    options?: RequestOptions;
+  }) => Promise<{ success: boolean }>;
 }

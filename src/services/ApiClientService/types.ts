@@ -34,12 +34,10 @@ export type VerifyCoderParams = {
 };
 
 export type VerifyPinCoderParams = {
-  phoneNumber: string;
   pinCode: string;
 };
 
 export type SavePinParams = {
-  phoneNumber: string;
   pinCode: string;
 };
 

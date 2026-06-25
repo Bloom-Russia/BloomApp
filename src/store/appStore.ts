@@ -18,8 +18,13 @@ const appStore = create<AppState & AppActions>()(
     persist(
       (set) => ({
         ...initialState,
-        fetchCitiesAndProfession: async () => {
-          const { data, success } = await ApiClientService.getCitiesAndProfession();
+        fetchCitiesAndProfession: async ({ options }) => {
+          const { errorCodeCallBack, changeLoading } = options || {};
+          const { data, success } = await ApiClientService.getCitiesAndProfession({
+            errorCodeCallBack,
+            changeLoading,
+          });
+
           if (success && data?.cities && data?.professions) {
             set({ app: { cities: data.cities, professions: data.professions } });
             return { success };

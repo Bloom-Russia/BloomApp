@@ -1,35 +1,37 @@
+import { useErrorWithTimeout } from '@hooks';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { PinMode } from '../types';
 
 type Props = {
   setIsPinCodeSet: (value: boolean) => void;
   setPinMode: (value: PinMode) => void;
+  setLoading: (value: boolean) => void;
 };
 
-export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode }: Props) => {
+export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: Props) => {
+  const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      cleanupErrors();
+    };
+  }, [cleanupErrors]);
+
   const loadPinCodeData = useCallback(async () => {
     try {
-      const { success: phoneSuccess, data: phoneNumber } = await SecureStorageService.getValue(
-        SecureStorageKeys.PHONE_NUMBER,
-      );
-
-      if (!phoneSuccess || !phoneNumber) {
-        setPinMode(PinMode.SET);
-        setIsPinCodeSet(false);
-
-        await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
-        return;
-      }
-
-      const response = await ApiClientService.checkPinStatus({ phoneNumber });
-
+      const { success, data } = await ApiClientService.checkPinStatus({
+        options: {
+          changeLoading: setLoading,
+          errorCodeCallBack: setErrorMessageWithTimeout,
+        },
+      });
       let hasPin = false;
-
-      if (response?.success && response?.data) {
-        hasPin = response.data.hasPin;
-      } else if (response?.data?.hasPin) {
-        hasPin = response.data.hasPin;
+      if (success && data) {
+        hasPin = data.hasPin;
+      } else if (data?.hasPin) {
+        hasPin = data.hasPin;
       }
 
       setPinMode(hasPin ? PinMode.ENTER : PinMode.SET);
@@ -46,7 +48,7 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode }: Props) => {
       setIsPinCodeSet(false);
       await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
     }
-  }, [setIsPinCodeSet, setPinMode]);
+  }, [setErrorMessageWithTimeout, setIsPinCodeSet, setLoading, setPinMode]);
 
   return { loadPinCodeData };
 };

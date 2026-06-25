@@ -1,6 +1,6 @@
 import { RoundLogoAppImage } from '@assets/images';
 import { useAuth } from '@contexts';
-import { useCustomAlert } from '@hooks';
+import { useErrorWithTimeout } from '@hooks';
 import { EScreens, UnAuthStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService } from '@services';
@@ -11,13 +11,12 @@ import {
   Colors,
   ESpacings,
   ICodeFieldComponent,
-  IconNames,
   ResendCodeButton,
   Row,
   ScreenContainer,
   Typography,
 } from '@UIKit';
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { Image } from 'react-native';
 import Config from 'react-native-config';
@@ -36,28 +35,15 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   const [code, setCode] = useState<string>('');
   const [startTime, setStartTime] = useState(Date.now());
   const { setIsVerified } = useAuth();
-  const { showAlert, AlertComponent } = useCustomAlert();
 
-  const errorCodeCallBack = useCallback(
-    (message?: string) => {
-      codeRef.current?.clear();
-      showAlert({
-        title: message || 'Ошибка верификации кода',
-        type: 'error',
-        theme: 'dark',
-        showIcon: true,
-        buttons: [
-          {
-            text: 'Закрыть',
-            style: 'destructive',
-            showButtonIcon: true,
-            buttonIconName: IconNames.cancel,
-          },
-        ],
-      });
-    },
-    [showAlert],
-  );
+  const { setErrorMessageWithTimeout, cleanupErrors, AlertComponent } = useErrorWithTimeout();
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      cleanupErrors();
+    };
+  }, [cleanupErrors]);
 
   const verifyCodeHandler = useCallback(
     async (inputCode: string) => {
@@ -70,20 +56,25 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
             setIsVerified,
           },
           options: {
-            errorCodeCallBack,
+            errorCodeCallBack: setErrorMessageWithTimeout,
           },
         });
       }
     },
-    [errorCodeCallBack, phone, setIsVerified],
+    [phone, setErrorMessageWithTimeout, setIsVerified],
   );
 
   //Повторная отправка кода
   const resendCode = useCallback(async () => {
     setStartTime(Date.now());
     codeRef.current?.clear();
-    await ApiClientService.resendCode({ phoneNumber: phone });
-  }, [phone]);
+    await ApiClientService.resendCode({
+      phoneNumber: phone,
+      options: {
+        errorCodeCallBack: setErrorMessageWithTimeout,
+      },
+    });
+  }, [phone, setErrorMessageWithTimeout]);
 
   const handleChangePhone = useCallback(() => {
     navigation.goBack();

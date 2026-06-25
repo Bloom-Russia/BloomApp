@@ -36,9 +36,20 @@ const userStore = create<UserState & UserActions>()(
           set(initialState);
           await AsyncStorage.removeItem('user-storage');
         },
-        fetchUserByPhoneNumber: async (phoneNumber: string) => {
+        fetchUserByPhoneNumber: async ({ options }) => {
+          const { errorCodeCallBack, changeLoading } = options || {};
+          const { success: phoneSuccess, data: phoneData } = await SecureStorageService.getValue(
+            SecureStorageKeys.PHONE_NUMBER,
+          );
+          if (!phoneSuccess || !phoneData) {
+            return { success: false };
+          }
           const { data, success } = await ApiClientService.getUserByPhoneNumber({
-            phoneNumber,
+            phoneNumber: phoneData,
+            options: {
+              errorCodeCallBack,
+              changeLoading,
+            },
           });
           if (success && data?.user) {
             set({ user: { ...data.user, isUserDataComplete: data?.isUserDataComplete } });
@@ -46,10 +57,17 @@ const userStore = create<UserState & UserActions>()(
           }
           return { success: false };
         },
-        updateUser: async (userData, messagePhoneNumberIsChanged) => {
+        updateUser: async ({ params, options }) => {
+          const { userData, messagePhoneNumberIsChanged } = params;
+          const { errorCodeCallBack, changeLoading } = options || {};
+
           try {
             const { data, success } = await ApiClientService.updateUser({
               params: userData,
+              options: {
+                errorCodeCallBack,
+                changeLoading,
+              },
             });
             if (!success || !data?.user) {
               return { success: false };

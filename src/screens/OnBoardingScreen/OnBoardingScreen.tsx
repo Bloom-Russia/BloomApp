@@ -1,4 +1,4 @@
-import { useLoading } from '@hooks';
+import { useErrorWithTimeout } from '@hooks';
 import { AuthStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
@@ -50,23 +50,30 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
   const [currentIndex, setCurrentIndex] = useState(0);
   const [onboardingData, setOnboardingData] = useState<OnboardingItem[]>([]);
   const flatListRef = useRef<FlatList>(null);
-  const { loading, showLoader, hideLoader } = useLoading();
+  const [loading, setLoading] = useState<boolean>(false);
+  const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      cleanupErrors();
+    };
+  }, [cleanupErrors]);
 
   const loadOnboardingSlides = useCallback(async () => {
     try {
-      showLoader();
+      const { success, data } = await ApiClientService.getOnboardingSlides({
+        changeLoading: setLoading,
+        errorCodeCallBack: setErrorMessageWithTimeout,
+      });
 
-      const response = await ApiClientService.getOnboardingSlides();
-
-      if (response?.success && response.data?.slides) {
-        setOnboardingData(response.data.slides);
+      if (success && data?.slides) {
+        setOnboardingData(data.slides);
       }
     } catch (err) {
       console.error('Ошибка загрузки онбординга:', err);
-    } finally {
-      hideLoader();
     }
-  }, [hideLoader, showLoader]);
+  }, [setErrorMessageWithTimeout]);
 
   // Загрузка слайдов онбординга
   useEffect(() => {

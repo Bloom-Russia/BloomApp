@@ -1,4 +1,4 @@
-import { useCustomAlert, useLogOut } from '@hooks';
+import { useErrorWithTimeout, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { UpdateUserRequest } from '@services';
@@ -32,7 +32,7 @@ type EditProfileScreenProps = NativeStackScreenProps<
   EScreens.EDIT_PROFILE_SCREEN
 >;
 
-const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
+const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigation }) => {
   const {
     updateUser,
     user: {
@@ -52,8 +52,17 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
     },
   } = useUserStore();
 
-  const { logOutHandler } = useLogOut();
-  const { AlertComponent, showAlert } = useCustomAlert();
+  const [loading, setLoading] = useState<boolean>(false);
+  const { logOutHandler } = useLogOut(setLoading);
+  const { setErrorMessageWithTimeout, cleanupErrors, AlertComponent, showAlert } =
+    useErrorWithTimeout();
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      cleanupErrors();
+    };
+  }, [cleanupErrors]);
 
   const messagePhoneNumberIsChanged = useCallback(() => {
     showAlert({
@@ -122,7 +131,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
   const [studioAddress, setStudioAddress] = useState<string>(address || '');
 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCitySheetVisible, setIsCitySheetVisible] = useState<boolean>(false);
   const [citySearchQuery, setCitySearchQuery] = useState<string>('');
   const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState<boolean>(false);
@@ -421,8 +429,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
       return;
     }
 
-    setIsLoading(true);
-
     const formData: UpdateUserRequest = {
       name: firstName,
       lastName: lastName,
@@ -439,7 +445,20 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
       avatar: avatar,
     };
 
-    await updateUser(formData, messagePhoneNumberIsChanged).finally(() => setIsLoading(false));
+    const { success } = await updateUser({
+      params: {
+        userData: formData,
+        messagePhoneNumberIsChanged,
+      },
+      options: {
+        changeLoading: setLoading,
+        errorCodeCallBack: setErrorMessageWithTimeout,
+      },
+    });
+
+    if (success) {
+      navigation.navigate(EScreens.PROFILE_SCREEN);
+    }
   }, [
     validateForm,
     selectedCity,
@@ -457,6 +476,8 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
     avatar,
     updateUser,
     messagePhoneNumberIsChanged,
+    setErrorMessageWithTimeout,
+    navigation,
   ]);
 
   return (
@@ -654,9 +675,9 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = () => {
 
           <Button
             title={'Сохранить'}
-            loading={isLoading}
+            loading={loading}
             onPress={handleSubmit}
-            disabled={isLoading}
+            disabled={loading}
             marginBottom={ESpacings.s24}
           />
         </Block>

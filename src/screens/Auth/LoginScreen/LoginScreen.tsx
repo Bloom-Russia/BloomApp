@@ -1,7 +1,6 @@
 import { RoundLogoAppImage } from '@assets/images';
-import { useCustomAlert, useLoading } from '@hooks';
+import { useErrorWithTimeout } from '@hooks';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-// Импортируем messaging для работы с уведомлениями
 import { ApiClientService } from '@services';
 import {
   Block,
@@ -13,7 +12,7 @@ import {
   Row,
   ScreenContainer,
 } from '@UIKit';
-import React, { memo, useCallback, useEffect } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import {
   BackHandler,
@@ -31,8 +30,17 @@ import type { LoginScreenProps } from './types'; // Изменено здесь
 const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   const [phone, setPhone] = React.useState<string>('');
   const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
-  const { loading, showLoader, hideLoader } = useLoading();
-  const { showAlert, AlertComponent } = useCustomAlert();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const { showAlert, AlertComponent, setErrorMessageWithTimeout, cleanupErrors } =
+    useErrorWithTimeout();
+
+  // Очистка при размонтировании
+  useEffect(() => {
+    return () => {
+      cleanupErrors();
+    };
+  }, [cleanupErrors]);
 
   const setPhoneHandler = useCallback((value: string) => {
     if (value.length === CONSTANTS.MIN_PHONE_LENGTH) {
@@ -130,24 +138,14 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
     if (isButtonDisabled) {
       return;
     }
-    try {
-      showLoader();
-      await ApiClientService.requestVerificationCode({ phoneNumber: phone });
-      // После успешной отправки выполняем навигацию на экран ввода кода из авторизации
-      // navigation.navigate('VerificationScreen', { phone });
-    } catch (error: unknown) {
-      console.error('Ошибка получения кода', error);
-      // Можно показать ошибку пользователю
-      showAlert({
-        title: 'Ошибка',
-        message: 'Внутренняя ошибка сервера',
-        type: 'error',
-        buttons: [{ text: 'OK' }],
-      });
-    } finally {
-      hideLoader();
-    }
-  }, [isButtonDisabled, showLoader, phone, showAlert, hideLoader]);
+    await ApiClientService.requestVerificationCode({
+      phoneNumber: phone,
+      options: {
+        changeLoading: setLoading,
+        errorCodeCallBack: setErrorMessageWithTimeout,
+      },
+    });
+  }, [isButtonDisabled, phone, setErrorMessageWithTimeout]);
 
   return (
     <ScreenContainer title={'Авторизация'} paddingHorizontal={ESpacings.s16}>

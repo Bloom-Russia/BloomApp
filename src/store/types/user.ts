@@ -23,11 +23,26 @@ export interface UserState {
   user: User;
 }
 
+type RequestOptions = {
+  errorCodeCallBack?: (message?: string) => void;
+  changeLoading?: (value: boolean) => void;
+};
+
 export interface UserActions {
-  fetchUserByPhoneNumber: (phoneNumber: string) => Promise<{ success: boolean }>;
+  fetchUserByPhoneNumber: ({
+    options,
+  }: {
+    options?: RequestOptions;
+  }) => Promise<{ success: boolean }>;
   clearUserData: () => void;
-  updateUser: (
-    userData: UpdateUserRequest,
-    messagePhoneNumberIsChanged: () => void,
-  ) => Promise<{ success: boolean }>;
+  updateUser: ({
+    options,
+    params,
+  }: {
+    params: {
+      userData: UpdateUserRequest;
+      messagePhoneNumberIsChanged: () => void;
+    };
+    options?: RequestOptions;
+  }) => Promise<{ success: boolean }>;
 }

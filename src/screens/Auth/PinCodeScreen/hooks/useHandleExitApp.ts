@@ -4,8 +4,11 @@ import { VIBRATION_DURATION } from '@utils';
 import { useCallback } from 'react';
 import { Vibration } from 'react-native';
 
-export const useHandleExitApp = (showAlert: (config: CustomAlertConfig) => void) => {
-  const { logOutHandler } = useLogOut();
+export const useHandleExitApp = (
+  showAlert: (config: CustomAlertConfig) => void,
+  setLoading: (value: boolean) => void,
+) => {
+  const { logOutHandler } = useLogOut(setLoading);
 
   const handleExitApp = useCallback(async (): Promise<void> => {
     Vibration.vibrate(VIBRATION_DURATION.SHORT);

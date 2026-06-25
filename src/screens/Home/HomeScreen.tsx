@@ -2,13 +2,14 @@ import { useLogOut } from '@hooks';
 import { EScreens, HomeStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Block, Button, Colors, ESpacings, Typography } from '@UIKit';
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import isEqual from 'react-fast-compare';
 
 type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, EScreens.HOME_SCREEN>;
 
 const HomeScreenComponent: React.FC<HomeScreenProps> = () => {
-  const { logOutHandler } = useLogOut();
+  const [loading, setLoading] = useState<boolean>(false);
+  const { logOutHandler } = useLogOut(setLoading);
 
   return (
     <Block
@@ -20,7 +21,12 @@ const HomeScreenComponent: React.FC<HomeScreenProps> = () => {
       <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
         Home Screen
       </Typography.B14>
-      <Button title={'Выйти'} onPress={logOutHandler} paddingHorizontal={ESpacings.s16} />
+      <Button
+        title={'Выйти'}
+        loading={loading}
+        onPress={logOutHandler}
+        paddingHorizontal={ESpacings.s16}
+      />
     </Block>
   );
 };

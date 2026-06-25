@@ -102,7 +102,6 @@ export const AuthApi = {
     if (result.success && result.data) {
       const tokens = result.data as unknown as AuthTokens;
       const { accessToken, refreshToken, isVerified, phoneNumber } = tokens;
-
       await SecureStorageService.saveTokens(accessToken, refreshToken);
       await SecureStorageService.saveValue(SecureStorageKeys.PHONE_NUMBER, phoneNumber);
       await setIsVerified(isVerified);
@@ -120,7 +119,19 @@ export const AuthApi = {
     options?: RequestOptions;
   }): Promise<ApiResponse<SavePinResponse>> {
     const { errorCodeCallBack, changeLoading } = options || {};
-    const { pinCode, phoneNumber } = params;
+    const { pinCode } = params;
+    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
+
+    if (!success || !phoneNumber) {
+      errorCodeCallBack?.('Номер телефона не найден');
+      return {
+        success: false,
+        message: '',
+        data: null,
+      };
+    }
 
     const result = await makeRequest<SavePinResponse>(
       {
@@ -151,7 +162,20 @@ export const AuthApi = {
     options?: RequestOptions;
   }): Promise<ApiResponse<AuthResponseDataVerifyPinCode>> {
     const { errorCodeCallBack, changeLoading } = options || {};
-    const { pinCode, phoneNumber } = params;
+    const { pinCode } = params;
+
+    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
+
+    if (!success || !phoneNumber) {
+      errorCodeCallBack?.('Ошибка верификации PIN');
+      return {
+        success: false,
+        message: '',
+        data: null,
+      };
+    }
 
     const result = await makeRequest<AuthResponseDataVerifyPinCode>(
       {
@@ -174,15 +198,24 @@ export const AuthApi = {
 
   // Проверка статуса PIN-кода
   async checkPinStatus({
-    phoneNumber,
     options,
   }: {
-    phoneNumber: string;
     options?: RequestOptions;
   }): Promise<ApiResponse<CheckPinStatusResponse>> {
     const { errorCodeCallBack, changeLoading } = options || {};
+    const { success: phoneSuccess, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
 
-    const result = await makeRequest<CheckPinStatusResponse>(
+    if (!phoneSuccess || !phoneNumber) {
+      await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
+      return {
+        success: false,
+        data: null,
+      };
+    }
+
+    const { success, data } = await makeRequest<CheckPinStatusResponse>(
       {
         type: 'GET',
         url: '/api/auth/check-pin',
@@ -191,8 +224,8 @@ export const AuthApi = {
       { errorCodeCallBack, changeLoading },
     );
 
-    if (result.success && result.data) {
-      const hasPin = result.data.hasPin;
+    if (success && data) {
+      const hasPin = data.hasPin;
       if (hasPin) {
         await SecureStorageService.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, true);
       } else {
@@ -200,18 +233,23 @@ export const AuthApi = {
       }
     }
 
-    return result;
+    return { success, data };
   },
 
   // Выход пользователя из системы
   async logOutWithToken({
-    phoneNumber,
     options,
   }: {
-    phoneNumber: string;
     options?: RequestOptions;
   }): Promise<ApiResponse<LogoutResponse>> {
     const { errorCodeCallBack, changeLoading } = options || {};
+    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
+
+    if (!success || !phoneNumber) {
+      console.error('Ошибка выхода из системы, номер телефона не найден.');
+    }
 
     const result = await makeRequest<LogoutResponse>(
       {
@@ -238,13 +276,24 @@ export const AuthApi = {
 
   // Вход через биометрию
   async loginWithBiometrics({
-    phoneNumber,
     options,
   }: {
-    phoneNumber: string;
     options?: RequestOptions;
   }): Promise<ApiResponse<AuthTokens>> {
     const { errorCodeCallBack, changeLoading } = options || {};
+
+    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
+
+    if (!success || !phoneNumber) {
+      errorCodeCallBack?.('Ошибка при биометрической аутентификации');
+      return {
+        success: false,
+        message: '',
+        data: null,
+      };
+    }
 
     const result = await makeRequest<AuthTokens>(
       {
@@ -271,13 +320,25 @@ export const AuthApi = {
     options,
   }: {
     params: {
-      phoneNumber: string;
       publicKey: string;
     };
     options?: RequestOptions;
   }): Promise<ApiResponse<{ message: string }>> {
     const { errorCodeCallBack, changeLoading } = options || {};
-    const { phoneNumber, publicKey } = params;
+    const { publicKey } = params;
+
+    const { success, data: phoneNumber } = await SecureStorageService.getValue(
+      SecureStorageKeys.PHONE_NUMBER,
+    );
+
+    if (!success || !phoneNumber) {
+      errorCodeCallBack?.('Ошибка сохранения биометрических ключей');
+      return {
+        success: false,
+        message: '',
+        data: null,
+      };
+    }
 
     const result = await makeRequest<{ message: string }>(
       {
@@ -292,7 +353,6 @@ export const AuthApi = {
     );
 
     if (result.success) {
-      console.log('✅ Биометрический ключ успешно сохранен на сервере');
       vibrate(VIBRATION_DURATION.SHORT);
     }
 
