@@ -325,7 +325,7 @@ const PinCodeScreenComponent: React.FC<
 
         showAlert({
           title: 'Использовать биометрию для входа?',
-          message: `Использовать ${biometricName} для быстрого и безопасного входа в приложение`,
+          message: `Использовать ${biometricName} для быстрого и безопасного входа в приложение?`,
           type: 'question',
           theme: 'dark',
           showIcon: true,
@@ -343,7 +343,7 @@ const PinCodeScreenComponent: React.FC<
               },
             },
             {
-              text: 'Настроить',
+              text: 'Да',
               style: 'default',
               showButtonIcon: true,
               buttonIconName: isFaceId ? IconNames.faceId : IconNames.fingerprint,

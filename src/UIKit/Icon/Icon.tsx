@@ -22,6 +22,7 @@ export enum IconNames {
   chevronDown = 'chevron-down',
   checked = 'checked',
   edit = 'edit',
+  question = 'question',
 }
 
 export const IconSet = createIconSetFromIcoMoon(config);

@@ -13,7 +13,7 @@ export const useHandleExitApp = (
   const handleExitApp = useCallback(async (): Promise<void> => {
     Vibration.vibrate(VIBRATION_DURATION.SHORT);
     showAlert({
-      title: 'Выход из приложения',
+      title: 'Выйти из приложения?',
       message: 'Вы уверены, что хотите выйти из приложения?',
       type: 'question',
       theme: 'dark',
