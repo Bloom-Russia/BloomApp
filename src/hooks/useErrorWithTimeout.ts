@@ -9,7 +9,8 @@ export const useErrorWithTimeout = () => {
   const setErrorMessageWithTimeout = useCallback(
     (message?: string) => {
       showAlert({
-        title: message || 'Внутренняя ошибка сервера',
+        title: 'Ошибка!',
+        message: message || 'Внутренняя ошибка сервера',
         type: 'error',
         theme: 'dark',
         showIcon: true,
