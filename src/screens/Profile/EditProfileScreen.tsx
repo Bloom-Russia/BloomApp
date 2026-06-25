@@ -678,7 +678,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             title={'Сохранить'}
             loading={loading}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || exiting}
             marginBottom={ESpacings.s24}
           />
 
@@ -687,6 +687,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             loading={exiting}
             onPress={handleExitApp}
             paddingHorizontal={ESpacings.s16}
+            disabled={loading || exiting}
           />
         </Block>
       </ScrollView>

@@ -18,6 +18,7 @@ export const useLogOut = (setIsLoading: (value: boolean) => void) => {
       },
     });
     if (success) {
+      setIsLoading(true);
       await clearUserData();
 
       try {
@@ -31,7 +32,7 @@ export const useLogOut = (setIsLoading: (value: boolean) => void) => {
       }
 
       await SecureStorageService.clearAll();
-
+      setIsLoading(false);
       await setIsVerified(false);
     } else {
       console.error('Ошибка выхода из системы.');

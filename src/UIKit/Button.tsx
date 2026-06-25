@@ -29,7 +29,11 @@ export const Button: React.FC<Props> = ({
 
   return (
     <Block {...props}>
-      <StyledPressable color={color || 'blue'} disabled={disabled} onPress={onPressHandler}>
+      <StyledPressable
+        color={color || 'blue'}
+        disabled={disabled || loading}
+        onPress={onPressHandler}
+      >
         {loading ? (
           <ActivityIndicator size="large" color={'white'} />
         ) : (
