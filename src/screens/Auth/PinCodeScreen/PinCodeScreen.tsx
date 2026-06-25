@@ -197,49 +197,69 @@ const PinCodeScreenComponent: React.FC<
     if (!biometrics.current) {
       const initialized = await initBiometrics();
       if (!initialized || !biometrics.current) {
+        isAuthenticatingRef.current = false;
+        setIsProcessing(false);
+        setLoading(false); // ✅ Сбрасываем loading
         return false;
       }
     }
+
     setLoading(true);
-    const { available } = await biometrics.current.isSensorAvailable();
 
-    if (!available) {
-      await resetBiometricsStatus();
-      setLoading(false);
-      return false;
-    }
+    try {
+      const { available } = await biometrics.current.isSensorAvailable();
 
-    if (Platform.OS === 'ios') {
-      const { keysExist } = await biometrics.current.biometricKeysExist();
-      if (!keysExist) {
+      if (!available) {
         await resetBiometricsStatus();
         setLoading(false);
+        isAuthenticatingRef.current = false;
+        setIsProcessing(false);
         return false;
       }
-    }
 
-    const biometricName = Platform.OS === 'ios' ? 'Face ID' : 'Touch ID';
-    const { success, error } = await biometrics.current.simplePrompt({
-      promptMessage: `Подтвердите вход с помощью ${biometricName}`,
-      cancelButtonText: 'Отмена',
-    });
+      if (Platform.OS === 'ios') {
+        const { keysExist } = await biometrics.current.biometricKeysExist();
+        if (!keysExist) {
+          await resetBiometricsStatus();
+          setLoading(false);
+          isAuthenticatingRef.current = false;
+          setIsProcessing(false);
+          return false;
+        }
+      }
 
-    if (success) {
-      await ApiClientService.loginWithBiometrics({
-        options: {
-          changeLoading: setLoading,
-          errorCodeCallBack: setErrorMessageWithTimeout,
-        },
+      const biometricName = Platform.OS === 'ios' ? 'Face ID' : 'Touch ID';
+      const { success, error } = await biometrics.current.simplePrompt({
+        promptMessage: `Подтвердите вход с помощью ${biometricName}`,
+        cancelButtonText: 'Отмена',
       });
-      setHasAuthenticated(true);
-      await checkAndNavigateAfterAuth();
-    } else {
+
+      if (success) {
+        await ApiClientService.loginWithBiometrics({
+          options: {
+            changeLoading: setLoading,
+            errorCodeCallBack: setErrorMessageWithTimeout,
+          },
+        });
+        setHasAuthenticated(true);
+        await checkAndNavigateAfterAuth();
+      } else {
+        console.error('❌ Ошибка при биометрической аутентификации:', error);
+        // ✅ Сбрасываем loading при ошибке или отмене
+        setLoading(false);
+      }
+    } catch (error) {
       console.error('❌ Ошибка при биометрической аутентификации:', error);
+      setLoading(false);
+      setErrorMessageWithTimeout('Ошибка биометрической аутентификации');
+    } finally {
+      isAuthenticatingRef.current = false;
+      setIsProcessing(false);
+      // ✅ Дополнительная проверка на случай, если loading остался true
+      setLoading(false);
     }
 
-    isAuthenticatingRef.current = false;
-    setIsProcessing(false);
-    return success;
+    return false; // Возвращаем false в случае неудачи
   }, [
     isBiometricsEnabled,
     isBiometricsSupported,
@@ -323,24 +343,28 @@ const PinCodeScreenComponent: React.FC<
         const isFaceId = biometryType === 'FaceID';
         const biometricName = isFaceId ? 'Face ID' : 'Touch ID';
 
+        const logIn = async () => {
+          await saveBiometricsStatus(false);
+          setLoading(false); // ✅ Сбрасываем loading
+          if (shouldNavigateOnCancel) {
+            await checkAndNavigateAfterAuth();
+          }
+        };
+
         showAlert({
           title: 'Использовать биометрию для входа?',
           message: `Использовать ${biometricName} для быстрого и безопасного входа в приложение?`,
           type: 'question',
           theme: 'dark',
           showIcon: true,
+          onDismiss: logIn,
           buttons: [
             {
               text: 'Позже',
               style: 'cancel',
               showButtonIcon: true,
               buttonIconName: IconNames.cancel,
-              onPress: async () => {
-                await saveBiometricsStatus(false);
-                if (shouldNavigateOnCancel) {
-                  await checkAndNavigateAfterAuth();
-                }
-              },
+              onPress: logIn,
             },
             {
               text: 'Да',
@@ -350,6 +374,7 @@ const PinCodeScreenComponent: React.FC<
               onPress: async () => {
                 if (!biometrics.current) {
                   setErrorMessageWithTimeout('Биометрия недоступна');
+                  setLoading(false);
                   return;
                 }
 
@@ -365,19 +390,22 @@ const PinCodeScreenComponent: React.FC<
                       setHasAuthenticated(true);
                       await checkAndNavigateAfterAuth();
                     } else {
-                      console.error('Не удалось настроить биометрию');
+                      console.error('Не удалось Настроить биометрию');
+                      setLoading(false);
                       if (shouldNavigateOnCancel) {
                         await checkAndNavigateAfterAuth();
                       }
                     }
                   } else {
                     console.error('Настройка биометрии отменена');
+                    setLoading(false);
                     if (shouldNavigateOnCancel) {
                       await checkAndNavigateAfterAuth();
                     }
                   }
                 } catch {
                   console.error('Произошла ошибка при настройке биометрии');
+                  setLoading(false);
                 }
               },
             },
@@ -385,6 +413,7 @@ const PinCodeScreenComponent: React.FC<
         });
       } catch (error) {
         console.error('❌ Произошла ошибка при настройке биометрии:', error);
+        setLoading(false);
       }
     },
     [

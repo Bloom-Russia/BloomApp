@@ -129,11 +129,11 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
           My Profile Screen
         </Typography.B14>
         <Button
-          title={'Выйти'}
+          title={'Выйти из приложения'}
           loading={exiting}
           onPress={handleExitApp}
           paddingHorizontal={ESpacings.s16}
-          marginBottom={ESpacings.s38}
+          marginBottom={ESpacings.s24}
         />
         <Button
           title={'Удалить пользователя'}

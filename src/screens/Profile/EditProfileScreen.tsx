@@ -1,4 +1,4 @@
-import { useErrorWithTimeout, useLogOut } from '@hooks';
+import { useErrorWithTimeout, useHandleExitApp, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { UpdateUserRequest } from '@services';
@@ -51,11 +51,12 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       address,
     },
   } = useUserStore();
-
+  const [exiting, setExiting] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { logOutHandler } = useLogOut(setLoading);
   const { setErrorMessageWithTimeout, cleanupErrors, AlertComponent, showAlert } =
     useErrorWithTimeout();
+  const { handleExitApp } = useHandleExitApp(showAlert, setExiting);
 
   // Очистка при размонтировании
   useEffect(() => {
@@ -679,6 +680,13 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             onPress={handleSubmit}
             disabled={loading}
             marginBottom={ESpacings.s24}
+          />
+
+          <Button
+            title={'Выйти из приложения'}
+            loading={exiting}
+            onPress={handleExitApp}
+            paddingHorizontal={ESpacings.s16}
           />
         </Block>
       </ScrollView>
