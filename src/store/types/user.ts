@@ -17,6 +17,7 @@ export interface User {
   avatar?: string;
   isVerified?: boolean;
   isUserDataComplete?: boolean;
+  fullName?: string;
 }
 
 export interface UserState {

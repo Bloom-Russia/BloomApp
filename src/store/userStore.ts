@@ -24,6 +24,7 @@ const initialState: UserState = {
     avatar: '',
     isUserDataComplete: false,
     isVerified: false,
+    fullName: '',
   },
 };
 
@@ -98,7 +99,9 @@ const userStore = create<UserState & UserActions>()(
             return { success: true };
           }
 
-          set({ user: data.user });
+          set((state) => ({
+            user: { ...state.user, ...data.user },
+          }));
           return { success: true };
         },
       }),

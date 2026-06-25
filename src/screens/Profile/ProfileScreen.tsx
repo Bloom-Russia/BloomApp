@@ -5,6 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SecureStorageService } from '@services';
 import { useUserStore } from '@store';
 import {
+  Avatar,
   Block,
   Button,
   Colors,
@@ -22,7 +23,7 @@ import ReactNativeBiometrics from 'react-native-biometrics';
 type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
 
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) => {
-  const { fetchUserByPhoneNumber, deleteUser, clearUserData } = useUserStore();
+  const { fetchUserByPhoneNumber, deleteUser, clearUserData, user } = useUserStore();
   const { setIsVerified } = useAuth();
 
   const [fetchingUser, setFetchingUser] = useState<boolean>(false);
@@ -124,10 +125,15 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
       title={'Профиль'}
       paddingHorizontal={ESpacings.s16}
     >
-      <Block flex={1} justifyContent={'center'}>
-        <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
-          My Profile Screen
-        </Typography.B14>
+      <Block flex={1} padding={ESpacings.s16}>
+        <Block flex={1}>
+          <Block alignItems={'center'} marginBottom={ESpacings.s24}>
+            <Avatar source={user.avatar} />
+          </Block>
+          <Typography.B14 textAlign={'center'} color={Colors.white}>
+            Мой профиль
+          </Typography.B14>
+        </Block>
         <Button
           title={'Выйти из приложения'}
           loading={exiting}

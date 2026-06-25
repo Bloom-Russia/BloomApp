@@ -490,7 +490,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingVertical: ESpacings.s24 }}
         keyboardShouldPersistTaps="handled"
       >
         <Block padding={ESpacings.s16}>
