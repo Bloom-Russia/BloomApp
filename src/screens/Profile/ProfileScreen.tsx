@@ -3,7 +3,7 @@ import { useErrorWithTimeout, useHandleExitApp } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SecureStorageService } from '@services';
-import { useUserStore } from '@store';
+import { useAppStore, useUserStore } from '@store';
 import {
   Avatar,
   Block,
@@ -14,7 +14,9 @@ import {
   ScreenContainer,
   Spinner,
   Typography,
+  UserDataItem,
 } from '@UIKit';
+import { formatPhoneNumber, getSelectedName, getSelectedNames } from '@utils';
 import { noop } from 'lodash';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import isEqual from 'react-fast-compare';
@@ -24,6 +26,7 @@ type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens
 
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { fetchUserByPhoneNumber, deleteUser, clearUserData, user } = useUserStore();
+  const { cities, professions } = useAppStore().app;
   const { setIsVerified } = useAuth();
 
   const [fetchingUser, setFetchingUser] = useState<boolean>(false);
@@ -126,13 +129,41 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
       paddingHorizontal={ESpacings.s16}
     >
       <Block flex={1} padding={ESpacings.s16}>
-        <Block flex={1}>
+        <Block flex={1} marginBottom={ESpacings.s24}>
           <Block alignItems={'center'} marginBottom={ESpacings.s24}>
             <Avatar source={user.avatarUrl} />
           </Block>
-          <Typography.B14 textAlign={'center'} color={Colors.white}>
-            Мой профиль
-          </Typography.B14>
+          <Typography.B24 marginBottom={ESpacings.s24} textAlign={'center'} color={Colors.white}>
+            {user.fullName}
+          </Typography.B24>
+          <UserDataItem
+            marginBottom={ESpacings.s16}
+            value={formatPhoneNumber(user.phoneNumber)}
+            label={'Телефон'}
+          />
+          <UserDataItem marginBottom={ESpacings.s16} value={user.email} label={'Email'} />
+          <UserDataItem marginBottom={ESpacings.s16} value={user.telegram} label={'Telegram'} />
+          <UserDataItem
+            marginBottom={ESpacings.s16}
+            value={formatPhoneNumber(user.max)}
+            label={'Max'}
+          />
+          <UserDataItem
+            marginBottom={ESpacings.s16}
+            value={`${user.experience} лет`}
+            label={'Опыт'}
+          />
+          <UserDataItem
+            marginBottom={ESpacings.s16}
+            value={getSelectedName(user.city, cities)}
+            label={'Город'}
+          />
+          <UserDataItem
+            marginBottom={ESpacings.s16}
+            value={getSelectedNames(user.professions, professions)}
+            label={'Профессии'}
+          />
+          <UserDataItem value={user.address} label={'Адрес студии'} />
         </Block>
         <Button
           title={'Выйти из приложения'}

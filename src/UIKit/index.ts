@@ -20,3 +20,4 @@ export { SelectBottomSheet } from './SelectBottomSheet';
 export { MultiSelectBottomSheet } from './MultiSelectBottomSheet';
 export { Spinner } from './Spinner';
 export { AbsoluteSpinner } from './AbsoluteSpinner';
+export { UserDataItem } from './UserDataItem';

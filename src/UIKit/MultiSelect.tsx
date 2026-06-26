@@ -1,4 +1,4 @@
-import { Block, Colors, ERounding, ESpacings, Icon, IconNames, Typography } from '@UIKit';
+import { Block, Colors, ERounding, ESize, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import React, { memo, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
 import { ScrollView, TouchableOpacity } from 'react-native';
@@ -100,7 +100,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
                   {item.name}
                 </Typography.B14>
                 <Typography.B16 marginLeft={ESpacings.s4} color={Colors.white}>
-                  ✕
+                  <Icon name={IconNames.cancel} size={ESize.s24} color={Colors.white} />
                 </Typography.B16>
               </Tag>
             ))}

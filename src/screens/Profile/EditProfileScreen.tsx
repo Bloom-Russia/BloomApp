@@ -21,7 +21,7 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
-import { normalizePhoneNumber } from '@utils';
+import { getSelectedName, normalizePhoneNumber } from '@utils';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
@@ -348,13 +348,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     studioAddress,
   ]);
 
-  const getSelectedCityName = useCallback(() => {
-    if (!selectedCity) {
-      return null;
-    }
-    return cities.find((c: ICity) => c.id === selectedCity)?.name || null;
-  }, [cities, selectedCity]);
-
   const selectBottomSheetOnClose = useCallback(() => {
     setTimeout(() => {
       setIsCitySheetVisible(false);
@@ -375,7 +368,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       birthday,
       telegram: telegram || undefined,
       experience,
-      max: max || undefined,
+      max: normalizePhoneNumber(max),
       city: selectedCity,
       professions: selectedProfessions,
       email: email || undefined,
@@ -539,8 +532,8 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
 
           <View ref={experienceRef}>
             <Input
-              placeholder="Стаж (лет)"
-              title="Стаж"
+              placeholder="Опыт (лет)"
+              title="Опыт"
               value={experience}
               onChangeValue={(v) => {
                 setExperience(v);
@@ -556,7 +549,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
           <View ref={cityRef}>
             <Select
               placeholder="Выберите город"
-              selectedValue={getSelectedCityName()}
+              selectedValue={getSelectedName(selectedCity, cities)}
               onSelect={() => setIsCitySheetVisible(true)}
               marginBottom={ESpacings.s12}
               label="Город"
