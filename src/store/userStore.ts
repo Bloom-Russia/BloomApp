@@ -25,6 +25,7 @@ const initialState: UserState = {
     isUserDataComplete: false,
     isVerified: false,
     fullName: '',
+    avatarUrl: '',
   },
 };
 
@@ -95,7 +96,7 @@ const userStore = create<UserState & UserActions>()(
               SecureStorageKeys.PHONE_NUMBER,
               data.user.phoneNumber,
             );
-            messagePhoneNumberIsChanged();
+            messagePhoneNumberIsChanged?.();
             return { success: true };
           }
 

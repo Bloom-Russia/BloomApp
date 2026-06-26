@@ -1,7 +1,7 @@
 import { useErrorWithTimeout, useHandleExitApp, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { UpdateUserRequest } from '@services';
+import { UpdateUserData } from '@services';
 import { ICity, IProfession, useAppStore, useUserStore } from '@store';
 import {
   Avatar,
@@ -46,24 +46,20 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       experience: userExperience,
       max: userMax,
       city: userCity,
-      avatar: userAvatar,
+      avatarUrl,
       professions: userProfessions,
       address,
     },
   } = useUserStore();
-  const [exiting, setExiting] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+
+  const [loading, setLoading] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const { logOutHandler } = useLogOut(setLoading);
   const { setErrorMessageWithTimeout, cleanupErrors, AlertComponent, showAlert } =
     useErrorWithTimeout();
   const { handleExitApp } = useHandleExitApp(showAlert, setExiting);
 
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      cleanupErrors();
-    };
-  }, [cleanupErrors]);
+  useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const messagePhoneNumberIsChanged = useCallback(() => {
     showAlert({
@@ -73,31 +69,74 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       theme: 'dark',
       showIcon: true,
       cancelable: false,
-      onDismiss: async () => await logOutHandler(),
+      onDismiss: logOutHandler,
       buttons: [
         {
           text: 'Выход',
           style: 'default',
           showButtonIcon: true,
           buttonIconName: IconNames.signOut,
-          onPress: async () => await logOutHandler(),
+          onPress: logOutHandler,
         },
       ],
     });
   }, [logOutHandler, showAlert]);
 
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [patronymic, setPatronymic] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [birthday, setBirthday] = useState('');
+  const [phone, setPhone] = useState(phoneNumber);
+  const [email, setEmail] = useState(userEmail || '');
+  const [telegram, setTelegram] = useState(userTelegram || '');
+  const [max, setMax] = useState(userMax || '');
+  const [experience, setExperience] = useState(userExperience || '');
+  const [avatar, setAvatar] = useState<string | undefined>(avatarUrl);
+  const [selectedCity, setSelectedCity] = useState<string | null>(userCity || null);
+  const [selectedProfessions, setSelectedProfessions] = useState<string[]>(userProfessions || []);
+  const [studioAddress, setStudioAddress] = useState(address || '');
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
+  const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
+  const [shouldScrollToError, setShouldScrollToError] = useState(false);
+
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [birthDateError, setBirthDateError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [experienceError, setExperienceError] = useState(false);
+  const [cityError, setCityError] = useState(false);
+  const [professionsError, setProfessionsError] = useState(false);
+  const [studioAddressError, setStudioAddressError] = useState(false);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { cities, professions } = useAppStore().app;
+
+  const firstNameRef = useRef<View>(null);
+  const lastNameRef = useRef<View>(null);
+  const birthDateRef = useRef<View>(null);
+  const phoneRef = useRef<View>(null);
+  const experienceRef = useRef<View>(null);
+  const cityRef = useRef<View>(null);
+  const professionsRef = useRef<View>(null);
+  const studioAddressRef = useRef<View>(null);
+
   useEffect(() => {
     setFirstName(name || '');
     setEmail(userEmail || '');
-    setPhone(phoneNumber || '');
+    setPhone(phoneNumber);
     setLastName(userLastName || '');
     setPatronymic(userPatronymic || '');
     setBirthday(userBirthday || '');
     setTelegram(userTelegram || '');
     setMax(userMax || '');
     setExperience(userExperience || '');
-    setAvatar(userAvatar || '');
-    setSelectedCity(userCity || '');
+    setAvatar(avatarUrl || '');
+    setSelectedCity(userCity || null);
     setSelectedProfessions(userProfessions || []);
     setStudioAddress(address || '');
   }, [
@@ -110,59 +149,11 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     userTelegram,
     userMax,
     userExperience,
-    userAvatar,
+    avatarUrl,
     userCity,
     userProfessions,
     address,
   ]);
-
-  const [firstName, setFirstName] = useState<string>('');
-  const [lastName, setLastName] = useState<string>('');
-  const [patronymic, setPatronymic] = useState<string>('');
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [birthday, setBirthday] = useState<string>('');
-  const [phone, setPhone] = useState<string>(phoneNumber);
-  const [email, setEmail] = useState<string>(userEmail || '');
-  const [telegram, setTelegram] = useState<string>(userTelegram || '');
-  const [max, setMax] = useState<string>(userMax || '');
-  const [experience, setExperience] = useState<string>(userExperience || '');
-  const [avatar, setAvatar] = useState<string | undefined>(userAvatar);
-  const [selectedCity, setSelectedCity] = useState<string | null>(userCity || null);
-  const [selectedProfessions, setSelectedProfessions] = useState<string[]>(userProfessions || []);
-  const [studioAddress, setStudioAddress] = useState<string>(address || '');
-
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [isCitySheetVisible, setIsCitySheetVisible] = useState<boolean>(false);
-  const [citySearchQuery, setCitySearchQuery] = useState<string>('');
-  const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState<boolean>(false);
-  const [professionsSearchQuery, setProfessionsSearchQuery] = useState<string>('');
-  const [shouldScrollToError, setShouldScrollToError] = useState<boolean>(false);
-
-  // Состояния для ошибок
-  const [firstNameError, setFirstNameError] = useState<boolean>(false);
-  const [lastNameError, setLastNameError] = useState<boolean>(false);
-  const [birthDateError, setBirthDateError] = useState<boolean>(false);
-  const [phoneError, setPhoneError] = useState<boolean>(false);
-  const [experienceError, setExperienceError] = useState<boolean>(false);
-  const [cityError, setCityError] = useState<boolean>(false);
-  const [professionsError, setProfessionsError] = useState<boolean>(false);
-  const [studioAddressError, setStudioAddressError] = useState<boolean>(false);
-
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const {
-    app: { cities, professions },
-  } = useAppStore();
-
-  // Refs для полей
-  const firstNameRef = useRef<View>(null);
-  const lastNameRef = useRef<View>(null);
-  const birthDateRef = useRef<View>(null);
-  const phoneRef = useRef<View>(null);
-  const experienceRef = useRef<View>(null);
-  const cityRef = useRef<View>(null);
-  const professionsRef = useRef<View>(null);
-  const studioAddressRef = useRef<View>(null);
 
   const filteredCities = useMemo(() => {
     if (!citySearchQuery.trim()) {
@@ -190,12 +181,8 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       cropperCircleOverlay: true,
       compressImageQuality: 0.8,
     })
-      .then((image) => {
-        setAvatar(image.path);
-      })
-      .catch((error) => {
-        console.log('Camera error:', error);
-      });
+      .then((image) => setAvatar(image.path))
+      .catch(console.log);
   }, []);
 
   const openGallery = useCallback(() => {
@@ -206,12 +193,8 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       cropperCircleOverlay: true,
       compressImageQuality: 0.8,
     })
-      .then((image) => {
-        setAvatar(image.path);
-      })
-      .catch((error) => {
-        console.log('Gallery error:', error);
-      });
+      .then((image) => setAvatar(image.path))
+      .catch(console.log);
   }, []);
 
   const handleSelectAvatar = useCallback(() => {
@@ -222,20 +205,9 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       theme: 'dark',
       showIcon: true,
       buttons: [
-        {
-          text: 'Галерея',
-          style: 'default',
-          onPress: openGallery,
-        },
-        {
-          text: 'Камера',
-          style: 'default',
-          onPress: openCamera,
-        },
-        {
-          text: 'Отмена',
-          style: 'destructive',
-        },
+        { text: 'Галерея', style: 'default', onPress: openGallery },
+        { text: 'Камера', style: 'default', onPress: openCamera },
+        { text: 'Отмена', style: 'destructive' },
       ],
     });
   }, [openCamera, openGallery, showAlert]);
@@ -261,12 +233,10 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     }, 300);
   }, []);
 
-  // Функция для скролла к элементу с ошибкой
   const scrollToElement = useCallback((elementRef: React.RefObject<View | null>) => {
     if (elementRef.current && scrollViewRef.current) {
       const elementHandle = findNodeHandle(elementRef.current);
       const scrollHandle = findNodeHandle(scrollViewRef.current);
-
       if (elementHandle && scrollHandle) {
         UIManager.measureLayout(
           elementHandle,
@@ -281,22 +251,19 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
   }, []);
 
   const scrollToFirstError = useCallback(() => {
-    if (firstNameError) {
-      scrollToElement(firstNameRef);
-    } else if (lastNameError) {
-      scrollToElement(lastNameRef);
-    } else if (birthDateError) {
-      scrollToElement(birthDateRef);
-    } else if (phoneError) {
-      scrollToElement(phoneRef);
-    } else if (experienceError) {
-      scrollToElement(experienceRef);
-    } else if (cityError) {
-      scrollToElement(cityRef);
-    } else if (professionsError) {
-      scrollToElement(professionsRef);
-    } else if (studioAddressError) {
-      scrollToElement(studioAddressRef);
+    const errors = [
+      { field: firstNameError, ref: firstNameRef },
+      { field: lastNameError, ref: lastNameRef },
+      { field: birthDateError, ref: birthDateRef },
+      { field: phoneError, ref: phoneRef },
+      { field: experienceError, ref: experienceRef },
+      { field: cityError, ref: cityRef },
+      { field: professionsError, ref: professionsRef },
+      { field: studioAddressError, ref: studioAddressRef },
+    ];
+    const firstError = errors.find((e) => e.field);
+    if (firstError) {
+      scrollToElement(firstError.ref);
     }
   }, [
     firstNameError,
@@ -310,66 +277,58 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     scrollToElement,
   ]);
 
+  useEffect(() => {
+    if (shouldScrollToError) {
+      scrollToFirstError();
+      setShouldScrollToError(false);
+    }
+  }, [shouldScrollToError, scrollToFirstError]);
+
   const validateForm = useCallback(() => {
     let isValid = true;
 
-    // Валидация имени
     if (!firstName.trim()) {
       setFirstNameError(true);
       isValid = false;
     } else {
       setFirstNameError(false);
     }
-
-    // Валидация фамилии
     if (!lastName.trim()) {
       setLastNameError(true);
       isValid = false;
     } else {
       setLastNameError(false);
     }
-
-    // Валидация даты рождения
     if (!birthday) {
       setBirthDateError(true);
       isValid = false;
     } else {
       setBirthDateError(false);
     }
-
-    // Валидация телефона
-    if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
       setPhoneError(true);
       isValid = false;
     } else {
       setPhoneError(false);
     }
-
-    // Валидация стажа
     if (!experience.trim() || isNaN(Number(experience)) || Number(experience) < 0) {
       setExperienceError(true);
       isValid = false;
     } else {
       setExperienceError(false);
     }
-
-    // Валидация города
     if (!selectedCity) {
       setCityError(true);
       isValid = false;
     } else {
       setCityError(false);
     }
-
-    // Валидация профессий
     if (selectedProfessions.length === 0) {
       setProfessionsError(true);
       isValid = false;
     } else {
       setProfessionsError(false);
     }
-
-    // Валидация адреса студии
     if (!studioAddress.trim()) {
       setStudioAddressError(true);
       isValid = false;
@@ -393,8 +352,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     if (!selectedCity) {
       return null;
     }
-    const city = cities.find((c: ICity) => c.id === selectedCity);
-    return city?.name || null;
+    return cities.find((c: ICity) => c.id === selectedCity)?.name || null;
   }, [cities, selectedCity]);
 
   const selectBottomSheetOnClose = useCallback(() => {
@@ -404,57 +362,34 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     }, 300);
   }, []);
 
-  useEffect(() => {
-    if (shouldScrollToError) {
-      scrollToFirstError();
-      setShouldScrollToError(false);
-    }
-  }, [
-    shouldScrollToError,
-    scrollToFirstError,
-    firstNameError,
-    lastNameError,
-    birthDateError,
-    phoneError,
-    experienceError,
-    cityError,
-    professionsError,
-    studioAddressError,
-  ]);
-
   const handleSubmit = useCallback(async () => {
-    const isValid = validateForm();
-
-    if (!isValid || !selectedCity || !birthday) {
+    if (!validateForm() || !selectedCity || !birthday) {
       setShouldScrollToError(true);
       return;
     }
 
-    const formData: UpdateUserRequest = {
+    const userData: UpdateUserData = {
       name: firstName,
-      lastName: lastName,
-      patronymic: patronymic,
-      birthday: birthday,
-      telegram: telegram,
-      experience: experience,
-      max: max,
+      lastName,
+      patronymic: patronymic || undefined,
+      birthday,
+      telegram: telegram || undefined,
+      experience,
+      max: max || undefined,
       city: selectedCity,
       professions: selectedProfessions,
-      email: email,
+      email: email || undefined,
       address: studioAddress,
       phoneNumber: normalizePhoneNumber(phone),
-      avatar: avatar,
     };
 
+    if (avatar) {
+      userData.avatar = avatar;
+    }
+
     const { success } = await updateUser({
-      params: {
-        userData: formData,
-        messagePhoneNumberIsChanged,
-      },
-      options: {
-        changeLoading: setLoading,
-        errorCodeCallBack: setErrorMessageWithTimeout,
-      },
+      params: { userData, messagePhoneNumberIsChanged },
+      options: { changeLoading: setLoading, errorCodeCallBack: setErrorMessageWithTimeout },
     });
 
     if (success) {
@@ -484,7 +419,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
   return (
     <ScreenContainer
       scrollEnabled={false}
-      title={'Редактирование профиля'}
+      title="Редактирование профиля"
       paddingHorizontal={ESpacings.s16}
     >
       <ScrollView
@@ -493,7 +428,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
         keyboardShouldPersistTaps="handled"
       >
         <Block padding={ESpacings.s16}>
-          <Block alignItems={'center'} marginBottom={ESpacings.s24}>
+          <Block alignItems="center" marginBottom={ESpacings.s24}>
             <TouchableOpacity onPress={handleSelectAvatar}>
               <Avatar source={avatar} />
             </TouchableOpacity>
@@ -501,58 +436,58 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
 
           <View ref={firstNameRef}>
             <Input
-              placeholder={'Имя'}
+              placeholder="Имя"
               autoCapitalize="sentences"
               value={firstName}
-              onChangeValue={(value) => {
-                setFirstName(value);
+              onChangeValue={(v) => {
+                setFirstName(v);
                 setFirstNameError(false);
               }}
-              title={'Имя'}
+              title="Имя"
               marginBottom={ESpacings.s12}
-              errorText={'Введите имя'}
+              errorText="Введите имя"
               isError={firstNameError}
-              autoComplete={'name'}
+              autoComplete="name"
             />
           </View>
 
           <Input
-            placeholder={'Отчество'}
+            placeholder="Отчество"
             autoCapitalize="sentences"
             value={patronymic}
             onChangeValue={setPatronymic}
-            title={'Отчество'}
+            title="Отчество"
             marginBottom={ESpacings.s24}
           />
 
           <View ref={lastNameRef}>
             <Input
-              placeholder={'Фамилия'}
+              placeholder="Фамилия"
               autoCapitalize="sentences"
               value={lastName}
-              onChangeValue={(value) => {
-                setLastName(value);
+              onChangeValue={(v) => {
+                setLastName(v);
                 setLastNameError(false);
               }}
-              title={'Фамилия'}
+              title="Фамилия"
               marginBottom={ESpacings.s12}
-              errorText={'Введите фамилию'}
+              errorText="Введите фамилию"
               isError={lastNameError}
-              autoComplete={'family-name'}
+              autoComplete="family-name"
             />
           </View>
 
           <View ref={birthDateRef}>
             <DateTimeInputPicker
               date={birthDate}
-              setDate={(date) => {
-                setBirthDate(date);
+              setDate={(d) => {
+                setBirthDate(d);
                 setBirthDateError(false);
               }}
               showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
-              title={'Дата рождения'}
-              errorText={'Введите дату рождения'}
+              title="Дата рождения"
+              errorText="Введите дату рождения"
               marginBottom={ESpacings.s12}
               value={birthday}
               setValue={setBirthday}
@@ -570,79 +505,79 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
 
           <View ref={phoneRef}>
             <MaskedInput
-              title={'Телефон'}
+              title="Телефон"
               phone={phone}
-              setPhone={(value) => {
-                setPhone(value);
+              setPhone={(v) => {
+                setPhone(v);
                 setPhoneError(false);
               }}
               marginBottom={ESpacings.s12}
-              errorText={'Введите корректный номер телефона'}
+              errorText="Введите корректный номер телефона"
               isError={phoneError}
-              autoComplete={'tel'}
+              autoComplete="tel"
             />
           </View>
 
           <Input
-            placeholder={'example@mail.com'}
-            title={'email'}
+            placeholder="example@mail.com"
+            title="Email"
             value={email}
             onChangeValue={setEmail}
             marginBottom={ESpacings.s12}
-            autoComplete={'email'}
+            autoComplete="email"
           />
 
           <Input
-            placeholder={'Telegram (Имя пользователя)'}
-            title={'Telegram'}
+            placeholder="Telegram (Имя пользователя)"
+            title="Telegram"
             value={telegram}
             onChangeValue={setTelegram}
             marginBottom={ESpacings.s12}
           />
 
-          <MaskedInput title={'Max'} phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
+          <MaskedInput title="Max" phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
 
           <View ref={experienceRef}>
             <Input
-              placeholder={'Стаж (лет)'}
-              title={'Стаж'}
+              placeholder="Стаж (лет)"
+              title="Стаж"
               value={experience}
-              onChangeValue={(text) => {
-                setExperience(text);
+              onChangeValue={(v) => {
+                setExperience(v);
                 setExperienceError(false);
               }}
-              keyboardType={'numeric'}
+              keyboardType="numeric"
               marginBottom={ESpacings.s12}
-              errorText={'Введите корректный стаж'}
+              errorText="Введите корректный стаж"
               isError={experienceError}
             />
           </View>
 
           <View ref={cityRef}>
             <Select
-              placeholder={'Выберите город'}
+              placeholder="Выберите город"
               selectedValue={getSelectedCityName()}
               onSelect={() => setIsCitySheetVisible(true)}
               marginBottom={ESpacings.s12}
               label="Город"
-              errorText={'Выберите город'}
+              errorText="Выберите город"
               isError={cityError}
             />
           </View>
 
           <View ref={professionsRef}>
             <MultiSelect
-              placeholder={'Выберите профессии'}
+              placeholder="Выберите профессии"
               items={professions}
               selectedValues={selectedProfessions}
               onPress={() => setIsProfessionsSheetVisible(true)}
-              onSelect={(values) => {
-                setSelectedProfessions(values);
+              onSelect={(v) => {
+                setSelectedProfessions(v);
                 setProfessionsError(false);
               }}
               label="Профессии"
               marginBottom={ESpacings.s12}
-              errorText={'Выберите хотя бы одну профессию'}
+              errorText="Выберите хотя бы одну профессию"
               isError={professionsError}
             />
           </View>
@@ -657,24 +592,24 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
 
           <View ref={studioAddressRef}>
             <Input
-              placeholder={'Адрес студии'}
+              placeholder="Адрес студии"
               value={studioAddress}
-              onChangeValue={(text) => {
-                setStudioAddress(text);
+              onChangeValue={(v) => {
+                setStudioAddress(v);
                 setStudioAddressError(false);
               }}
-              multiline={true}
-              textAlignVertical={'top'}
+              multiline
+              textAlignVertical="top"
               numberOfLines={4}
               height={100}
               marginBottom={ESpacings.s24}
-              errorText={'Введите адрес студии'}
+              errorText="Введите адрес студии"
               isError={studioAddressError}
             />
           </View>
 
           <Button
-            title={'Сохранить'}
+            title="Сохранить"
             loading={loading}
             onPress={handleSubmit}
             disabled={loading || exiting}
@@ -682,7 +617,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
           />
 
           <Button
-            title={'Выйти из приложения'}
+            title="Выйти из приложения"
             loading={exiting}
             onPress={handleExitApp}
             paddingHorizontal={ESpacings.s16}
@@ -703,7 +638,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
         onSelect={handleCitySelect}
         onClose={selectBottomSheetOnClose}
         searchPlaceholder="Поиск города"
-        showSearch={true}
+        showSearch
       />
 
       <MultiSelectBottomSheet
@@ -716,7 +651,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
         onConfirm={handleProfessionsConfirm}
         onClose={handleProfessionsClose}
         searchPlaceholder="Поиск..."
-        showSearch={true}
+        showSearch
         maxSelected={undefined}
       />
     </ScreenContainer>

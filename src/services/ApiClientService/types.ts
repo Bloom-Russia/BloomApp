@@ -41,23 +41,6 @@ export type SavePinParams = {
   pinCode: string;
 };
 
-// Интерфейсы для запросов
-export interface UpdateUserRequest {
-  name: string;
-  lastName: string;
-  patronymic?: string;
-  birthday: string;
-  telegram?: string;
-  experience: string;
-  max?: string;
-  city: string;
-  professions: string[];
-  email?: string;
-  address: string;
-  phoneNumber: string;
-  avatar?: string;
-}
-
 // Интерфейсы для ответов
 export interface AuthResponseDataResponseVerificationCode {
   success: boolean;
@@ -134,7 +117,31 @@ export interface UserResponse {
     isVerified?: boolean;
     isUserDataComplete?: boolean;
     fullName?: string;
+    avatarUrl?: string;
   };
   isUserDataComplete?: boolean;
   phoneIsChanged?: boolean;
+}
+
+export interface UpdateUserData {
+  name: string;
+  lastName: string;
+  patronymic?: string;
+  birthday: string;
+  telegram?: string;
+  experience: string;
+  max?: string;
+  city: string;
+  professions: string[];
+  email?: string;
+  address: string;
+  phoneNumber: string;
+  avatar?: string | { uri: string; type?: string; name?: string };
+}
+
+export type UpdateUserRequest = UpdateUserData | FormData;
+
+export interface UpdateUserParams {
+  userData: UpdateUserRequest;
+  messagePhoneNumberIsChanged?: () => void;
 }

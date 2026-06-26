@@ -128,7 +128,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
       <Block flex={1} padding={ESpacings.s16}>
         <Block flex={1}>
           <Block alignItems={'center'} marginBottom={ESpacings.s24}>
-            <Avatar source={user.avatar} />
+            <Avatar source={user.avatarUrl} />
           </Block>
           <Typography.B14 textAlign={'center'} color={Colors.white}>
             Мой профиль

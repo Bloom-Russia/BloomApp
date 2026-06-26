@@ -1,10 +1,18 @@
 // user.ts
+
 import { ApiResponse } from '@services';
+import {
+  createFormDataFromObject,
+  extractFileName,
+  extractFileType,
+  extractFileUri,
+  isLocalFileUri,
+} from '@utils';
+import { isFormData, isUpdateUserData } from './guards';
 import { makeRequest, RequestOptions } from './makeRequest';
 import { UpdateUserRequest, UserResponse } from './types';
 
 export const UserApi = {
-  // Получить пользователя по номеру телефона
   async getUserByPhoneNumber({
     phoneNumber,
     options,
@@ -24,7 +32,6 @@ export const UserApi = {
     );
   },
 
-  // Обновить данные пользователя
   async updateUser({
     params,
     options,
@@ -34,17 +41,54 @@ export const UserApi = {
   }): Promise<ApiResponse<UserResponse>> {
     const { errorCodeCallBack, changeLoading } = options || {};
 
-    return makeRequest<UserResponse>(
-      {
-        type: 'PUT',
-        url: '/api/users/update',
-        params,
-      },
-      { errorCodeCallBack, changeLoading },
-    );
+    if (isFormData(params)) {
+      return makeRequest<UserResponse>(
+        {
+          type: 'UPLOAD',
+          url: '/api/users/update',
+          formData: params,
+        },
+        { errorCodeCallBack, changeLoading },
+      );
+    }
+
+    if (isUpdateUserData(params)) {
+      const avatarUri = extractFileUri(params.avatar);
+
+      if (avatarUri && isLocalFileUri(avatarUri)) {
+        const paramsWithAvatarString = { ...params };
+        paramsWithAvatarString.avatar = avatarUri;
+
+        const formData = createFormDataFromObject(paramsWithAvatarString, {
+          fieldName: 'avatar',
+          fileUri: avatarUri,
+          mimeType: extractFileType(params.avatar),
+          fileName: extractFileName(params.avatar),
+        });
+
+        return makeRequest<UserResponse>(
+          {
+            type: 'UPLOAD',
+            url: '/api/users/update',
+            formData,
+          },
+          { errorCodeCallBack, changeLoading },
+        );
+      }
+
+      return makeRequest<UserResponse>(
+        {
+          type: 'PUT',
+          url: '/api/users/update',
+          params,
+        },
+        { errorCodeCallBack, changeLoading },
+      );
+    }
+
+    throw new Error('Неверный тип данных для updateUser');
   },
 
-  // Удалить пользователя
   async deleteUser({ options }: { options?: RequestOptions }): Promise<ApiResponse> {
     const { errorCodeCallBack, changeLoading } = options || {};
 

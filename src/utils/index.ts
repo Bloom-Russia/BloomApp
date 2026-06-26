@@ -1,141 +1,14 @@
-// const CARD_LENGTH = 19;
-
-// export const getCurrentDate = (date: string) => {
-//   const t = new Date(date);
-//   const day = ('0' + t.getDate()).slice(-2);
-//   const month = ('0' + (t.getMonth() + 1)).slice(-2);
-//   const year = t.getFullYear();
-//   return `${day}.${month}.${year}`;
-// };
-
-// export const formatCardNumber = (value: string) => {
-//   const regex = /^(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})$/g;
-//   const onlyNumbers = value.replace(/[^\d]/g, '');
-//
-//   return onlyNumbers.replace(regex, (regEx, $1, $2, $3, $4) =>
-//     [$1, $2, $3, $4].filter(group => !!group).join(' '),
-//   );
-// };
-
-// export const validateCreditCard = (value: string): boolean => {
-//   if (/[^0-9-\s]+/.test(value) || value.length !== CARD_LENGTH) {
-//     return false;
-//   }
-//   let nCheck = 0,
-//     bEven = false;
-//   value = value.replace(/\D/g, '');
-//
-//   for (let n = value.length - 1; n >= 0; n--) {
-//     let cDigit = value.charAt(n),
-//       nDigit = parseInt(cDigit, 10);
-//
-//     if (bEven && (nDigit *= 2) > 9) nDigit -= 9;
-//
-//     nCheck += nDigit;
-//     bEven = !bEven;
-//   }
-//
-//   return nCheck % 10 == 0;
-// };
-
-// export const formatPhoneNumber = (phone: string | undefined) => {
-//   return phone
-//     ? phone
-//         .replace('+', '')
-//         .replace(/^(\d)(\d{3})(\d{3})(\d{2})(\d{2})$/, '+$1 ($2) $3-$4-$5')
-//     : '';
-// };
-
-// export const formatMoney = (value: number): string => {
-//   const str = Math.abs(value).toString().padStart(3, '0');
-//   const copies = str.slice(-2);
-//   const rubles = str.slice(0, -2);
-//   if (copies === '00' || copies === '0') {
-//     return `${Number(rubles).toLocaleString(RU_RU)}`;
-//   }
-//   const formatted = `${Number(rubles).toLocaleString(RU_RU)}.${copies}`;
-//   return value < 0 ? `-${formatted}` : formatted;
-// };
-
-// export const getFullDate = (value: string, today: string) => {
-//   const inputDate = new Date(value);
-//   const todayDate = new Date();
-//   const isToday = todayDate.toDateString() === inputDate.toDateString();
-//
-//   if (isToday) {
-//     return today;
-//   }
-//   return inputDate.toLocaleString(RU_RU, { month: 'long', day: 'numeric' });
-// };
-
-// const declensionOfHours = (num: number, hoursTranslate: string[]) => {
-//   const cases = [2, 0, 1, 1, 1, 2];
-//   return `${num} ${
-//     hoursTranslate[
-//       num % 100 > 4 && num % 100 < 20 ? 2 : cases[Math.min(num % 10, 5)]
-//     ]
-//   }`;
-// };
-
-// const declineMinutes = (minutes: number, minutesTranslate: string[]) => {
-//   minutes = Math.abs(minutes) % 100; // Получаем абсолютное значение и берем по модулю 100
-//   const lastDigit = minutes % 10;
-//
-//   if (minutes >= 11 && minutes <= 19) {
-//     return `${minutes} ${minutesTranslate[0]}`;
-//   }
-//   if (lastDigit === 1) {
-//     return `${minutes} ${minutesTranslate[1]}`;
-//   }
-//   if (lastDigit >= 2 && lastDigit <= 4) {
-//     return `${minutes} ${minutesTranslate[2]}`;
-//   }
-//   return `${minutes} ${minutesTranslate[0]}`;
-// };
-
-// export const minutesToHourAndMinutes = (
-//   totalMinutes: number,
-//   minutesTranslate: string[],
-//   hoursTranslate: string[],
-// ) => {
-//   const hours = Math.floor(totalMinutes / 60);
-//   const minutes = totalMinutes % 60;
-//   if (hours === 0) {
-//     return declineMinutes(minutes, minutesTranslate);
-//   }
-//   if (minutes === 0) {
-//     return declensionOfHours(hours, hoursTranslate);
-//   }
-//   return `${declensionOfHours(hours, hoursTranslate)} ${declineMinutes(
-//     minutes,
-//     minutesTranslate,
-//   )}`;
-// };
-
-//export const replacePhoneNumber = (phone: string) => phone.replace(/([!?\+() \-])/g, '');
-
-export { vibrate } from './vibrate';
-export { VIBRATION_DURATION } from './constans';
-
-// Вспомогательная функция для задержки
-export const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
 export const normalizePhoneNumber = (phone: string): string => {
-  // Удаляем все нецифровые символы
   const cleaned = phone.replace(/\D/g, '');
 
-  // Если номер начинается с 8, меняем на 7
   if (cleaned.startsWith('8')) {
     return `+7${cleaned.slice(1)}`;
   }
 
-  // Если номер начинается с 7, добавляем +
   if (cleaned.startsWith('7')) {
     return `+${cleaned}`;
   }
 
-  // Если номер уже содержит +7 (без пробелов), возвращаем как есть
   if (phone.startsWith('+7')) {
     return `+7${cleaned}`;
   }
@@ -143,33 +16,134 @@ export const normalizePhoneNumber = (phone: string): string => {
   return `+7${cleaned}`;
 };
 
-// Преобразует строку даты в формате ДД.ММ.ГГГГ в Date
 export const parseDateFromString = (dateString: string): Date | null => {
-  if (!dateString || !dateString.trim()) {
+  if (!dateString?.trim()) {
     return null;
   }
 
   const parts = dateString.split('.');
-
   if (parts.length !== 3) {
     return null;
   }
 
   const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1; // Месяцы с 0
+  const month = parseInt(parts[1], 10) - 1;
   const year = parseInt(parts[2], 10);
 
-  // Проверка на валидность
   if (isNaN(day) || isNaN(month) || isNaN(year)) {
     return null;
   }
 
   const date = new Date(year, month, day);
 
-  // Проверка, что дата корректна
   if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
     return null;
   }
 
   return date;
 };
+
+export const extractFileUri = (file: any): string | null => {
+  if (!file) {
+    return null;
+  }
+  if (typeof file === 'string') {
+    return file;
+  }
+  if (typeof file === 'object') {
+    return file.uri || file.path || file.url || null;
+  }
+  return null;
+};
+
+export const extractFileType = (file: any): string => {
+  if (!file) {
+    return 'image/jpeg';
+  }
+  if (typeof file === 'object' && file.type) {
+    return file.type;
+  }
+  if (typeof file === 'string') {
+    return getMimeTypeFromUri(file);
+  }
+  return 'image/jpeg';
+};
+
+export const extractFileName = (file: any): string => {
+  if (!file) {
+    return `file-${Date.now()}.jpg`;
+  }
+  if (typeof file === 'object' && file.name) {
+    return file.name;
+  }
+  if (typeof file === 'string') {
+    const parts = file.split('/');
+    return parts[parts.length - 1] || `file-${Date.now()}.jpg`;
+  }
+  return `file-${Date.now()}.jpg`;
+};
+
+export const isLocalFileUri = (uri: string): boolean => {
+  if (!uri) {
+    return false;
+  }
+  return (
+    uri.startsWith('file://') ||
+    uri.startsWith('content://') ||
+    uri.startsWith('/storage/') ||
+    uri.startsWith('data:')
+  );
+};
+
+export const getMimeTypeFromUri = (uri: string): string => {
+  const extension = uri.split('.').pop()?.toLowerCase() || '';
+  const mimeTypes: Record<string, string> = {
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    heic: 'image/heic',
+    heif: 'image/heif',
+  };
+  return mimeTypes[extension] || 'image/jpeg';
+};
+
+export const createFormDataFromObject = <T extends Record<string, any>>(
+  data: T,
+  fileField?: {
+    fieldName: string;
+    fileUri: string;
+    mimeType?: string;
+    fileName?: string;
+  },
+): FormData => {
+  const formData = new FormData();
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (key === 'avatar') {
+      return;
+    }
+    if (value !== undefined && value !== null && value !== '') {
+      const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      formData.append(key, stringValue);
+    }
+  });
+
+  if (fileField) {
+    const { fieldName, fileUri, mimeType = 'image/jpeg', fileName } = fileField;
+    const extension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+    const finalFileName = fileName || `file-${Date.now()}.${extension}`;
+
+    formData.append(fieldName, {
+      uri: fileUri,
+      type: mimeType,
+      name: finalFileName,
+    });
+  }
+
+  return formData;
+};
+
+export { vibrate } from './vibrate';
+export { VIBRATION_DURATION } from './constans';

@@ -1,4 +1,4 @@
-import { UpdateUserRequest } from '@services';
+import { UpdateUserParams } from '@services';
 
 export interface User {
   id: string;
@@ -18,6 +18,7 @@ export interface User {
   isVerified?: boolean;
   isUserDataComplete?: boolean;
   fullName?: string;
+  avatarUrl?: string;
 }
 
 export interface UserState {
@@ -41,10 +42,7 @@ export interface UserActions {
     options,
     params,
   }: {
-    params: {
-      userData: UpdateUserRequest;
-      messagePhoneNumberIsChanged: () => void;
-    };
+    params: UpdateUserParams;
     options?: RequestOptions;
   }) => Promise<{ success: boolean }>;
 }

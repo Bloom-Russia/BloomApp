@@ -1,7 +1,6 @@
 import { isAxiosError } from 'axios';
 import AxiosService, { ApiResponse } from '../AxiosService';
 
-// Тип для опций запроса
 export type RequestOptions = {
   errorCodeCallBack?: (message?: string) => void;
   changeLoading?: (value: boolean) => void;
@@ -14,7 +13,6 @@ export type ApiMethod = {
   formData?: FormData;
 };
 
-// Универсальный метод для выполнения API запросов
 export async function makeRequest<T>(
   method: ApiMethod,
   options?: RequestOptions,
@@ -23,6 +21,7 @@ export async function makeRequest<T>(
 
   try {
     changeLoading?.(true);
+
     let response;
     switch (method.type) {
       case 'GET':
@@ -47,34 +46,31 @@ export async function makeRequest<T>(
         response = await AxiosService.upload(method.url, method.formData);
         break;
       default:
-        throw new Error(`Неподдерживаемый тип метода: ${method.type as string}`);
+        throw new Error(`Неподдерживаемый тип метода: ${method.type}`);
     }
 
-    const result: ApiResponse<T> = {
-      data: response.data as T,
-      success: response.status === 200 || response.data?.success !== false,
-    };
+    const responseData = response.data as ApiResponse<T>;
 
-    // Если есть data и success, пробуем извлечь данные из response.data.data
-    if (response.data && typeof response.data === 'object' && 'data' in response.data) {
-      result.data = response.data.data as T;
-    }
-
-    return result;
+    return {
+      data: responseData.data as T,
+      success: responseData.success !== false,
+      message: responseData.message,
+      errors: responseData.errors,
+    } as ApiResponse<T>;
   } catch (error) {
     let errorMessage = 'Произошла ошибка при выполнении запроса';
 
     if (isAxiosError(error) && error.response?.data) {
       const errorData = error.response.data as Record<string, unknown>;
       errorMessage = typeof errorData.message === 'string' ? errorData.message : errorMessage;
-      errorCodeCallBack?.(errorMessage);
     } else if (error instanceof Error) {
       errorMessage = error.message;
-      errorCodeCallBack?.(errorMessage);
     }
 
+    errorCodeCallBack?.(errorMessage);
+
     return {
-      data: null,
+      data: null as T,
       success: false,
       message: errorMessage,
     };

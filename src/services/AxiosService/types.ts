@@ -13,6 +13,7 @@ export interface ApiResponse<T = unknown> {
   message?: string;
   success: boolean;
   meta?: Record<string, unknown>;
+  errors?: any;
 }
 
 // Интерфейсы для событий
