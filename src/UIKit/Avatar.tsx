@@ -6,14 +6,19 @@ import styled from 'styled-components/native';
 
 export interface AvatarProps {
   source?: string | null;
+  isEditable?: boolean;
 }
 
-const AvatarComponent: React.FC<AvatarProps> = ({ source }) => {
+const AvatarComponent: React.FC<AvatarProps> = ({ source, isEditable }) => {
   return (
     <AvatarContainer justifyContent={'center'} alignItems={'center'}>
       {source ? <StyledImage source={{ uri: source }} resizeMode="cover" /> : null}
       <AbsoluteContainer alignItems={'center'} justifyContent={'center'}>
-        <Icon name={IconNames.user} color={Colors.white} size={ESize.s24} />
+        <Icon
+          name={isEditable ? IconNames.user : source ? '' : IconNames.profile}
+          color={Colors.white}
+          size={ESize.s24}
+        />
       </AbsoluteContainer>
     </AvatarContainer>
   );

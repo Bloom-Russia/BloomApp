@@ -15,9 +15,10 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 const TAB_BAR_STYLE = {
   height: TAB_BAR_HEIGHT,
   backgroundColor: Colors.black,
-  borderTopWidth: 0,
+  borderTopWidth: 1,
   paddingTop: ESpacings.s8,
   paddingBottom: ESpacings.s8,
+  borderColor: Colors.white,
 } as const;
 
 const SCREEN_OPTIONS = {
@@ -35,25 +36,25 @@ const TAB_CONFIGS = [
   {
     name: EScreens.HOME_STACK as const,
     component: HomeStack,
-    icon: IconNames.success,
+    icon: IconNames.home,
     label: 'Главная',
   },
   {
     name: EScreens.CHAT_STACK as const,
     component: ChatStack,
-    icon: IconNames.warning,
+    icon: IconNames.chat,
     label: 'Чат',
   },
   {
     name: EScreens.MY_WORKS_STACK as const,
     component: MyWorksStack,
-    icon: IconNames.reload,
+    icon: IconNames.notebook,
     label: 'Записи',
   },
   {
     name: EScreens.PROFILE_STACK as const,
     component: ProfileStack,
-    icon: IconNames.info,
+    icon: IconNames.profile,
     label: 'Профиль',
   },
 ] as const;

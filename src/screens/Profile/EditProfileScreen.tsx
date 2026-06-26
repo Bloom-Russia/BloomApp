@@ -430,7 +430,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
         <Block padding={ESpacings.s16}>
           <Block alignItems="center" marginBottom={ESpacings.s24}>
             <TouchableOpacity onPress={handleSelectAvatar}>
-              <Avatar source={avatar} />
+              <Avatar isEditable source={avatar} />
             </TouchableOpacity>
           </Block>
 

@@ -23,6 +23,10 @@ export enum IconNames {
   checked = 'checked',
   edit = 'edit',
   question = 'question',
+  notebook = 'notebook',
+  profile = 'profile',
+  home = 'home',
+  chat = 'chat',
 }
 
 export const IconSet = createIconSetFromIcoMoon(config);
