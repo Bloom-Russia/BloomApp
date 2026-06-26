@@ -13,10 +13,10 @@ export const useAnimatedSplash = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    let isComponentMounted = true;
+    let isMounted = true;
 
     const navigateToLogin = (): void => {
-      if (!isComponentMounted) {
+      if (!isMounted) {
         return;
       }
 
@@ -26,14 +26,14 @@ export const useAnimatedSplash = () => {
           duration: Number(Config.FADE_DURATION),
           useNativeDriver: true,
         }).start(() => {
-          if (isComponentMounted) {
+          if (isMounted) {
             setIsVisible(false);
             navigation.navigate(EScreens.LOGIN_SCREEN);
           }
         });
       } catch (error) {
         console.error('Ошибка навигации:', error);
-        if (isComponentMounted) {
+        if (isMounted) {
           setIsVisible(false);
           navigation.navigate(EScreens.LOGIN_SCREEN);
         }
@@ -41,21 +41,19 @@ export const useAnimatedSplash = () => {
     };
 
     const animationTimer = setTimeout(() => {
-      if (!lottieRef.current || !isComponentMounted) {
+      if (!lottieRef.current || !isMounted) {
         return;
       }
 
-      const animationStartTime = Date.now();
+      const startTime = Date.now();
 
       const checkProgress = (): void => {
-        if (!isComponentMounted) {
+        if (!isMounted) {
           return;
         }
 
-        const elapsedTime = Date.now() - animationStartTime;
-        const progress = elapsedTime / Number(Config.ANIMATION_DURATION);
-
-        if (progress >= 1) {
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= Number(Config.ANIMATION_DURATION)) {
           navigateToLogin();
         } else {
           requestAnimationFrame(checkProgress);
@@ -67,22 +65,18 @@ export const useAnimatedSplash = () => {
     }, Number(Config.START_DELAY));
 
     const fallbackTimer = setTimeout(() => {
-      if (isComponentMounted) {
+      if (isMounted) {
         console.warn('Fallback: переход по таймауту');
         navigateToLogin();
       }
     }, Number(Config.FALLBACK_TIMEOUT));
 
     return () => {
-      isComponentMounted = false;
+      isMounted = false;
       clearTimeout(animationTimer);
       clearTimeout(fallbackTimer);
     };
   }, [navigation, fadeAnim]);
 
-  return {
-    isVisible,
-    fadeAnim,
-    lottieRef,
-  };
+  return { isVisible, fadeAnim, lottieRef };
 };

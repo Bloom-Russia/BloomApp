@@ -33,8 +33,6 @@ const SelectComponent: React.FC<SelectProps> = ({
   marginTop = 0,
 }) => {
   const getSelectedLabel = useCallback(() => {
-    // Этот компонент теперь только отображает выбранное значение
-    // Актуальное значение приходит через пропс selectedValue
     return selectedValue || placeholder;
   }, [selectedValue, placeholder]);
 
@@ -52,8 +50,8 @@ const SelectComponent: React.FC<SelectProps> = ({
           borderRadius={ERounding.r8}
           paddingHorizontal={ESpacings.s12}
           paddingVertical={ESpacings.s14}
-          justifyContent={'space-between'}
-          alignItems={'center'}
+          justifyContent="space-between"
+          alignItems="center"
           isError={isError}
         >
           <Typography.R14 color={selectedValue ? Colors.white : Colors.gray}>
@@ -74,9 +72,7 @@ const SelectComponent: React.FC<SelectProps> = ({
 
 export const Select = memo(SelectComponent, isEqual);
 
-const SelectContainer = styled(Block)<{
-  isError?: boolean;
-}>(({ isError }) => ({
+const SelectContainer = styled(Block)<{ isError?: boolean }>(({ isError }) => ({
   borderWidth: 1,
   borderColor: isError ? Colors.red : Colors.white,
   flexDirection: 'row',

@@ -25,22 +25,18 @@ import {
 import { openSettings } from 'react-native-permissions';
 import styled from 'styled-components';
 import { CONSTANTS } from './constants';
-import type { LoginScreenProps } from './types'; // Изменено здесь
+import type { LoginScreenProps } from './types';
 
 const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
-  const [phone, setPhone] = React.useState<string>('');
-  const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
+  const [phone, setPhone] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+
+  const isButtonDisabled = phone.length < CONSTANTS.MIN_PHONE_LENGTH;
 
   const { showAlert, AlertComponent, setErrorMessageWithTimeout, cleanupErrors } =
     useErrorWithTimeout();
 
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      cleanupErrors();
-    };
-  }, [cleanupErrors]);
+  useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const setPhoneHandler = useCallback((value: string) => {
     if (value.length === CONSTANTS.MIN_PHONE_LENGTH) {
@@ -50,13 +46,10 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   }, []);
 
   useEffect(() => {
-    const backAction = () => true;
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    // Очистка при размонтировании компонента
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => true);
     return () => backHandler.remove();
   }, []);
 
-  // Функция проверки статуса уведомлений
   const checkNotificationStatus = useCallback(async (): Promise<boolean> => {
     try {
       if (Platform.OS === 'ios') {
@@ -66,23 +59,15 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
           authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
           authStatus === messaging.AuthorizationStatus.PROVISIONAL
         );
-      } else if (Platform.OS === 'android') {
-        // Для Android версий >= 13 (API 33)
-        if (Platform.Version >= 33) {
-          const granted: PermissionStatus = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-        // Для Android версий < 13 всегда возвращаем true
-        // так как уведомления включены по умолчанию до Android 13
-        return true;
+      } else if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const granted: PermissionStatus = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-      // Для других платформ
       return true;
     } catch (error) {
-      console.error('Ошибка при проверке разрешения на уведомлений:', error);
-      // В случае ошибки проверяем текущие настройки
+      console.error('Ошибка при проверке разрешения на уведомления:', error);
       if (Platform.OS === 'ios') {
         const settings = await messaging().hasPermission();
         return (
@@ -90,8 +75,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
           settings === messaging.AuthorizationStatus.PROVISIONAL
         );
       }
-
-      return true; // По умолчанию разрешаем
+      return true;
     }
   }, []);
 
@@ -99,7 +83,6 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
     const checkNotification = async () => {
       const notificationsEnabled = await checkNotificationStatus();
       if (!notificationsEnabled) {
-        // Показываем алерт с предложением включить уведомления
         showAlert({
           title: 'Уведомления отключены',
           message:
@@ -119,25 +102,21 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
               style: 'default',
               showButtonIcon: true,
               buttonIconName: IconNames.success,
-              onPress: () => {
-                // Перенаправляем пользователя в настройки уведомлений
-                openSettings();
-              },
+              onPress: openSettings,
             },
           ],
         });
-        return;
       }
     };
 
-    // Проверяем статус уведомлений
-    checkNotification().then(() => console.log('Проверяем статус уведомлений'));
+    checkNotification();
   }, [checkNotificationStatus, showAlert]);
 
   const requestVerificationCode = useCallback(async () => {
     if (isButtonDisabled) {
       return;
     }
+
     await ApiClientService.requestVerificationCode({
       phoneNumber: phone,
       options: {
@@ -148,7 +127,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   }, [isButtonDisabled, phone, setErrorMessageWithTimeout]);
 
   return (
-    <ScreenContainer title={'Авторизация'} paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer title="Авторизация" paddingHorizontal={ESpacings.s16}>
       <Block flex={1} justifyContent="center">
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />
@@ -158,7 +137,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
           loading={loading}
           disabled={isButtonDisabled}
           paddingTop={140}
-          title={'Запросить код'}
+          title="Запросить код"
           onPress={requestVerificationCode}
           color={Colors.blue}
         />

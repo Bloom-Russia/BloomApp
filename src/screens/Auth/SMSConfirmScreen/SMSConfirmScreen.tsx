@@ -38,12 +38,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
 
   const { setErrorMessageWithTimeout, cleanupErrors, AlertComponent } = useErrorWithTimeout();
 
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      cleanupErrors();
-    };
-  }, [cleanupErrors]);
+  useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const verifyCodeHandler = useCallback(
     async (inputCode: string) => {
@@ -64,7 +59,6 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
     [phone, setErrorMessageWithTimeout, setIsVerified],
   );
 
-  //Повторная отправка кода
   const resendCode = useCallback(async () => {
     setStartTime(Date.now());
     codeRef.current?.clear();
@@ -81,12 +75,12 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
   }, [navigation]);
 
   return (
-    <ScreenContainer title={'Авторизация'} paddingHorizontal={ESpacings.s16}>
-      <Block flex={1} backgroundColor={Colors.black} justifyContent={'center'}>
+    <ScreenContainer title="Авторизация" paddingHorizontal={ESpacings.s16}>
+      <Block flex={1} backgroundColor={Colors.black} justifyContent="center">
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />
         </Row>
-        <Typography.B14 marginBottom={ESpacings.s32} color={Colors.white} textAlign={'center'}>
+        <Typography.B14 marginBottom={ESpacings.s32} color={Colors.white} textAlign="center">
           Введите код из пуш уведомления
         </Typography.B14>
         <Block marginBottom={ESpacings.s16}>
@@ -107,7 +101,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
         <Button
           marginTop={ESpacings.s32}
           marginBottom={ESpacings.s32}
-          title={'Изменить номер телефона'}
+          title="Изменить номер телефона"
           onPress={handleChangePhone}
           color={Colors.white}
           textColor={Colors.black}

@@ -44,11 +44,11 @@ export const Input: React.FC<Props> = ({
 }) => {
   return (
     <Block marginBottom={marginBottom}>
-      {title ? (
+      {title && (
         <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
           {title}
         </Typography.B14>
-      ) : null}
+      )}
       <StyledInput
         textAlignVertical={textAlignVertical}
         height={height}
@@ -67,11 +67,11 @@ export const Input: React.FC<Props> = ({
         autoComplete={autoComplete}
         isError={isError}
       />
-      {isError ? (
+      {isError && errorText && (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
           {errorText}
         </Typography.B14>
-      ) : null}
+      )}
     </Block>
   );
 };
@@ -89,6 +89,6 @@ const StyledInput = styled(TextInput)<{
   paddingHorizontal: ESpacings.s14,
   fontSize: 14,
   color,
-  height: height,
-  textAlignVertical: textAlignVertical,
+  height,
+  textAlignVertical,
 }));

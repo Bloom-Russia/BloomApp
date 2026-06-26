@@ -62,7 +62,6 @@ export const DateTimeInputPicker: React.FC<Props> = ({
     }
   }, [externalValue, inputValue]);
 
-  // Обработка изменения через календарь
   const onDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
@@ -84,11 +83,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
 
     if (unmasked.length === 8) {
       const parsedDate = parseDateFromString(unmasked);
-      if (parsedDate) {
-        setDate(parsedDate);
-      } else {
-        setDate(null);
-      }
+      setDate(parsedDate || null);
     } else {
       setDate(null);
     }
@@ -130,7 +125,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
         />
       )}
 
-      {isError && (
+      {isError && errorText && (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
           {errorText}
         </Typography.B14>

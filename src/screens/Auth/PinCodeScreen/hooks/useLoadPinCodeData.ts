@@ -12,12 +12,7 @@ type Props = {
 export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: Props) => {
   const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
 
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      cleanupErrors();
-    };
-  }, [cleanupErrors]);
+  useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const loadPinCodeData = useCallback(async () => {
     try {
@@ -27,12 +22,9 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
           errorCodeCallBack: setErrorMessageWithTimeout,
         },
       });
-      let hasPin = false;
-      if (success && data) {
-        hasPin = data.hasPin;
-      } else if (data?.hasPin) {
-        hasPin = data.hasPin;
-      }
+
+      // ✅ Приводим к boolean (false если undefined)
+      const hasPin = !!(success && data?.hasPin);
 
       setPinMode(hasPin ? PinMode.ENTER : PinMode.SET);
       setIsPinCodeSet(hasPin);
@@ -43,7 +35,7 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
         await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
       }
     } catch (error) {
-      console.error('❌ Критическая ошибка в loadPinCodeData:', error);
+      console.error('Ошибка loadPinCodeData:', error);
       setPinMode(PinMode.SET);
       setIsPinCodeSet(false);
       await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);

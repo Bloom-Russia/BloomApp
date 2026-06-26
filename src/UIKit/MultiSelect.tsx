@@ -1,4 +1,3 @@
-// MultiSelect.tsx
 import { Block, Colors, ERounding, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import React, { memo, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
@@ -71,8 +70,8 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
           borderRadius={8}
           paddingHorizontal={ESpacings.s12}
           paddingVertical={ESpacings.s14}
-          justifyContent={'space-between'}
-          alignItems={'center'}
+          justifyContent="space-between"
+          alignItems="center"
           isError={isError}
         >
           <Typography.R14
@@ -91,7 +90,6 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
         </Typography.B14>
       )}
 
-      {/* Выбранные теги */}
       {selectedValues.length > 0 && (
         <TagsContainer horizontal showsHorizontalScrollIndicator={false}>
           {items
@@ -114,9 +112,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
 
 export const MultiSelect = memo(MultiSelectComponent, isEqual);
 
-const SelectContainer = styled(Block)<{
-  isError?: boolean;
-}>(({ isError }) => ({
+const SelectContainer = styled(Block)<{ isError?: boolean }>(({ isError }) => ({
   borderWidth: 1,
   borderColor: isError ? Colors.error : Colors.white,
   flexDirection: 'row',

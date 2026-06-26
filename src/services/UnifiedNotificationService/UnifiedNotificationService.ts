@@ -6,7 +6,6 @@ import { NotificationPayload } from './types';
 class UnifiedNotificationService {
   private static instance: UnifiedNotificationService;
   private isInitialized = false;
-
   private processedEvents = new Map<string, number>();
   private readonly DEBOUNCE_MS = 3000;
   private handlers: ((notification: NotificationPayload) => void)[] = [];
@@ -22,12 +21,10 @@ class UnifiedNotificationService {
 
   private isDuplicate(eventType: string, notificationId?: string | null): boolean {
     const key = notificationId ? `${eventType}_${notificationId}` : `${eventType}_${Date.now()}`;
-
     const lastTime = this.processedEvents.get(key);
     const now = Date.now();
 
     if (lastTime && now - lastTime < this.DEBOUNCE_MS) {
-      console.log(`⏭️ Дубликат игнорируется: ${key}`);
       return true;
     }
 
@@ -53,11 +50,8 @@ class UnifiedNotificationService {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('✅ UnifiedNotificationService уже инициализирован');
       return;
     }
-
-    console.log('🚀 Инициализация UnifiedNotificationService...');
 
     if (Platform.OS === 'android') {
       await notifee.createChannel({
@@ -77,7 +71,6 @@ class UnifiedNotificationService {
       });
     }
 
-    // Единственный обработчик Notifee
     notifee.onForegroundEvent(({ type, detail }) => {
       const notificationId = detail.notification?.id;
       const eventTypeStr = this.eventTypeToString(type);
@@ -85,8 +78,6 @@ class UnifiedNotificationService {
       if (this.isDuplicate(eventTypeStr, notificationId)) {
         return;
       }
-
-      console.log(`📱 Событие Notifee: ${eventTypeStr}, ID: ${notificationId}`);
 
       const payload: NotificationPayload = {
         id: notificationId,
@@ -100,15 +91,12 @@ class UnifiedNotificationService {
       this.notifySubscribers(payload);
     });
 
-    // Единственный обработчик FCM
     messaging().onMessage(async (remoteMessage) => {
       const messageId = remoteMessage.messageId;
 
       if (this.isDuplicate('fcm_message', messageId)) {
         return;
       }
-
-      console.log(`📨 FCM сообщение в foreground: ${messageId}`);
 
       const payload: NotificationPayload = {
         id: messageId,
@@ -121,7 +109,6 @@ class UnifiedNotificationService {
 
       this.notifySubscribers(payload);
 
-      // Показываем уведомление через Notifee
       await notifee.displayNotification({
         id: messageId,
         title: remoteMessage.notification?.title,
@@ -135,10 +122,7 @@ class UnifiedNotificationService {
       });
     });
 
-    // Фоновый обработчик
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log(`📨 Фоновое сообщение: ${remoteMessage.messageId}`);
-
       const payload: NotificationPayload = {
         id: remoteMessage.messageId,
         title: remoteMessage.notification?.title,
@@ -151,10 +135,7 @@ class UnifiedNotificationService {
       this.notifySubscribers(payload);
     });
 
-    // Обработчик открытия по уведомлению
     messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log(`📱 Открыто по уведомлению: ${remoteMessage.messageId}`);
-
       const payload: NotificationPayload = {
         id: remoteMessage.messageId,
         title: remoteMessage.notification?.title,
@@ -167,11 +148,8 @@ class UnifiedNotificationService {
       this.notifySubscribers(payload);
     });
 
-    // Initial notification
     const initialNotification = await messaging().getInitialNotification();
     if (initialNotification) {
-      console.log(`🚀 Initial notification: ${initialNotification.messageId}`);
-
       const payload: NotificationPayload = {
         id: initialNotification.messageId,
         title: initialNotification.notification?.title,
@@ -185,63 +163,46 @@ class UnifiedNotificationService {
     }
 
     this.isInitialized = true;
-    console.log('✅ UnifiedNotificationService успешно инициализирован');
   }
 
   private notifySubscribers(notification: NotificationPayload): void {
-    this.handlers.forEach((handler) => {
+    for (const handler of this.handlers) {
       try {
         handler(notification);
       } catch (error) {
         console.error('Ошибка в обработчике уведомлений:', error);
       }
-    });
+    }
   }
 
-  /**
-   * Подписка на уведомления
-   */
   subscribe(handler: (notification: NotificationPayload) => void): () => void {
     this.handlers.push(handler);
-    console.log(`📌 Подписчик добавлен. Всего: ${this.handlers.length}`);
 
     return () => {
       const index = this.handlers.indexOf(handler);
       if (index !== -1) {
         this.handlers.splice(index, 1);
-        console.log(`📌 Подписчик удален. Осталось: ${this.handlers.length}`);
       }
     };
   }
 
-  /**
-   * Получение количества бейджей (непрочитанных уведомлений)
-   */
   async getBadgeCount(): Promise<number> {
     try {
       const notifications = await notifee.getDisplayedNotifications();
       return notifications.length;
-    } catch (error) {
-      console.error('Ошибка получения количества уведомлений:', error);
+    } catch {
       return 0;
     }
   }
 
-  /**
-   * Установка количества бейджей
-   */
   async setBadgeCount(count: number): Promise<void> {
     try {
       await notifee.setBadgeCount(count);
-      console.log(`Бейдж установлен: ${count}`);
     } catch (error) {
       console.error('Ошибка установки бейджа:', error);
     }
   }
 
-  /**
-   * Получение FCM токена
-   */
   async getFCMToken(): Promise<string | null> {
     try {
       const enabled = await messaging().hasPermission();
@@ -250,15 +211,11 @@ class UnifiedNotificationService {
         enabled === messaging.AuthorizationStatus.PROVISIONAL;
 
       if (hasPermission) {
-        const token = await messaging().getToken();
-        if (token && token.length > 0) {
-          console.log(`📱 Получен FCM токен: ${token.substring(0, 20)}...`);
-          return token;
-        }
+        return await messaging().getToken();
       }
       return null;
     } catch (error) {
-      console.error('❌ Ошибка получения FCM токена:', error);
+      console.error('Ошибка получения FCM токена:', error);
       return null;
     }
   }

@@ -50,10 +50,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
     useEffect(() => {
       if (visible) {
         setIsClosing(false);
-        // Небольшая задержка перед открытием для плавности
-        setTimeout(() => {
-          bottomSheetRef.current?.expand();
-        }, 50);
+        setTimeout(() => bottomSheetRef.current?.expand(), 50);
       } else if (!isClosing) {
         bottomSheetRef.current?.close();
       }
@@ -62,7 +59,6 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
     const handleClose = useCallback(() => {
       setIsClosing(true);
       Keyboard.dismiss();
-      // Даем время на анимацию закрытия
       setTimeout(() => {
         onClose();
         setIsClosing(false);
@@ -83,7 +79,6 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
 
     const handleSheetChange = useCallback(
       (index: number) => {
-        // Если bottomSheet закрыт полностью (index = -1) и не в процессе закрытия
         if (index === -1 && !isClosing && visible) {
           handleClose();
         }
@@ -97,8 +92,8 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
           <StyledItem
             paddingHorizontal={ESpacings.s16}
             paddingVertical={ESpacings.s16}
-            justifyContent={'space-between'}
-            alignItems={'center'}
+            justifyContent="space-between"
+            alignItems="center"
           >
             <Typography.B14 color={selectedItem?.id === item.id ? Colors.primary : Colors.white}>
               {item.name}
@@ -119,16 +114,12 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
         ref={bottomSheetRef}
         index={-1}
         snapPoints={snapPoints}
-        enablePanDownToClose={true}
-        enableContentPanningGesture={true}
-        enableHandlePanningGesture={true}
+        enablePanDownToClose
+        enableContentPanningGesture
+        enableHandlePanningGesture
         android_keyboardInputMode="adjustResize"
-        backgroundStyle={{
-          backgroundColor: Colors.gray,
-        }}
-        handleIndicatorStyle={{
-          backgroundColor: Colors.white,
-        }}
+        backgroundStyle={{ backgroundColor: Colors.gray }}
+        handleIndicatorStyle={{ backgroundColor: Colors.white }}
         onChange={handleSheetChange}
         onClose={handleClose}
       >
@@ -136,8 +127,8 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
           <Heading
             paddingHorizontal={ESpacings.s16}
             paddingVertical={ESpacings.s16}
-            justifyContent={'space-between'}
-            alignItems={'center'}
+            justifyContent="space-between"
+            alignItems="center"
           >
             <Typography.B14 color={Colors.white}>{label || 'Выберите значение'}</Typography.B14>
             <TouchableOpacity onPress={handleClose}>
@@ -148,7 +139,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
           {showSearch && (
             <Block paddingHorizontal={ESpacings.s16} paddingBottom={ESpacings.s12}>
               <Row
-                alignItems={'center'}
+                alignItems="center"
                 backgroundColor={Colors.black}
                 borderRadius={8}
                 paddingHorizontal={ESpacings.s12}
@@ -172,9 +163,9 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
           )}
 
           {items.length === 0 ? (
-            <Block flex={1} justifyContent={'center'} alignItems={'center'} padding={ESpacings.s32}>
+            <Block flex={1} justifyContent="center" alignItems="center" padding={ESpacings.s32}>
               <Icon name={IconNames.search} size={48} color={Colors.gray} />
-              <Typography.B14 marginTop={ESpacings.s16} color={Colors.gray} textAlign={'center'}>
+              <Typography.B14 marginTop={ESpacings.s16} color={Colors.gray} textAlign="center">
                 Ничего не найдено
               </Typography.B14>
             </Block>
@@ -184,9 +175,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
               keyExtractor={keyExtractor}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingBottom: ESpacings.s16,
-              }}
+              contentContainerStyle={{ paddingBottom: ESpacings.s16 }}
               keyboardShouldPersistTaps="handled"
               initialNumToRender={10}
               maxToRenderPerBatch={10}

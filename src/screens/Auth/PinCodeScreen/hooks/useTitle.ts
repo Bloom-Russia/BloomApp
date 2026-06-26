@@ -26,8 +26,5 @@ export const useTitle = (pinMode: PinMode) => {
     }
   }, [pinMode]);
 
-  return {
-    getTitle,
-    getSubtitle,
-  };
+  return { getTitle, getSubtitle };
 };

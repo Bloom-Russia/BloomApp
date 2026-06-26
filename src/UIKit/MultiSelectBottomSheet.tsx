@@ -55,9 +55,7 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
       if (visible) {
         setIsClosing(false);
         setTempSelectedValues(selectedValues);
-        setTimeout(() => {
-          bottomSheetRef.current?.expand();
-        }, 50);
+        setTimeout(() => bottomSheetRef.current?.expand(), 50);
       } else if (!isClosing) {
         bottomSheetRef.current?.close();
       }
@@ -82,12 +80,11 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
         setTempSelectedValues((prev) => {
           if (prev.includes(itemId)) {
             return prev.filter((id) => id !== itemId);
-          } else {
-            if (maxSelected && prev.length >= maxSelected) {
-              return prev;
-            }
-            return [...prev, itemId];
           }
+          if (maxSelected && prev.length >= maxSelected) {
+            return prev;
+          }
+          return [...prev, itemId];
         });
       },
       [maxSelected],
@@ -136,8 +133,8 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
             <StyledItem
               paddingHorizontal={ESpacings.s16}
               paddingVertical={ESpacings.s16}
-              justifyContent={'space-between'}
-              alignItems={'center'}
+              justifyContent="space-between"
+              alignItems="center"
               opacity={disabled ? 0.5 : 1}
             >
               <Typography.B14 color={selected ? Colors.primary : Colors.white}>
@@ -158,16 +155,12 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
         ref={bottomSheetRef}
         index={-1}
         snapPoints={snapPoints}
-        enablePanDownToClose={true}
-        enableContentPanningGesture={true}
-        enableHandlePanningGesture={true}
+        enablePanDownToClose
+        enableContentPanningGesture
+        enableHandlePanningGesture
         android_keyboardInputMode="adjustResize"
-        backgroundStyle={{
-          backgroundColor: Colors.gray,
-        }}
-        handleIndicatorStyle={{
-          backgroundColor: Colors.white,
-        }}
+        backgroundStyle={{ backgroundColor: Colors.gray }}
+        handleIndicatorStyle={{ backgroundColor: Colors.white }}
         onChange={handleSheetChange}
         onClose={handleClose}
       >
@@ -175,8 +168,8 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
           <Heading
             paddingHorizontal={ESpacings.s16}
             paddingVertical={ESpacings.s16}
-            justifyContent={'space-between'}
-            alignItems={'center'}
+            justifyContent="space-between"
+            alignItems="center"
           >
             <Typography.B14 color={Colors.white}>{label || 'Выберите значения'}</Typography.B14>
             <TouchableOpacity onPress={handleClose}>
@@ -200,7 +193,7 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
           {showSearch && (
             <Block paddingHorizontal={ESpacings.s16} paddingBottom={ESpacings.s12}>
               <Row
-                alignItems={'center'}
+                alignItems="center"
                 backgroundColor={Colors.black}
                 borderRadius={8}
                 paddingHorizontal={ESpacings.s12}
@@ -224,9 +217,9 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
           )}
 
           {items.length === 0 ? (
-            <Block flex={1} justifyContent={'center'} alignItems={'center'} padding={ESpacings.s32}>
+            <Block flex={1} justifyContent="center" alignItems="center" padding={ESpacings.s32}>
               <Icon name={IconNames.search} size={48} color={Colors.gray} />
-              <Typography.B14 marginTop={ESpacings.s16} color={Colors.gray} textAlign={'center'}>
+              <Typography.B14 marginTop={ESpacings.s16} color={Colors.gray} textAlign="center">
                 Ничего не найдено
               </Typography.B14>
             </Block>
@@ -236,9 +229,7 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
               keyExtractor={keyExtractor}
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingBottom: ESpacings.s16,
-              }}
+              contentContainerStyle={{ paddingBottom: ESpacings.s16 }}
               keyboardShouldPersistTaps="handled"
               initialNumToRender={10}
               maxToRenderPerBatch={10}
@@ -246,11 +237,11 @@ export const MultiSelectBottomSheet: React.FC<MultiSelectBottomSheetProps> = mem
             />
           )}
 
-          <ButtonBlock padding={ESpacings.s16} justifyContent={'space-between'}>
+          <ButtonBlock padding={ESpacings.s16} justifyContent="space-between">
             <Button
               paddingHorizontal={ESpacings.s16}
               onPress={handleClose}
-              title={'Отмена'}
+              title="Отмена"
               color={Colors.error}
             />
             <Button
@@ -277,9 +268,7 @@ const StyledItem = styled(Row)<{ opacity?: number }>(({ opacity }) => ({
   opacity: opacity ?? 1,
 }));
 
-const BottomSheetContent = styled(Block)({
-  flex: 1,
-});
+const BottomSheetContent = styled(Block)({ flex: 1 });
 
 const SearchInput = styled(TextInput)({
   color: Colors.white,

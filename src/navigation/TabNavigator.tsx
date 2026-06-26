@@ -12,7 +12,6 @@ import { EScreens } from './types';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-// Константы вынесены за пределы компонента
 const TAB_BAR_STYLE = {
   height: TAB_BAR_HEIGHT,
   backgroundColor: Colors.black,
@@ -32,7 +31,6 @@ const SCREEN_OPTIONS = {
   tabBarInactiveTintColor: Colors.white,
 } as const;
 
-// Конфигурация табов с предварительно созданными компонентами
 const TAB_CONFIGS = [
   {
     name: EScreens.HOME_STACK as const,
@@ -71,11 +69,9 @@ const TabBarNavigatorComponent: React.FC = () => {
         name: config.name,
         component: config.component,
         options: {
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarLabel: ({ color }: { color: string }) => (
             <Typography.R14 color={color}>{config.label}</Typography.R14>
           ),
-          // eslint-disable-next-line react/no-unstable-nested-components
           tabBarIcon: ({ color }: { color: string }) => (
             <Icon size={ESize.s20} color={color} name={config.icon} />
           ),

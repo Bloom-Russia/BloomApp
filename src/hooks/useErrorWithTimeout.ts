@@ -28,7 +28,6 @@ export const useErrorWithTimeout = () => {
     [showAlert],
   );
 
-  // Функция для ручного скрытия алерта
   const hideError = useCallback(() => {
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
@@ -37,7 +36,6 @@ export const useErrorWithTimeout = () => {
     hideAlert();
   }, [hideAlert]);
 
-  // Очистка при размонтировании
   const cleanupErrors = useCallback(() => {
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);

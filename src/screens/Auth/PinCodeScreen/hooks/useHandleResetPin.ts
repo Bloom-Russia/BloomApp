@@ -1,4 +1,3 @@
-// useHandleResetPin.ts
 import { CustomAlertConfig } from '@hooks';
 import { SecureStorageKeys, SecureStorageService } from '@services';
 import { IconNames } from '@UIKit';

@@ -1,5 +1,5 @@
-import clamp from "lodash/clamp";
-import { useCallback, useEffect, useRef, useState } from "react";
+import clamp from 'lodash/clamp';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const useTimer = (startValue: number) => {
   const [count, setCount] = useState(startValue);
@@ -12,7 +12,6 @@ const useTimer = (startValue: number) => {
       timerRef.current = setInterval(() => {
         setCount((prevCount) => Math.max(0, prevCount - 1));
       }, 1000);
-
       setIsTimerRunning(true);
     }
   }, [startValue]);
@@ -31,12 +30,11 @@ const useTimer = (startValue: number) => {
     }
   }, [count, stopTimer]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    return () => {
       stopTimer();
-    },
-    [stopTimer],
-  );
+    };
+  }, [stopTimer]);
 
   return { count, stopTimer, startTimer, isTimerRunning };
 };
@@ -52,7 +50,6 @@ export const useTimoutTimer = (startTimeInMillis: number, timeoutInSec: number) 
     if (count !== 0) {
       startTimer();
     }
-
     return stopTimer;
   }, [count, startTimer, stopTimer]);
 

@@ -3,10 +3,6 @@ import { Image, Pressable } from 'react-native';
 import styled from 'styled-components/native';
 import { KeyButtonProps, PinDotProps } from '../types';
 
-// ============================================
-// STYLED COMPONENTS
-// ============================================
-
 export const StyledImage = styled(Image)({
   width: 120,
   height: 120,
@@ -68,10 +64,7 @@ export const DeleteButtonInRow = styled.TouchableOpacity<KeyButtonProps>((props)
 }));
 
 export const ResetButton = styled(Pressable).attrs(() => ({
-  android_ripple: {
-    borderless: false,
-    color: Colors.ripple,
-  },
+  android_ripple: { borderless: false, color: Colors.ripple },
 }))({
   marginBottom: ESpacings.s32,
 });

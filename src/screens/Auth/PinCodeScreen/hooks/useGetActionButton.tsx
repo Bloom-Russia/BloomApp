@@ -30,7 +30,7 @@ export const useGetActionButton = ({
         disabled={!isPinCodeSet}
         onPress={() => {
           if (!isPinCodeSet) {
-            console.error('❌ Биометрия недоступна: PIN не установлен');
+            console.error('Биометрия недоступна: PIN не установлен');
             return;
           }
           onPressBiometricsButton();

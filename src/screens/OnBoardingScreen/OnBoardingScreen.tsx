@@ -34,31 +34,23 @@ type OnBoardingScreenProps = NativeStackScreenProps<
   EScreens.ON_BOARDING_SCREEN
 >;
 
-const contentContainerStyle = {
-  flexGrow: 1,
-};
+const contentContainerStyle = { flexGrow: 1 };
+const keyExtractor = (item: OnboardingItem) => item.id;
 
 const ListEmptyComponent: React.FC = () => (
-  <Block flex={1} backgroundColor={Colors.black} justifyContent={'center'} alignItems={'center'}>
+  <Block flex={1} backgroundColor={Colors.black} justifyContent="center" alignItems="center">
     <Typography.B16 color={Colors.white}>Нет данных для отображения</Typography.B16>
   </Block>
 );
 
-const keyExtractor = (item: OnboardingItem) => item.id;
-
 const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [onboardingData, setOnboardingData] = useState<OnboardingItem[]>([]);
-  const flatListRef = useRef<FlatList>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const flatListRef = useRef<FlatList>(null);
   const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
 
-  // Очистка при размонтировании
-  useEffect(() => {
-    return () => {
-      cleanupErrors();
-    };
-  }, [cleanupErrors]);
+  useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const loadOnboardingSlides = useCallback(async () => {
     try {
@@ -75,67 +67,65 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
     }
   }, [setErrorMessageWithTimeout]);
 
-  // Загрузка слайдов онбординга
   useEffect(() => {
-    loadOnboardingSlides().then(() => noop);
+    loadOnboardingSlides().then(noop);
   }, [loadOnboardingSlides]);
 
-  const handleNext = async () => {
+  const completeOnboarding = useCallback(async () => {
+    try {
+      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, 'true');
+    } catch (_error) {
+      console.error('Ошибка при завершении онбординга:', _error);
+    }
+  }, []);
+
+  const handleNext = useCallback(async () => {
     if (currentIndex < onboardingData.length - 1) {
       const nextIndex = currentIndex + 1;
       flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
       setCurrentIndex(nextIndex);
     } else {
-      // Отмечаем онбординг как завершенный
       await completeOnboarding();
-      // Переход на следующий экран после завершения онбординга
       navigation.replace(EScreens.TABS_STACK as any);
     }
-  };
+  }, [currentIndex, onboardingData.length, completeOnboarding, navigation]);
 
-  const completeOnboarding = async () => {
-    try {
-      // Сохраняем как строку для консистентности
-      await SecureStorageService.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, 'true');
-    } catch (_error) {
-      console.error('Ошибка при завершении онбординга:', _error);
-    }
-  };
-
-  const handleSkip = async () => {
+  const handleSkip = useCallback(async () => {
     await completeOnboarding();
     navigation.replace(EScreens.TABS_STACK as any);
-  };
+  }, [completeOnboarding, navigation]);
 
-  const renderItem = useCallback(({ item }: { item: OnboardingItem }) => {
-    return (
+  const renderItem = useCallback(
+    ({ item }: { item: OnboardingItem }) => (
       <Block flex={1}>
         <Block flex={1}>
           <StyledImage source={{ uri: item.fullImageUrl }} resizeMode="cover" />
         </Block>
-        <Block paddingVertical={ESpacings.s16} alignItems={'center'} justifyContent={'center'}>
+        <Block paddingVertical={ESpacings.s16} alignItems="center" justifyContent="center">
           <Typography.B16 color={Colors.white} marginBottom={ESpacings.s12}>
             {item.title}
           </Typography.B16>
           <Description>
-            <Typography.R14 textAlign={'center'} color={Colors.textSecondary}>
+            <Typography.R14 textAlign="center" color={Colors.textSecondary}>
               {item.description}
             </Typography.R14>
           </Description>
         </Block>
       </Block>
-    );
-  }, []);
+    ),
+    [],
+  );
 
-  const Pagination = useCallback(() => {
-    return (
+  const Pagination = useCallback(
+    () => (
       <Row>
         {onboardingData.map((_, index) => (
           <PaginationDot key={index} active={currentIndex === index} />
         ))}
       </Row>
-    );
-  }, [currentIndex, onboardingData]);
+    ),
+    [currentIndex, onboardingData],
+  );
 
   const onScroll = useCallback((event: any) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / WINDOW_WIDTH);
@@ -177,7 +167,7 @@ const OnBoardingScreenComponent: React.FC<OnBoardingScreenProps> = ({ navigation
       />
 
       <Block paddingHorizontal={ESpacings.s32} paddingVertical={ESpacings.s32}>
-        <Row justifyContent={'space-between'} alignItems={'center'}>
+        <Row justifyContent="space-between" alignItems="center">
           <Pagination />
           <Button
             paddingHorizontal={ESpacings.s16}
@@ -210,7 +200,7 @@ const Description = styled(Block)({
   width: WINDOW_WIDTH,
 });
 
-export const PaginationDot = styled(Block)<{ active: boolean }>(({ active }) => ({
+const PaginationDot = styled(Block)<{ active: boolean }>(({ active }) => ({
   width: active ? ESize.s24 : ESize.s8,
   height: ESize.s8,
   borderRadius: ERounding.r4,
