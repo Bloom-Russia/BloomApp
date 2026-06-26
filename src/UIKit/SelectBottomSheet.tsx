@@ -19,8 +19,8 @@ interface SelectBottomSheetProps {
   visible: boolean;
   label?: string;
   items: SelectItem[];
-  searchQuery: string;
-  onSearchChange: (text: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (text: string) => void;
   selectedItem: SelectItem | null;
   onSelect: (item: SelectItem) => void;
   onClose: () => void;
@@ -74,7 +74,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
     );
 
     const clearSearch = useCallback(() => {
-      onSearchChange('');
+      onSearchChange?.('');
     }, [onSearchChange]);
 
     const handleSheetChange = useCallback(
@@ -153,7 +153,7 @@ export const SelectBottomSheet: React.FC<SelectBottomSheetProps> = memo(
                   onChangeText={onSearchChange}
                   autoFocus={false}
                 />
-                {searchQuery.length > 0 && (
+                {searchQuery && searchQuery.length > 0 && (
                   <TouchableOpacity onPress={clearSearch}>
                     <Icon name={IconNames.cancel} size={ESize.s32} color={Colors.gray} />
                   </TouchableOpacity>

@@ -27,6 +27,30 @@ import isEqual from 'react-fast-compare';
 import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 
+type Experience = {
+  id: string;
+  name: string;
+};
+
+const experiences: Experience[] = [
+  {
+    id: '1',
+    name: 'Мееьше 1 года',
+  },
+  {
+    id: '2',
+    name: '1 - 3 года',
+  },
+  {
+    id: '3',
+    name: '3 - 5 лет',
+  },
+  {
+    id: '4',
+    name: 'Более 5 лет',
+  },
+];
+
 type EditProfileScreenProps = NativeStackScreenProps<
   ProfileStackParamList,
   EScreens.EDIT_PROFILE_SCREEN
@@ -87,18 +111,19 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
   const [patronymic, setPatronymic] = useState('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [birthday, setBirthday] = useState('');
-  const [phone, setPhone] = useState(phoneNumber);
-  const [email, setEmail] = useState(userEmail || '');
-  const [telegram, setTelegram] = useState(userTelegram || '');
-  const [max, setMax] = useState(userMax || '');
-  const [experience, setExperience] = useState(userExperience || '');
-  const [avatar, setAvatar] = useState<string | undefined>(avatarUrl);
-  const [selectedCity, setSelectedCity] = useState<string | null>(userCity || null);
-  const [selectedProfessions, setSelectedProfessions] = useState<string[]>(userProfessions || []);
-  const [studioAddress, setStudioAddress] = useState(address || '');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [telegram, setTelegram] = useState('');
+  const [max, setMax] = useState('');
+  const [experience, setExperience] = useState('');
+  const [avatar, setAvatar] = useState<string | undefined>('');
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
+  const [studioAddress, setStudioAddress] = useState('');
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isCitySheetVisible, setIsCitySheetVisible] = useState(false);
+  const [isExperienceSheetVisible, setIsExperienceSheetVisible] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [isProfessionsSheetVisible, setIsProfessionsSheetVisible] = useState(false);
   const [professionsSearchQuery, setProfessionsSearchQuery] = useState('');
@@ -219,6 +244,12 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     setCitySearchQuery('');
   }, []);
 
+  const handleExperienceSelect = useCallback((value: SelectItem) => {
+    setExperience(value.name);
+    setExperienceError(false);
+    setIsExperienceSheetVisible(false);
+  }, []);
+
   const handleProfessionsConfirm = useCallback((values: string[]) => {
     setSelectedProfessions(values);
     setProfessionsError(false);
@@ -311,7 +342,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     } else {
       setPhoneError(false);
     }
-    if (!experience.trim() || isNaN(Number(experience)) || Number(experience) < 0) {
+    if (!experience.trim()) {
       setExperienceError(true);
       isValid = false;
     } else {
@@ -351,6 +382,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
   const selectBottomSheetOnClose = useCallback(() => {
     setTimeout(() => {
       setIsCitySheetVisible(false);
+      setIsExperienceSheetVisible(false);
       setCitySearchQuery('');
     }, 300);
   }, []);
@@ -367,7 +399,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       patronymic: patronymic || undefined,
       birthday,
       telegram: telegram || undefined,
-      experience,
+      experience: experience,
       max: normalizePhoneNumber(max),
       city: selectedCity,
       professions: selectedProfessions,
@@ -531,17 +563,13 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
           <MaskedInput title="Max" phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
 
           <View ref={experienceRef}>
-            <Input
-              placeholder="Опыт (лет)"
-              title="Опыт"
-              value={experience}
-              onChangeValue={(v) => {
-                setExperience(v);
-                setExperienceError(false);
-              }}
-              keyboardType="numeric"
+            <Select
+              placeholder="Выберите свой опыт"
+              selectedValue={experience}
+              onSelect={() => setIsExperienceSheetVisible(true)}
               marginBottom={ESpacings.s12}
-              errorText="Введите корректный стаж"
+              label="Опыт"
+              errorText="Выберите свой опыт"
               isError={experienceError}
             />
           </View>
@@ -620,6 +648,15 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       </ScrollView>
 
       <AlertComponent />
+
+      <SelectBottomSheet
+        visible={isExperienceSheetVisible}
+        label="Выберите свой опыт"
+        items={experiences}
+        selectedItem={experiences.find((c: Experience) => c.id === experience) || null}
+        onSelect={handleExperienceSelect}
+        onClose={selectBottomSheetOnClose}
+      />
 
       <SelectBottomSheet
         visible={isCitySheetVisible}

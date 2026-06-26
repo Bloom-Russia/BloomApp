@@ -148,11 +148,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
             value={formatPhoneNumber(user.max)}
             label={'Max'}
           />
-          <UserDataItem
-            marginBottom={ESpacings.s16}
-            value={`${user.experience} лет`}
-            label={'Опыт'}
-          />
+          <UserDataItem marginBottom={ESpacings.s16} value={user.experience} label={'Опыт'} />
           <UserDataItem
             marginBottom={ESpacings.s16}
             value={getSelectedName(user.city, cities)}

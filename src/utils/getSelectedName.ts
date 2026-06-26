@@ -3,7 +3,8 @@ export const getSelectedName = (
   values: { id: string; name: string }[],
 ) => {
   if (!selectedID) {
-    return null;
+    return '';
   }
-  return values.find((value) => value.id === selectedID)?.name || null;
+
+  return values.find((value) => value.id === selectedID)?.name || '';
 };
