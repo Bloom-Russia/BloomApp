@@ -57,6 +57,8 @@
       <string>tg</string>
       <string>mailto</string>
       <string>maps</string>
+      <string>yandexnavi</string>
+      <string>yandexmaps</string>
       <string>http</string>
       <string>https</string>
     </array>
