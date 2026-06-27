@@ -235,8 +235,6 @@ export const AuthApi = {
       { errorCodeCallBack, changeLoading },
     );
 
-    await SecureStorageService.clearAll();
-
     if (!result.success) {
       return {
         success: true,

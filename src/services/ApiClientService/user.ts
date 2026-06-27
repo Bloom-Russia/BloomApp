@@ -53,18 +53,16 @@ export const UserApi = {
     }
 
     if (isUpdateUserData(params)) {
-      const avatarUri = extractFileUri(params.avatar);
+      const { userData, avatar } = params;
+      const avatarUri = extractFileUri(avatar);
+      const shouldUploadFile = avatarUri && isLocalFileUri(avatarUri);
 
-      // Проверяем, является ли avatar локальным файлом
-      if (avatarUri && isLocalFileUri(avatarUri)) {
-        const paramsWithAvatarString = { ...params };
-        paramsWithAvatarString.avatar = avatarUri;
-
-        const formData = createFormDataFromObject(paramsWithAvatarString, {
+      if (shouldUploadFile) {
+        const formData = createFormDataFromObject(userData, {
           fieldName: 'avatar',
           fileUri: avatarUri,
-          mimeType: extractFileType(params.avatar),
-          fileName: extractFileName(params.avatar),
+          mimeType: extractFileType(avatar),
+          fileName: extractFileName(avatar),
         });
 
         return makeRequest<UserResponse>(
@@ -77,25 +75,8 @@ export const UserApi = {
         );
       }
 
-      // Очищаем params от avatar, если это URL с сервера или невалидное значение
-      const cleanParams = { ...params };
-
-      // Проверяем avatar: если это URL с сервера или строка, содержащая путь к аватару
-      if (cleanParams.avatar !== undefined && cleanParams.avatar !== null) {
-        const avatarValue = cleanParams.avatar;
-
-        // Проверяем, является ли avatar URL с сервера
-        const isServerUrl =
-          typeof avatarValue === 'string' &&
-          (avatarValue.includes('/uploads/avatars/') ||
-            avatarValue.startsWith('http://') ||
-            avatarValue.startsWith('https://'));
-
-        // Если это URL с сервера, удаляем его из параметров
-        if (isServerUrl) {
-          delete cleanParams.avatar;
-        }
-      }
+      const cleanParams = { ...userData };
+      delete cleanParams.avatar;
 
       return makeRequest<UserResponse>(
         {

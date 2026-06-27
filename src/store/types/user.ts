@@ -1,4 +1,4 @@
-import { UpdateUserParams } from '@services';
+import { UpdateUserRequest } from '@services';
 
 export interface User {
   id: string;
@@ -39,10 +39,10 @@ export interface UserActions {
   deleteUser: ({ options }: { options?: RequestOptions }) => Promise<{ success: boolean }>;
   clearUserData: () => Promise<void>;
   updateUser: ({
-    options,
     params,
+    options,
   }: {
-    params: UpdateUserParams;
+    params: UpdateUserRequest;
     options?: RequestOptions;
-  }) => Promise<{ success: boolean }>;
+  }) => Promise<{ success: boolean; phoneIsChanged?: boolean }>;
 }

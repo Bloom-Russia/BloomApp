@@ -1,3 +1,5 @@
+// formDataUtils.ts
+
 export const extractFileUri = (file: any): string | null => {
   if (!file) {
     return null;
@@ -46,7 +48,10 @@ export const isLocalFileUri = (uri: string): boolean => {
     uri.startsWith('file://') ||
     uri.startsWith('content://') ||
     uri.startsWith('/storage/') ||
-    uri.startsWith('data:')
+    uri.startsWith('data:') ||
+    uri.includes('/private/var/') || // iOS
+    uri.includes('/var/mobile/') || // iOS
+    uri.includes('/data/') // Android
   );
 };
 
@@ -76,9 +81,6 @@ export const createFormDataFromObject = <T extends Record<string, any>>(
   const formData = new FormData();
 
   Object.entries(data).forEach(([key, value]) => {
-    if (key === 'avatar') {
-      return;
-    }
     if (value !== undefined && value !== null && value !== '') {
       const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
       formData.append(key, stringValue);
@@ -90,12 +92,23 @@ export const createFormDataFromObject = <T extends Record<string, any>>(
     const extension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
     const finalFileName = fileName || `file-${Date.now()}.${extension}`;
 
+    // Для React Native FormData
     formData.append(fieldName, {
       uri: fileUri,
       type: mimeType,
       name: finalFileName,
-    });
+    } as any);
   }
 
   return formData;
+};
+
+// Новая функция для проверки, является ли avatar серверным URL
+export const isServerAvatarUrl = (uri: string): boolean => {
+  if (!uri) {
+    return false;
+  }
+  return (
+    uri.includes('/uploads/avatars/') || uri.startsWith('http://') || uri.startsWith('https://')
+  );
 };

@@ -17,26 +17,27 @@ export const useLogOut = (setIsLoading: (value: boolean) => void) => {
         errorCodeCallBack: setErrorMessageWithTimeout,
       },
     });
-    if (success) {
-      setIsLoading(true);
-      await clearUserData();
 
-      try {
-        const biometrics = new ReactNativeBiometrics();
-        const { keysExist } = await biometrics.biometricKeysExist();
-        if (keysExist) {
-          await biometrics.deleteKeys();
-        }
-      } catch (error) {
-        console.error('Ошибка удаления биометрических ключей:', error);
-      }
-
-      await SecureStorageService.clearAll();
-      setIsLoading(false);
-      await setIsVerified(false);
-    } else {
+    if (!success) {
       console.error('Ошибка выхода из системы.');
     }
+
+    setIsLoading(true);
+    await clearUserData();
+
+    try {
+      const biometrics = new ReactNativeBiometrics();
+      const { keysExist } = await biometrics.biometricKeysExist();
+      if (keysExist) {
+        await biometrics.deleteKeys();
+      }
+    } catch (error) {
+      console.error('Ошибка удаления биометрических ключей:', error);
+    }
+
+    await SecureStorageService.clearAll();
+    await setIsVerified(false);
+    setIsLoading(false);
   }, [clearUserData, setErrorMessageWithTimeout, setIsLoading, setIsVerified]);
 
   return { logOutHandler };

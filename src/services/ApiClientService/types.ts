@@ -124,24 +124,24 @@ export interface UserResponse {
 }
 
 export interface UpdateUserData {
-  name: string;
-  lastName: string;
+  name?: string;
+  lastName?: string;
   patronymic?: string;
-  birthday: string;
+  birthday?: string;
   telegram?: string;
-  experience: string;
+  experience?: string;
   max?: string;
-  city: string;
-  professions: string[];
+  city?: string;
+  professions?: string[];
   email?: string;
-  address: string;
-  phoneNumber: string;
-  avatar?: string | { uri: string; type?: string; name?: string };
+  address?: string;
+  phoneNumber?: string;
+  avatar?: string; // может быть, но обычно не используется
 }
 
-export type UpdateUserRequest = UpdateUserData | FormData;
-
-export interface UpdateUserParams {
-  userData: UpdateUserRequest;
-  messagePhoneNumberIsChanged?: () => void;
-}
+export type UpdateUserRequest =
+  | FormData
+  | {
+      userData: UpdateUserData;
+      avatar?: string | null;
+    };

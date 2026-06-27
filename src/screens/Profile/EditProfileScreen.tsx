@@ -2,7 +2,7 @@ import { useErrorWithTimeout, useHandleExitApp, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { UpdateUserData } from '@services';
+import { UpdateUserData, UpdateUserRequest } from '@services';
 import { ICity, IProfession, useAppStore, useUserStore } from '@store';
 import {
   Avatar,
@@ -417,17 +417,23 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       phoneNumber: normalizePhoneNumber(phone),
     };
 
-    if (avatar) {
-      userData.avatar = avatar;
-    }
+    // Просто передаем avatar отдельно
+    const params: UpdateUserRequest = {
+      userData,
+      avatar: avatar || undefined,
+    };
 
-    const { success } = await updateUser({
-      params: { userData, messagePhoneNumberIsChanged },
+    const { success, phoneIsChanged } = await updateUser({
+      params,
       options: { changeLoading: setLoading, errorCodeCallBack: setErrorMessageWithTimeout },
     });
 
     if (success) {
-      navigation.navigate(EScreens.PROFILE_SCREEN);
+      if (phoneIsChanged) {
+        messagePhoneNumberIsChanged();
+      } else {
+        navigation.navigate(EScreens.PROFILE_SCREEN);
+      }
     }
   }, [
     validateForm,
@@ -521,7 +527,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             value={patronymic}
             onChangeValue={setPatronymic}
             title="Отчество"
-            marginBottom={ESpacings.s24}
+            marginBottom={ESpacings.s12}
           />
 
           <View ref={lastNameRef}>

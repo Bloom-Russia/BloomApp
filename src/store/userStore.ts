@@ -76,11 +76,10 @@ const userStore = create<UserState & UserActions>()(
           return { success: false };
         },
         updateUser: async ({ params, options }) => {
-          const { userData, messagePhoneNumberIsChanged } = params;
           const { errorCodeCallBack, changeLoading } = options || {};
 
           const { data, success } = await ApiClientService.updateUser({
-            params: userData,
+            params: params,
             options: {
               errorCodeCallBack,
               changeLoading,
@@ -96,14 +95,13 @@ const userStore = create<UserState & UserActions>()(
               SecureStorageKeys.PHONE_NUMBER,
               data.user.phoneNumber,
             );
-            messagePhoneNumberIsChanged?.();
-            return { success: true };
+            return { success: true, phoneIsChanged: data.phoneIsChanged };
           }
 
           set((state) => ({
             user: { ...state.user, ...data.user },
           }));
-          return { success: true };
+          return { success: true, phoneIsChanged: data.phoneIsChanged };
         },
       }),
       {
