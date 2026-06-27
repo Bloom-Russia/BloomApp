@@ -1,4 +1,4 @@
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Block, Colors, ERounding, ESize, ESpacings, Icon, IconNames, Typography } from '@UIKit';
 import { parseDateFromString } from '@utils';
 import React, { useEffect, useState } from 'react';
@@ -115,15 +115,15 @@ export const DateTimeInputPicker: React.FC<Props> = ({
         </AbsoluteContainer>
       </Block>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-          maximumDate={new Date()}
-        />
-      )}
+      {/*{showDatePicker && (*/}
+      {/*  <DateTimePicker*/}
+      {/*    value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}*/}
+      {/*    mode="date"*/}
+      {/*    display={Platform.OS === 'ios' ? 'spinner' : 'default'}*/}
+      {/*    onChange={onDateChange}*/}
+      {/*    maximumDate={new Date()}*/}
+      {/*  />*/}
+      {/*)}*/}
 
       {isError && errorText && (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
