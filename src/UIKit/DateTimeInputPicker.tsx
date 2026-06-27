@@ -1,8 +1,18 @@
-import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { Block, Colors, ERounding, ESize, ESpacings, Icon, IconNames, Typography } from '@UIKit';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import {
+  Block,
+  Colors,
+  ERounding,
+  ESize,
+  ESpacings,
+  Icon,
+  IconNames,
+  Row,
+  Typography,
+} from '@UIKit';
 import { parseDateFromString } from '@utils';
 import React, { useEffect, useState } from 'react';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Modal, Platform, Pressable } from 'react-native';
 import MaskInput from 'react-native-mask-input';
 import styled from 'styled-components';
 
@@ -109,21 +119,61 @@ export const DateTimeInputPicker: React.FC<Props> = ({
           placeholderTextColor={Colors.white}
         />
         <AbsoluteContainer>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <Pressable onPress={() => setShowDatePicker(true)}>
             <Icon color={Colors.white} size={ESize.s24} name={IconNames.calendar} />
-          </TouchableOpacity>
+          </Pressable>
         </AbsoluteContainer>
       </Block>
-
-      {/*{showDatePicker && (*/}
-      {/*  <DateTimePicker*/}
-      {/*    value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}*/}
-      {/*    mode="date"*/}
-      {/*    display={Platform.OS === 'ios' ? 'spinner' : 'default'}*/}
-      {/*    onChange={onDateChange}*/}
-      {/*    maximumDate={new Date()}*/}
-      {/*  />*/}
-      {/*)}*/}
+      {showDatePicker ? (
+        Platform.OS === 'ios' ? (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={showDatePicker}
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <Block flex={1} backgroundColor={'rgba(0,0,0,0.5)'} justifyContent={'flex-end'}>
+              <Container
+                backgroundColor={Colors.white}
+                justifyContent="center"
+                alignItems="center"
+                paddingBottom={ESpacings.s2}
+              >
+                <HeaderModal padding={ESpacings.s16} justifyContent={'space-between'}>
+                  <Pressable onPress={() => setShowDatePicker(false)}>
+                    <Typography.B16 color={Colors.primary}>Отмена</Typography.B16>
+                  </Pressable>
+                  <Typography.B16>{title}</Typography.B16>
+                  <Pressable onPress={() => setShowDatePicker(false)}>
+                    <Typography.B16 color={Colors.primary}>Готово</Typography.B16>
+                  </Pressable>
+                </HeaderModal>
+                <DateTimePicker
+                  value={
+                    date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)
+                  }
+                  mode="date"
+                  display="spinner"
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  themeVariant="light"
+                  style={{ backgroundColor: Colors.white || '#FFFFFF' }}
+                />
+              </Container>
+            </Block>
+          </Modal>
+        ) : (
+          <DateTimePicker
+            value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}
+            mode="date"
+            display="spinner"
+            onChange={onDateChange}
+            maximumDate={new Date()}
+            themeVariant="light"
+            style={{ backgroundColor: Colors.white || '#FFFFFF' }}
+          />
+        )
+      ) : null}
 
       {isError && errorText && (
         <Typography.B14 color={Colors.red} marginBottom={ESpacings.s8} marginTop={ESpacings.s8}>
@@ -138,6 +188,17 @@ const AbsoluteContainer = styled(Block)({
   position: 'absolute',
   top: 12,
   right: 12,
+});
+
+const HeaderModal = styled(Row)({
+  borderBottomWidth: 1,
+  borderBottomColor: '#E5E5E5',
+  width: '100%',
+});
+
+const Container = styled(Block)({
+  borderTopLeftRadius: ERounding.r20,
+  borderTopRightRadius: ERounding.r20,
 });
 
 const StyledMaskInput = styled(MaskInput)<{

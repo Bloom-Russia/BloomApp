@@ -1,6 +1,5 @@
 import { useErrorWithTimeout, useHandleExitApp, useLogOut } from '@hooks';
 import { EScreens, ProfileStackParamList } from '@navigation';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { UpdateUserData, UpdateUserRequest } from '@services';
 import { ICity, IProfession, useAppStore, useUserStore } from '@store';
@@ -22,18 +21,10 @@ import {
   SelectItem,
   Typography,
 } from '@UIKit';
-import { getSelectedName, normalizePhoneNumber, parseDateFromString } from '@utils';
+import { getSelectedName, normalizePhoneNumber } from '@utils';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import {
-  findNodeHandle,
-  Modal,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  UIManager,
-  View,
-} from 'react-native';
+import { findNodeHandle, ScrollView, TouchableOpacity, UIManager, View } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 
 type Experience = {
@@ -456,36 +447,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     navigation,
   ]);
 
-  const formatDate = (date: Date | null): string => {
-    if (!date) {
-      return '';
-    }
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`;
-  };
-
-  const [inputValue, setInputValue] = useState(
-    birthday || (birthDate ? formatDate(birthDate) : ''),
-  );
-
-  const onDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      const normalizedDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-      );
-      setBirthDate(normalizedDate);
-      setBirthDateError(false);
-      const formatted = formatDate(normalizedDate);
-      setInputValue(formatted);
-      setBirthday(formatted);
-    }
-  };
-
   return (
     <ScreenContainer
       scrollEnabled={false}
@@ -554,8 +515,8 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
                 setBirthDate(d);
                 setBirthDateError(false);
               }}
-              showDatePicker={showDatePicker}
               setShowDatePicker={setShowDatePicker}
+              showDatePicker={showDatePicker}
               title="Дата рождения"
               errorText="Введите дату рождения"
               marginBottom={ESpacings.s12}
@@ -729,73 +690,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
         showSearch
         maxSelected={undefined}
       />
-
-      {showDatePicker ? (
-        Platform.OS === 'ios' ? (
-          <Modal
-            transparent={true}
-            animationType="slide"
-            visible={showDatePicker}
-            onRequestClose={() => setShowDatePicker(false)}
-          >
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'flex-end',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: Colors.white || '#FFFFFF',
-                  borderTopLeftRadius: 20,
-                  borderTopRightRadius: 20,
-                  paddingBottom: Platform.OS === 'ios' ? 0 : 20,
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    padding: 16,
-                    borderBottomWidth: 1,
-                    borderBottomColor: '#E5E5E5',
-                  }}
-                >
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Typography.B16 color={Colors.primary}>Отмена</Typography.B16>
-                  </TouchableOpacity>
-                  <Typography.B16>Дата рождения</Typography.B16>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Typography.B16 color={Colors.primary}>Готово</Typography.B16>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  value={
-                    birthDate || parseDateFromString(birthday) || new Date(1990, 0, 1, 12, 0, 0)
-                  }
-                  mode="date"
-                  display="spinner"
-                  onChange={onDateChange}
-                  maximumDate={new Date()}
-                  themeVariant="light"
-                  style={{ backgroundColor: Colors.white || '#FFFFFF' }}
-                />
-              </View>
-            </View>
-          </Modal>
-        ) : (
-          <DateTimePicker
-            value={birthDate || parseDateFromString(birthday) || new Date(1990, 0, 1, 12, 0, 0)}
-            mode="date"
-            display="spinner"
-            onChange={onDateChange}
-            maximumDate={new Date()}
-            themeVariant="light"
-            style={{ backgroundColor: Colors.white || '#FFFFFF' }}
-          />
-        )
-      ) : null}
     </ScreenContainer>
   );
 };
