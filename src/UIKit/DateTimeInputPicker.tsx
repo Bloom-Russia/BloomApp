@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@UIKit';
 import { parseDateFromString } from '@utils';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, Platform, Pressable } from 'react-native';
 import MaskInput from 'react-native-mask-input';
 import styled from 'styled-components';
@@ -99,6 +99,14 @@ export const DateTimeInputPicker: React.FC<Props> = ({
     }
   };
 
+  const onRequestClose = useCallback(() => {
+    setShowDatePicker(false);
+  }, [setShowDatePicker]);
+
+  const onRequestOpen = useCallback(() => {
+    setShowDatePicker(true);
+  }, [setShowDatePicker]);
+
   return (
     <Block marginBottom={marginBottom}>
       {title && (
@@ -119,7 +127,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
           placeholderTextColor={Colors.white}
         />
         <AbsoluteContainer>
-          <Pressable onPress={() => setShowDatePicker(true)}>
+          <Pressable onPress={onRequestOpen}>
             <Icon color={Colors.white} size={ESize.s24} name={IconNames.calendar} />
           </Pressable>
         </AbsoluteContainer>
@@ -130,21 +138,17 @@ export const DateTimeInputPicker: React.FC<Props> = ({
             transparent={true}
             animationType="slide"
             visible={showDatePicker}
-            onRequestClose={() => setShowDatePicker(false)}
+            onRequestClose={onRequestClose}
           >
-            <Block flex={1} backgroundColor={'rgba(0,0,0,0.5)'} justifyContent={'flex-end'}>
+            <PressableContainer onPress={onRequestClose}>
               <Container
                 backgroundColor={Colors.white}
                 justifyContent="center"
                 alignItems="center"
                 paddingBottom={ESpacings.s2}
               >
-                <HeaderModal padding={ESpacings.s16} justifyContent={'space-between'}>
-                  <Pressable onPress={() => setShowDatePicker(false)}>
-                    <Typography.B16 color={Colors.primary}>Отмена</Typography.B16>
-                  </Pressable>
-                  <Typography.B16>{title}</Typography.B16>
-                  <Pressable onPress={() => setShowDatePicker(false)}>
+                <HeaderModal padding={ESpacings.s16} justifyContent={'flex-end'}>
+                  <Pressable onPress={onRequestClose}>
                     <Typography.B16 color={Colors.primary}>Готово</Typography.B16>
                   </Pressable>
                 </HeaderModal>
@@ -157,10 +161,9 @@ export const DateTimeInputPicker: React.FC<Props> = ({
                   onChange={onDateChange}
                   maximumDate={new Date()}
                   themeVariant="light"
-                  style={{ backgroundColor: Colors.white || '#FFFFFF' }}
                 />
               </Container>
-            </Block>
+            </PressableContainer>
           </Modal>
         ) : (
           <DateTimePicker
@@ -170,7 +173,6 @@ export const DateTimeInputPicker: React.FC<Props> = ({
             onChange={onDateChange}
             maximumDate={new Date()}
             themeVariant="light"
-            style={{ backgroundColor: Colors.white || '#FFFFFF' }}
           />
         )
       ) : null}
@@ -188,6 +190,12 @@ const AbsoluteContainer = styled(Block)({
   position: 'absolute',
   top: 12,
   right: 12,
+});
+
+const PressableContainer = styled(Pressable)({
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'flex-end',
 });
 
 const HeaderModal = styled(Row)({
