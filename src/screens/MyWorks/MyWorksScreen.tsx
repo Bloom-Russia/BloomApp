@@ -1,14 +1,24 @@
 import { EScreens, MyWorksStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Block, Colors, ESpacings, ScreenContainer, Typography } from '@UIKit';
-import React, { memo } from 'react';
+import { Block, Colors, ESpacings, IconNames, ScreenContainer, Typography } from '@UIKit';
+import React, { memo, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
 
 type MyWorksScreenProps = NativeStackScreenProps<MyWorksStackParamList, EScreens.MY_WORKS_SCREEN>;
 
-const MyWorksScreenComponent: React.FC<MyWorksScreenProps> = () => {
+const MyWorksScreenComponent: React.FC<MyWorksScreenProps> = ({ navigation }) => {
+  const navigateToCreateWork = useCallback(() => {
+    navigation.navigate(EScreens.CREATE_WORK_SCREEN);
+  }, [navigation]);
+
   return (
-    <ScreenContainer scrollEnabled={false} title="Записи" paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer
+      icon={IconNames.plus}
+      onPressIcon={navigateToCreateWork}
+      title="Записи"
+      paddingHorizontal={ESpacings.s16}
+      hideBackIcon
+    >
       <Block
         flex={1}
         backgroundColor={Colors.black}

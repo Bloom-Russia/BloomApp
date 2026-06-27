@@ -1,14 +1,17 @@
-import { ChatStackParamList, EScreens } from '@navigation';
+import { EScreens, MyWorksStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Block, Colors, ESpacings, ScreenContainer, Typography } from '@UIKit';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
 
-type ChatScreenProps = NativeStackScreenProps<ChatStackParamList, EScreens.CHAT_SCREEN>;
+type CreateWorkScreenProps = NativeStackScreenProps<
+  MyWorksStackParamList,
+  EScreens.CREATE_WORK_SCREEN
+>;
 
-const ChatScreenComponent: React.FC<ChatScreenProps> = () => {
+const CreateWorkScreenComponent: React.FC<CreateWorkScreenProps> = () => {
   return (
-    <ScreenContainer hideBackIcon title="Чат" paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer title="Создание записи" paddingHorizontal={ESpacings.s16}>
       <Block
         flex={1}
         backgroundColor={Colors.black}
@@ -16,11 +19,11 @@ const ChatScreenComponent: React.FC<ChatScreenProps> = () => {
         padding={ESpacings.s16}
       >
         <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
-          Chat Screen
+          Создание записи
         </Typography.B14>
       </Block>
     </ScreenContainer>
   );
 };
 
-export const ChatScreen = memo(ChatScreenComponent, isEqual);
+export const CreateWorkScreen = memo(CreateWorkScreenComponent, isEqual);

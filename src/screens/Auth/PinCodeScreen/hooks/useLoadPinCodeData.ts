@@ -1,6 +1,7 @@
 import { useAuth } from '@contexts';
 import { useErrorWithTimeout } from '@hooks';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
+import { useUserStore } from '@store';
 import { useCallback, useEffect } from 'react';
 import { PinMode } from '../types';
 
@@ -14,6 +15,7 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
   const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
   const { isVerified, setIsVerified } = useAuth();
   useEffect(() => cleanupErrors, [cleanupErrors]);
+  const { clearUserData } = useUserStore();
 
   const loadPinCodeData = useCallback(async () => {
     try {
@@ -25,7 +27,11 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
       });
 
       if (!success) {
+        setLoading(true);
+        await clearUserData();
+        await SecureStorageService.clearAll();
         await setIsVerified(!isVerified);
+        setLoading(false);
       }
 
       const hasPin = !!(success && data?.hasPin);
@@ -46,6 +52,7 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
       await setIsVerified(!isVerified);
     }
   }, [
+    clearUserData,
     isVerified,
     setErrorMessageWithTimeout,
     setIsPinCodeSet,

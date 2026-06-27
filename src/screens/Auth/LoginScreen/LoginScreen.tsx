@@ -127,7 +127,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
   }, [isButtonDisabled, phone, setErrorMessageWithTimeout]);
 
   return (
-    <ScreenContainer title="Авторизация" paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer hideBackIcon title="Авторизация" paddingHorizontal={ESpacings.s16}>
       <Block flex={1} justifyContent="center">
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />

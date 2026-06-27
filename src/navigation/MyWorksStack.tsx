@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MyWorksScreen } from '@screens';
+import { CreateWorkScreen, MyWorksScreen } from '@screens';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
 import { MyWorksStackParamList, MyWorksStackProps } from './navigationTypes';
@@ -15,6 +15,7 @@ const MyWorks: React.FC<MyWorksStackProps> = () => {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name={EScreens.MY_WORKS_SCREEN} component={MyWorksScreen} />
+        <Stack.Screen name={EScreens.CREATE_WORK_SCREEN} component={CreateWorkScreen} />
       </Stack.Navigator>
     </>
   );

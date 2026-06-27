@@ -127,6 +127,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
       onPressIcon={navigateToEditProfile}
       title={'Профиль'}
       paddingHorizontal={ESpacings.s16}
+      hideBackIcon
     >
       <Block flex={1} padding={ESpacings.s16}>
         <Block flex={1} marginBottom={ESpacings.s24}>

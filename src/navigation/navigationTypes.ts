@@ -45,6 +45,7 @@ export type ChatStackParamList = {
 
 export type MyWorksStackParamList = {
   [EScreens.MY_WORKS_SCREEN]: undefined;
+  [EScreens.CREATE_WORK_SCREEN]: undefined;
 };
 
 export type ProfileStackParamList = {

@@ -19,6 +19,7 @@ type Props = {
   spaceTop?: number;
   onPressIcon?: () => void;
   icon?: IconNames;
+  hideBackIcon?: boolean;
 };
 
 type StyledScrollViewProps = {
@@ -29,17 +30,28 @@ type HeaderProps = {
   title: string;
   onPressIcon?: () => void;
   icon?: IconNames;
+  hideBackIcon?: boolean;
 };
 
-export const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon, hideBackIcon }) => {
   const navigation = useNavigation();
   return (
     <Row
       marginBottom={ESpacings.s20}
-      paddingRight={ESpacings.s24}
-      alignItems={'center'}
+      paddingRight={hideBackIcon ? ESpacings.s24 : ESpacings.s56}
       paddingLeft={icon ? ESpacings.s56 : ESpacings.s24}
+      alignItems={'center'}
     >
+      {hideBackIcon ? null : (
+        <StyledPressableBack
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? 'rgba(255,255,255,0.2)' : Colors.transparent,
+          })}
+          onPress={navigation.goBack}
+        >
+          <Icon size={ESize.s20} color={Colors.white} name={IconNames.back} />
+        </StyledPressableBack>
+      )}
       <Row justifyContent={'center'} flex={1}>
         <Typography.B16 numberOfLines={1} color={Colors.white}>
           {title}
@@ -50,9 +62,9 @@ export const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon }) => {
           style={({ pressed }) => ({
             backgroundColor: pressed ? 'rgba(255,255,255,0.2)' : Colors.transparent,
           })}
-          onPress={onPressIcon || navigation.goBack}
+          onPress={onPressIcon}
         >
-          <Icon size={ESize.s16} color={Colors.white} name={icon} />
+          <Icon size={ESize.s20} color={Colors.white} name={icon} />
         </StyledPressable>
       ) : null}
     </Row>
@@ -68,6 +80,7 @@ const ScreenContainerComponent: React.FC<Props> = ({
   paddingBottom = ESpacings.s16,
   spaceTop,
   onPressIcon,
+  hideBackIcon,
   icon,
 }) => {
   const { loading, hideLoader, showLoader } = useLoading();
@@ -91,7 +104,9 @@ const ScreenContainerComponent: React.FC<Props> = ({
           backgroundColor={Colors.black}
           animated={true}
         />
-        {title ? <Header icon={icon} onPressIcon={onPressIcon} title={title} /> : null}
+        {title ? (
+          <Header hideBackIcon={hideBackIcon} icon={icon} onPressIcon={onPressIcon} title={title} />
+        ) : null}
         <StyledScrollView
           refreshControl={
             reload ? <RefreshControl refreshing={loading} onRefresh={handleReload} /> : undefined
@@ -111,7 +126,7 @@ const ScreenContainerComponent: React.FC<Props> = ({
       backgroundColor={Colors.black}
       paddingBottom={paddingBottom}
     >
-      {title ? <Header title={title} /> : null}
+      {title ? <Header hideBackIcon={hideBackIcon} title={title} /> : null}
       <Block flex={1} paddingHorizontal={paddingHorizontal}>
         {children}
       </Block>
@@ -142,5 +157,18 @@ const StyledPressable = styled(Pressable).attrs(() => ({
   justifyContent: 'center',
   borderWidth: 1,
   borderColor: Colors.white,
+  borderRadius: ESize.s8,
+});
+
+const StyledPressableBack = styled(Pressable).attrs(() => ({
+  android_ripple: {
+    borderless: false,
+    color: Colors.white,
+  },
+}))({
+  alignItems: 'center',
+  height: ESize.s32,
+  width: ESize.s32,
+  justifyContent: 'center',
   borderRadius: ESize.s8,
 });

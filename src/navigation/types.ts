@@ -24,6 +24,7 @@ export enum EScreens {
 
   // WORKS
   MY_WORKS_SCREEN = 'MyWorksScreen',
+  CREATE_WORK_SCREEN = 'CreateWorkScreen',
 
   // PROFILE
   PROFILE_SCREEN = 'ProfileScreen',

@@ -8,7 +8,7 @@ type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, EScreens.HOME_
 
 const HomeScreenComponent: React.FC<HomeScreenProps> = () => {
   return (
-    <ScreenContainer scrollEnabled={false} title="Главная" paddingHorizontal={ESpacings.s16}>
+    <ScreenContainer hideBackIcon={true} title="Главная" paddingHorizontal={ESpacings.s16}>
       <Block
         flex={1}
         backgroundColor={Colors.black}
