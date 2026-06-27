@@ -53,7 +53,7 @@ export async function makeRequest<T>(
 
     return {
       data: responseData.data as T,
-      success: responseData.success !== false,
+      success: responseData.success,
       message: responseData.message,
       errors: responseData.errors,
     } as ApiResponse<T>;

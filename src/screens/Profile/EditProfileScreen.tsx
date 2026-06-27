@@ -409,7 +409,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
       birthday,
       telegram: telegram || undefined,
       experience: experience,
-      max: normalizePhoneNumber(max),
+      max: max ? normalizePhoneNumber(max) : undefined,
       city: selectedCity,
       professions: selectedProfessions,
       email: email || undefined,
@@ -504,6 +504,23 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             </TouchableOpacity>
           </Block>
 
+          <View ref={lastNameRef}>
+            <Input
+              placeholder="Фамилия"
+              autoCapitalize="sentences"
+              value={lastName}
+              onChangeValue={(v) => {
+                setLastName(v);
+                setLastNameError(false);
+              }}
+              title="Фамилия"
+              marginBottom={ESpacings.s12}
+              errorText="Введите фамилию"
+              isError={lastNameError}
+              autoComplete="family-name"
+            />
+          </View>
+
           <View ref={firstNameRef}>
             <Input
               placeholder="Имя"
@@ -529,23 +546,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             title="Отчество"
             marginBottom={ESpacings.s12}
           />
-
-          <View ref={lastNameRef}>
-            <Input
-              placeholder="Фамилия"
-              autoCapitalize="sentences"
-              value={lastName}
-              onChangeValue={(v) => {
-                setLastName(v);
-                setLastNameError(false);
-              }}
-              title="Фамилия"
-              marginBottom={ESpacings.s12}
-              errorText="Введите фамилию"
-              isError={lastNameError}
-              autoComplete="family-name"
-            />
-          </View>
 
           <View ref={birthDateRef}>
             <DateTimeInputPicker

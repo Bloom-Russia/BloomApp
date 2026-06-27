@@ -1,3 +1,4 @@
+import { useAuth } from '@contexts';
 import { useErrorWithTimeout } from '@hooks';
 import { ApiClientService, SecureStorageKeys, SecureStorageService } from '@services';
 import { useCallback, useEffect } from 'react';
@@ -11,7 +12,7 @@ type Props = {
 
 export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: Props) => {
   const { setErrorMessageWithTimeout, cleanupErrors } = useErrorWithTimeout();
-
+  const { isVerified, setIsVerified } = useAuth();
   useEffect(() => cleanupErrors, [cleanupErrors]);
 
   const loadPinCodeData = useCallback(async () => {
@@ -23,7 +24,10 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
         },
       });
 
-      // ✅ Приводим к boolean (false если undefined)
+      if (!success) {
+        await setIsVerified(!isVerified);
+      }
+
       const hasPin = !!(success && data?.hasPin);
 
       setPinMode(hasPin ? PinMode.ENTER : PinMode.SET);
@@ -39,8 +43,16 @@ export const useLoadPinCodeData = ({ setIsPinCodeSet, setPinMode, setLoading }: 
       setPinMode(PinMode.SET);
       setIsPinCodeSet(false);
       await SecureStorageService.removeValue(SecureStorageKeys.PIN_CODE_IS_SET);
+      await setIsVerified(!isVerified);
     }
-  }, [setErrorMessageWithTimeout, setIsPinCodeSet, setLoading, setPinMode]);
+  }, [
+    isVerified,
+    setErrorMessageWithTimeout,
+    setIsPinCodeSet,
+    setIsVerified,
+    setLoading,
+    setPinMode,
+  ]);
 
   return { loadPinCodeData };
 };
