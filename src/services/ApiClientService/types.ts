@@ -124,19 +124,19 @@ export interface UserResponse {
 }
 
 export interface UpdateUserData {
-  name?: string;
-  lastName?: string;
-  patronymic?: string;
-  birthday?: string;
-  telegram?: string;
-  experience?: string;
-  max?: string;
-  city?: string;
-  professions?: string[];
-  email?: string;
-  address?: string;
-  phoneNumber?: string;
-  avatar?: string; // может быть, но обычно не используется
+  name: string;
+  lastName: string;
+  patronymic?: string | null;
+  birthday: string;
+  telegram?: string | null;
+  experience: string;
+  max?: string | null;
+  city: string;
+  professions: string[];
+  email?: string | null;
+  address: string;
+  phoneNumber: string;
+  avatar?: string | null;
 }
 
 export type UpdateUserRequest =

@@ -396,14 +396,14 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     const userData: UpdateUserData = {
       name: firstName,
       lastName,
-      patronymic: patronymic || undefined,
+      patronymic: patronymic || null,
       birthday,
-      telegram: telegram || undefined,
+      telegram: telegram || null,
       experience: experience,
-      max: max ? normalizePhoneNumber(max) : undefined,
+      max: max ? normalizePhoneNumber(max) : null,
       city: selectedCity,
       professions: selectedProfessions,
-      email: email || undefined,
+      email: email || null,
       address: studioAddress,
       phoneNumber: normalizePhoneNumber(phone),
     };
@@ -411,7 +411,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     // Просто передаем avatar отдельно
     const params: UpdateUserRequest = {
       userData,
-      avatar: avatar || undefined,
+      avatar: avatar || null,
     };
 
     const { success, phoneIsChanged } = await updateUser({
