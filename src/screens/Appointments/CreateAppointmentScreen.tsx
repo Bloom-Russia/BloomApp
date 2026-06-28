@@ -2,19 +2,16 @@ import { AppointmentsStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Block,
-  Colors,
   DateTimeInputPicker,
   ESpacings,
   Input,
   MaskedPhoneInput,
-  MaskedTimeInput,
-  Row,
   ScreenContainer,
-  Typography,
 } from '@UIKit';
 import React, { memo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
 import { TextInput, View } from 'react-native';
+import { AppointmentTime } from './components/AppointmentTime';
 
 type CreateAppointmentScreenProps = NativeStackScreenProps<
   AppointmentsStackParamList,
@@ -118,38 +115,15 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
         </View>
 
         <View ref={timeInputRef}>
-          <Block marginBottom={ESpacings.s12}>
-            <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
-              Время
-            </Typography.B14>
-            <Row alignItems={'center'}>
-              <Typography.B14 marginRight={ESpacings.s12} color={Colors.white}>
-                с
-              </Typography.B14>
-              <MaskedTimeInput
-                time={startTime}
-                setTime={(v) => {
-                  setStartTime(v);
-                  setTimeError(false);
-                }}
-              />
-              <Typography.B14 paddingHorizontal={ESpacings.s12} color={Colors.white}>
-                до
-              </Typography.B14>
-              <MaskedTimeInput
-                time={finishTime}
-                setTime={(v) => {
-                  setFinishTime(v);
-                  setTimeError(false);
-                }}
-              />
-            </Row>
-            {timeError && (
-              <Typography.B14 color={Colors.red} marginTop={ESpacings.s4}>
-                Введите корректное время (00:00 - 23:59)
-              </Typography.B14>
-            )}
-          </Block>
+          <AppointmentTime
+            startTime={startTime}
+            finishTime={finishTime}
+            setFinishTime={setFinishTime}
+            setStartTime={setStartTime}
+            setTimeError={setTimeError}
+            isError={timeError}
+            timeErrorText={'Введите корректное время (00:00 - 23:59)'}
+          />
         </View>
       </Block>
     </ScreenContainer>
