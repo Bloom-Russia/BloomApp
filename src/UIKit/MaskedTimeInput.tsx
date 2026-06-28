@@ -20,6 +20,18 @@ export const MaskedTimeInput: React.FC<MaskInputProps> = ({
   errorText,
   isError,
 }) => {
+  const handleTimeChange = (masked: string, _unmasked: string) => {
+    if (masked.length === 1) {
+      const digit = parseInt(masked, 10);
+      if (digit >= 3 && digit <= 9) {
+        setTime(`0${digit}:`);
+        return;
+      }
+    }
+
+    setTime(masked);
+  };
+
   return (
     <Block marginBottom={marginBottom}>
       {title ? (
@@ -31,8 +43,8 @@ export const MaskedTimeInput: React.FC<MaskInputProps> = ({
         isError={isError}
         color={Colors.white}
         value={time}
-        onChangeText={(_masked, unmasked) => setTime(unmasked)}
-        mask={[/[0-2]/, /\d/, ':', /[0-5]/, /\d/]}
+        onChangeText={handleTimeChange}
+        mask={[/[0-9]/, /\d/, ':', /[0-5]/, /\d/]}
         placeholder="чч:мм"
         keyboardType="numeric"
         placeholderTextColor={Colors.white}
