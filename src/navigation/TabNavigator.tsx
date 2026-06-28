@@ -3,9 +3,9 @@ import { useUserStore } from '@store';
 import { Colors, ESize, ESpacings, Icon, IconNames, TAB_BAR_HEIGHT, Typography } from '@UIKit';
 import React, { memo, useMemo } from 'react';
 import isEqual from 'react-fast-compare';
+import { AppointmentsStack } from 'src/navigation/AppointmentsStack';
 import { ChatStack } from './ChatStack';
 import { HomeStack } from './HomeStack';
-import { MyWorksStack } from './MyWorksStack';
 import { RootTabParamList } from './navigationTypes';
 import { ProfileStack } from './ProfileStack';
 import { EScreens } from './types';
@@ -46,8 +46,8 @@ const TAB_CONFIGS = [
     label: 'Чат',
   },
   {
-    name: EScreens.MY_WORKS_STACK as const,
-    component: MyWorksStack,
+    name: EScreens.APPOINTMENTS_STACK as const,
+    component: AppointmentsStack,
     icon: IconNames.notebook,
     label: 'Записи',
   },

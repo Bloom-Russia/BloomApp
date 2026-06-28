@@ -8,7 +8,7 @@ export enum EScreens {
   PROFILE_STACK = 'ProfileStack',
   HOME_STACK = 'HomeStack',
   CHAT_STACK = 'ChatStack',
-  MY_WORKS_STACK = 'MyWorkSStack',
+  APPOINTMENTS_STACK = 'AppointmentsStack',
 
   // SCREENS
   //AUTH
@@ -22,9 +22,9 @@ export enum EScreens {
   // CHAT
   CHAT_SCREEN = 'ChatScreen',
 
-  // WORKS
-  MY_WORKS_SCREEN = 'MyWorksScreen',
-  CREATE_WORK_SCREEN = 'CreateWorkScreen',
+  // APPOINTMENTS
+  APPOINTMENTS_SCREEN = 'AppointmentsScreen',
+  CREATE_APPOINTMENT_SCREEN = 'CreateAppointmentScreen',
 
   // PROFILE
   PROFILE_SCREEN = 'ProfileScreen',

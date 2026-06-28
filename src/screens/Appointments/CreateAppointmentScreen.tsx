@@ -1,15 +1,15 @@
-import { EScreens, MyWorksStackParamList } from '@navigation';
+import { AppointmentsStackParamList, EScreens } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Block, Colors, ESpacings, ScreenContainer, Typography } from '@UIKit';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
 
-type CreateWorkScreenProps = NativeStackScreenProps<
-  MyWorksStackParamList,
-  EScreens.CREATE_WORK_SCREEN
+type CreateAppointmentScreenProps = NativeStackScreenProps<
+  AppointmentsStackParamList,
+  EScreens.CREATE_APPOINTMENT_SCREEN
 >;
 
-const CreateWorkScreenComponent: React.FC<CreateWorkScreenProps> = () => {
+const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> = () => {
   return (
     <ScreenContainer title="Создание записи" paddingHorizontal={ESpacings.s16}>
       <Block
@@ -26,4 +26,4 @@ const CreateWorkScreenComponent: React.FC<CreateWorkScreenProps> = () => {
   );
 };
 
-export const CreateWorkScreen = memo(CreateWorkScreenComponent, isEqual);
+export const CreateAppointmentScreen = memo(CreateAppointmentScreenComponent, isEqual);

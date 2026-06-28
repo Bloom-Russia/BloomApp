@@ -10,7 +10,7 @@ export type AuthorizationStackProps = NativeStackScreenProps<RootStackParamList>
 export type UnAuthorizationStackProps = NativeStackScreenProps<RootStackParamList>;
 export type HomeStackProps = NativeStackScreenProps<HomeStackParamList>;
 export type ChatStackProps = NativeStackScreenProps<ChatStackParamList>;
-export type MyWorksStackProps = NativeStackScreenProps<MyWorksStackParamList>;
+export type AppointmentsStackProps = NativeStackScreenProps<AppointmentsStackParamList>;
 export type ProfileStackProps = NativeStackScreenProps<ProfileStackParamList>;
 
 export type UnAuthStackParamList = {
@@ -31,7 +31,7 @@ export type AuthStackParamList = {
 export type RootTabParamList = {
   [EScreens.HOME_STACK]: undefined;
   [EScreens.CHAT_STACK]: undefined;
-  [EScreens.MY_WORKS_STACK]: undefined;
+  [EScreens.APPOINTMENTS_STACK]: undefined;
   [EScreens.PROFILE_STACK]: undefined;
 };
 
@@ -43,9 +43,9 @@ export type ChatStackParamList = {
   [EScreens.CHAT_SCREEN]: undefined;
 };
 
-export type MyWorksStackParamList = {
-  [EScreens.MY_WORKS_SCREEN]: undefined;
-  [EScreens.CREATE_WORK_SCREEN]: undefined;
+export type AppointmentsStackParamList = {
+  [EScreens.APPOINTMENTS_SCREEN]: undefined;
+  [EScreens.CREATE_APPOINTMENT_SCREEN]: undefined;
 };
 
 export type ProfileStackParamList = {
