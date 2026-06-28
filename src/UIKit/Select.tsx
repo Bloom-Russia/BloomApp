@@ -16,6 +16,7 @@ interface SelectProps {
   label?: string;
   errorText?: string;
   isError?: boolean;
+  required?: boolean;
   disabled?: boolean;
   marginBottom?: number;
   marginTop?: number;
@@ -31,6 +32,7 @@ const SelectComponent: React.FC<SelectProps> = ({
   disabled = false,
   marginBottom = 0,
   marginTop = 0,
+  required,
 }) => {
   const getSelectedLabel = useCallback(() => {
     return selectedValue || placeholder;
@@ -41,6 +43,11 @@ const SelectComponent: React.FC<SelectProps> = ({
       {label && (
         <Typography.B14 marginBottom={ESpacings.s8} color={Colors.white}>
           {label}
+          {required ? (
+            <Typography.B16 color={Colors.red} marginBottom={ESpacings.s8}>
+              {` *`}
+            </Typography.B16>
+          ) : null}
         </Typography.B14>
       )}
 

@@ -19,6 +19,7 @@ interface MultiSelectProps {
   marginBottom?: number;
   marginTop?: number;
   isError?: boolean;
+  required?: boolean;
   errorText?: string;
   onPress?: () => void;
 }
@@ -35,6 +36,7 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
   marginTop = 0,
   isError,
   onPress,
+  required,
 }) => {
   const getSelectedLabels = useCallback(() => {
     if (selectedValues.length === 0) {
@@ -61,6 +63,11 @@ const MultiSelectComponent: React.FC<MultiSelectProps> = ({
       {label && (
         <Typography.B14 marginBottom={ESpacings.s8} color={Colors.white}>
           {label}
+          {required ? (
+            <Typography.B16 color={Colors.red} marginBottom={ESpacings.s8}>
+              {` *`}
+            </Typography.B16>
+          ) : null}
         </Typography.B14>
       )}
 

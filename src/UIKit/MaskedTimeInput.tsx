@@ -66,9 +66,9 @@ const StyledMaskInput = styled(MaskInput)<{
   borderWidth: 1,
   borderColor: isError ? Colors.red : Colors.white,
   borderRadius: ERounding.r14,
-  paddingHorizontal: ESpacings.s10,
+  paddingHorizontal: ESpacings.s12,
   height: ESize.s48,
   color,
   fontSize: 20,
-  width: 80,
+  width: 90,
 }));

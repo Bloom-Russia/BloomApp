@@ -22,6 +22,7 @@ type Props = {
   height?: number;
   textAlignVertical?: string;
   isError?: boolean;
+  required?: boolean;
 };
 
 export const Input: React.FC<Props> = ({
@@ -41,12 +42,18 @@ export const Input: React.FC<Props> = ({
   textAlignVertical = 'center',
   isError,
   autoComplete,
+  required,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
       {title && (
         <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
           {title}
+          {required ? (
+            <Typography.B16 color={Colors.red} marginBottom={ESpacings.s8}>
+              {` *`}
+            </Typography.B16>
+          ) : null}
         </Typography.B14>
       )}
       <StyledInput

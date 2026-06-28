@@ -12,6 +12,7 @@ type MaskInputProps = {
   marginBottom?: number;
   isError?: boolean;
   autoComplete?: TextInputProps['autoComplete'];
+  required?: boolean;
 };
 
 export const MaskedPhoneInput: React.FC<MaskInputProps> = ({
@@ -22,12 +23,18 @@ export const MaskedPhoneInput: React.FC<MaskInputProps> = ({
   errorText,
   isError,
   autoComplete,
+  required,
 }) => {
   return (
     <Block marginBottom={marginBottom}>
       {title ? (
         <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
           {title}
+          {required ? (
+            <Typography.B16 color={Colors.red} marginBottom={ESpacings.s8}>
+              {` *`}
+            </Typography.B16>
+          ) : null}
         </Typography.B14>
       ) : null}
       <StyledMaskInput

@@ -7,7 +7,6 @@ import {
   Avatar,
   Block,
   Button,
-  Colors,
   DateTimeInputPicker,
   ESpacings,
   IconNames,
@@ -19,7 +18,6 @@ import {
   Select,
   SelectBottomSheet,
   SelectItem,
-  Typography,
 } from '@UIKit';
 import { getSelectedName, normalizePhoneNumber } from '@utils';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -479,6 +477,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s12}
               errorText="Введите фамилию"
               isError={lastNameError}
+              required
             />
           </View>
 
@@ -495,6 +494,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s12}
               errorText="Введите имя"
               isError={firstNameError}
+              required
             />
           </View>
 
@@ -522,16 +522,9 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               value={birthday}
               setValue={setBirthday}
               isError={birthDateError}
+              required
             />
           </View>
-
-          <Typography.B20
-            marginTop={ESpacings.s8}
-            marginBottom={ESpacings.s16}
-            color={Colors.white}
-          >
-            Контактная информация
-          </Typography.B20>
 
           <View ref={phoneRef}>
             <MaskedPhoneInput
@@ -545,6 +538,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               errorText="Введите корректный номер телефона"
               isError={phoneError}
               autoComplete="tel"
+              required
             />
           </View>
 
@@ -581,6 +575,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               label="Опыт"
               errorText="Выберите свой опыт"
               isError={experienceError}
+              required
             />
           </View>
 
@@ -593,6 +588,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               label="Город"
               errorText="Выберите город"
               isError={cityError}
+              required
             />
           </View>
 
@@ -610,19 +606,13 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s12}
               errorText="Выберите хотя бы одну профессию"
               isError={professionsError}
+              required
             />
           </View>
 
-          <Typography.B20
-            marginTop={ESpacings.s8}
-            marginBottom={ESpacings.s16}
-            color={Colors.white}
-          >
-            Адрес студии
-          </Typography.B20>
-
           <View ref={studioAddressRef}>
             <Input
+              title={'Адрес студии'}
               placeholder="Адрес студии"
               value={studioAddress}
               onChangeValue={(v) => {
@@ -636,6 +626,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s24}
               errorText="Введите адрес студии"
               isError={studioAddressError}
+              required
             />
           </View>
 

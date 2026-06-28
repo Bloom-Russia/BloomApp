@@ -64,6 +64,7 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
             errorText="Введите имя"
             isError={firstNameError}
             autoComplete="name"
+            required
           />
         </View>
 
@@ -91,6 +92,7 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
             errorText="Введите корректный номер телефона"
             isError={phoneError}
             autoComplete="tel"
+            required
           />
         </View>
 
@@ -111,19 +113,21 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
             isError={appointmentError}
             maximumDateEnable={false}
             defaultDate={new Date()}
+            required
           />
         </View>
 
         <View ref={timeInputRef}>
           <AppointmentTime
-            title={'Время'}
+            title="Время записи"
             startTime={startTime}
             finishTime={finishTime}
-            setFinishTime={setFinishTime}
             setStartTime={setStartTime}
+            setFinishTime={setFinishTime}
             setTimeError={setTimeError}
+            timeErrorText="Введите корректное время"
             isError={timeError}
-            timeErrorText={'Введите корректное время (00:00 - 23:59)'}
+            required
           />
         </View>
       </Block>

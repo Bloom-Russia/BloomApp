@@ -39,6 +39,7 @@ type Props = {
   value: string;
   setValue: (value: string) => void;
   maximumDateEnable?: boolean;
+  required?: boolean;
 };
 
 export const DateTimeInputPicker: React.FC<Props> = ({
@@ -53,6 +54,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   value: externalValue,
   setValue: setExternalValue,
   maximumDateEnable = true,
+  required,
   defaultDate = new Date(2000, 0, 1),
 }) => {
   const [inputValue, setInputValue] = useState(externalValue || (date ? formatDate(date) : ''));
@@ -116,6 +118,11 @@ export const DateTimeInputPicker: React.FC<Props> = ({
       {title && (
         <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
           {title}
+          {required ? (
+            <Typography.B16 color={Colors.red} marginBottom={ESpacings.s8}>
+              {` *`}
+            </Typography.B16>
+          ) : null}
         </Typography.B14>
       )}
 
@@ -157,14 +164,13 @@ export const DateTimeInputPicker: React.FC<Props> = ({
                   </Pressable>
                 </HeaderModal>
                 <DateTimePicker
-                  value={
-                    date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)
-                  }
+                  value={date || parseDateFromString(externalValue) || defaultDate}
                   mode="date"
                   display="spinner"
                   onChange={onDateChange}
                   maximumDate={new Date()}
                   themeVariant="light"
+                  locale={'RU'}
                 />
               </Container>
             </PressableContainer>
@@ -177,6 +183,7 @@ export const DateTimeInputPicker: React.FC<Props> = ({
             onChange={onDateChange}
             maximumDate={maximumDateEnable ? new Date() : undefined}
             themeVariant="light"
+            locale={'RU'}
           />
         )
       ) : null}
