@@ -22,12 +22,7 @@ const AppointmentsScreenComponent: React.FC<AppointmentsScreenComponent> = ({ na
       paddingHorizontal={ESpacings.s16}
       hideBackIcon
     >
-      <Block
-        flex={1}
-        backgroundColor={Colors.black}
-        justifyContent={'center'}
-        padding={ESpacings.s16}
-      >
+      <Block flex={1} justifyContent={'center'}>
         <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
           APPOINTMENTS Screen
         </Typography.B14>

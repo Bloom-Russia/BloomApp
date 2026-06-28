@@ -76,7 +76,7 @@ const SmsConfirmScreenComponent: React.FC<SmsConfirmScreenProps> = ({ navigation
 
   return (
     <ScreenContainer hideBackIcon title="Ввод кода" paddingHorizontal={ESpacings.s16}>
-      <Block flex={1} backgroundColor={Colors.black} justifyContent="center">
+      <Block flex={1} justifyContent="center">
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />
         </Row>

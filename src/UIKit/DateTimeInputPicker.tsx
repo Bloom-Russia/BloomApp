@@ -28,6 +28,7 @@ const formatDate = (date: Date | null): string => {
 
 type Props = {
   date: Date | null;
+  defaultDate?: Date;
   setDate: (date: Date | null) => void;
   showDatePicker: boolean;
   setShowDatePicker: (showDatePicker: boolean) => void;
@@ -37,6 +38,7 @@ type Props = {
   marginBottom?: number;
   value: string;
   setValue: (value: string) => void;
+  maximumDateEnable?: boolean;
 };
 
 export const DateTimeInputPicker: React.FC<Props> = ({
@@ -50,6 +52,8 @@ export const DateTimeInputPicker: React.FC<Props> = ({
   marginBottom,
   value: externalValue,
   setValue: setExternalValue,
+  maximumDateEnable = true,
+  defaultDate = new Date(2000, 0, 1),
 }) => {
   const [inputValue, setInputValue] = useState(externalValue || (date ? formatDate(date) : ''));
 
@@ -167,11 +171,11 @@ export const DateTimeInputPicker: React.FC<Props> = ({
           </Modal>
         ) : (
           <DateTimePicker
-            value={date || parseDateFromString(externalValue) || new Date(1990, 0, 1, 12, 0, 0)}
+            value={date || parseDateFromString(externalValue) || defaultDate}
             mode="date"
             display="spinner"
             onChange={onDateChange}
-            maximumDate={new Date()}
+            maximumDate={maximumDateEnable ? new Date() : undefined}
             themeVariant="light"
           />
         )

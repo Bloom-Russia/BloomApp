@@ -129,7 +129,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({ navigation }) =>
       paddingHorizontal={ESpacings.s16}
       hideBackIcon
     >
-      <Block flex={1} padding={ESpacings.s16}>
+      <Block flex={1}>
         <Block flex={1} marginBottom={ESpacings.s24}>
           <Block alignItems={'center'} marginBottom={ESpacings.s24}>
             <Avatar source={user.avatarUrl} />

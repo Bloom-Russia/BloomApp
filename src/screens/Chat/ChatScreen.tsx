@@ -9,12 +9,7 @@ type ChatScreenProps = NativeStackScreenProps<ChatStackParamList, EScreens.CHAT_
 const ChatScreenComponent: React.FC<ChatScreenProps> = () => {
   return (
     <ScreenContainer hideBackIcon title="Чат" paddingHorizontal={ESpacings.s16}>
-      <Block
-        flex={1}
-        backgroundColor={Colors.black}
-        justifyContent={'center'}
-        padding={ESpacings.s16}
-      >
+      <Block flex={1} justifyContent={'center'}>
         <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
           Chat Screen
         </Typography.B14>

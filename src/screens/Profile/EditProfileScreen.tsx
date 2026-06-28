@@ -451,14 +451,15 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
     <ScreenContainer
       scrollEnabled={false}
       title="Редактирование профиля"
-      paddingHorizontal={ESpacings.s16}
+      paddingBottom={ESpacings.s0}
     >
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: ESpacings.s16 }}
       >
-        <Block padding={ESpacings.s16}>
+        <Block>
           <Block alignItems="center" marginBottom={ESpacings.s24}>
             <TouchableOpacity onPress={handleSelectAvatar}>
               <Avatar isEditable source={avatar} />
@@ -478,7 +479,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s12}
               errorText="Введите фамилию"
               isError={lastNameError}
-              autoComplete="family-name"
             />
           </View>
 
@@ -495,7 +495,6 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
               marginBottom={ESpacings.s12}
               errorText="Введите имя"
               isError={firstNameError}
-              autoComplete="name"
             />
           </View>
 

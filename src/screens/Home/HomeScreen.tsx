@@ -9,12 +9,7 @@ type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, EScreens.HOME_
 const HomeScreenComponent: React.FC<HomeScreenProps> = () => {
   return (
     <ScreenContainer hideBackIcon={true} title="Главная" paddingHorizontal={ESpacings.s16}>
-      <Block
-        flex={1}
-        backgroundColor={Colors.black}
-        justifyContent={'center'}
-        padding={ESpacings.s16}
-      >
+      <Block flex={1} justifyContent={'center'}>
         <Typography.B14 textAlign={'center'} marginBottom={ESpacings.s38} color={Colors.white}>
           Home Screen
         </Typography.B14>
