@@ -4,20 +4,17 @@ import {
   Block,
   Colors,
   DateTimeInputPicker,
-  ERounding,
-  ESize,
   ESpacings,
   Input,
-  MaskedInput,
+  MaskedPhoneInput,
+  MaskedTimeInput,
   Row,
   ScreenContainer,
   Typography,
 } from '@UIKit';
 import React, { memo, useRef, useState } from 'react';
 import isEqual from 'react-fast-compare';
-import { View } from 'react-native';
-import MaskInput from 'react-native-mask-input';
-import styled from 'styled-components';
+import { TextInput, View } from 'react-native';
 
 type CreateAppointmentScreenProps = NativeStackScreenProps<
   AppointmentsStackParamList,
@@ -28,6 +25,7 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
   const firstNameRef = useRef<View>(null);
   const phoneRef = useRef<View>(null);
   const appointmentDateRef = useRef<View>(null);
+  const timeInputRef = useRef<TextInput>(null);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -42,15 +40,15 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
   const [firstNameError, setFirstNameError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
   const [appointmentError, setAppointmentError] = useState(false);
-  const [timeError, _setTimeError] = useState(false);
+  const [timeError, setTimeError] = useState(false);
 
-  const handleFinishTimeChange = (masked: string, _unmasked: string) => {
-    setFinishTime(masked);
-  };
-
-  const handleStartTimeChange = (masked: string, _unmasked: string) => {
-    setStartTime(masked);
-  };
+  // const validateTime = (time: string): boolean => {
+  //   if (time.length < 5) {
+  //     return false;
+  //   }
+  //   const [hours, minutes] = time.split(':').map(Number);
+  //   return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+  // };
 
   return (
     <ScreenContainer title="Создание записи" paddingHorizontal={ESpacings.s16}>
@@ -85,7 +83,7 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
         />
 
         <View ref={phoneRef}>
-          <MaskedInput
+          <MaskedPhoneInput
             title="Телефон"
             phone={phone}
             setPhone={(v) => {
@@ -119,56 +117,43 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
           />
         </View>
 
-        <Block marginBottom={ESpacings.s12}>
-          <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
-            Время
-          </Typography.B14>
-          <Row alignItems={'center'}>
-            <Typography.B14 marginRight={ESpacings.s12} color={Colors.white}>
-              с
+        <View ref={timeInputRef}>
+          <Block marginBottom={ESpacings.s12}>
+            <Typography.B14 color={Colors.white} marginBottom={ESpacings.s8}>
+              Время
             </Typography.B14>
-            <StyledMaskInput
-              isError={timeError}
-              color={Colors.white}
-              value={startTime}
-              onChangeText={handleStartTimeChange}
-              mask={[/[0-2]/, /[0-3]/, ':', /[0-5]/, /[0-9]/]}
-              placeholder="чч:мм"
-              keyboardType="numeric"
-              placeholderTextColor={Colors.white}
-            />
-            <Typography.B14 paddingHorizontal={ESpacings.s12} color={Colors.white}>
-              до
-            </Typography.B14>
-            <StyledMaskInput
-              isError={timeError}
-              color={Colors.white}
-              value={finishTime}
-              onChangeText={handleFinishTimeChange}
-              mask={[/[0-2]/, /[0-3]/, ':', /[0-5]/, /[0-9]/]}
-              placeholder="чч:мм"
-              keyboardType="numeric"
-              placeholderTextColor={Colors.white}
-            />
-          </Row>
-        </Block>
+            <Row alignItems={'center'}>
+              <Typography.B14 marginRight={ESpacings.s12} color={Colors.white}>
+                с
+              </Typography.B14>
+              <MaskedTimeInput
+                time={startTime}
+                setTime={(v) => {
+                  setStartTime(v);
+                  setTimeError(false);
+                }}
+              />
+              <Typography.B14 paddingHorizontal={ESpacings.s12} color={Colors.white}>
+                до
+              </Typography.B14>
+              <MaskedTimeInput
+                time={finishTime}
+                setTime={(v) => {
+                  setFinishTime(v);
+                  setTimeError(false);
+                }}
+              />
+            </Row>
+            {timeError && (
+              <Typography.B14 color={Colors.red} marginTop={ESpacings.s4}>
+                Введите корректное время (00:00 - 23:59)
+              </Typography.B14>
+            )}
+          </Block>
+        </View>
       </Block>
     </ScreenContainer>
   );
 };
 
 export const CreateAppointmentScreen = memo(CreateAppointmentScreenComponent, isEqual);
-
-const StyledMaskInput = styled(MaskInput)<{
-  color: string;
-  isError?: boolean;
-}>(({ isError, color }) => ({
-  borderWidth: 1,
-  borderColor: isError ? Colors.red : Colors.white,
-  borderRadius: ERounding.r14,
-  paddingLeft: ESpacings.s16,
-  paddingRight: ESpacings.s16,
-  height: ESize.s48,
-  color,
-  fontSize: 20,
-}));

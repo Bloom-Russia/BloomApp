@@ -8,7 +8,7 @@ import {
   Colors,
   ESpacings,
   IconNames,
-  MaskedInput,
+  MaskedPhoneInput,
   Row,
   ScreenContainer,
 } from '@UIKit';
@@ -132,7 +132,7 @@ const LoginScreenComponent: React.FC<LoginScreenProps> = () => {
         <Row justifyContent="center">
           <Logo source={RoundLogoAppImage} />
         </Row>
-        <MaskedInput phone={phone} setPhone={setPhoneHandler} />
+        <MaskedPhoneInput phone={phone} setPhone={setPhoneHandler} />
         <Button
           loading={loading}
           disabled={isButtonDisabled}

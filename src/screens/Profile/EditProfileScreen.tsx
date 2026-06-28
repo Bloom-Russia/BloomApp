@@ -12,7 +12,7 @@ import {
   ESpacings,
   IconNames,
   Input,
-  MaskedInput,
+  MaskedPhoneInput,
   MultiSelect,
   MultiSelectBottomSheet,
   ScreenContainer,
@@ -534,7 +534,7 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
           </Typography.B20>
 
           <View ref={phoneRef}>
-            <MaskedInput
+            <MaskedPhoneInput
               title="Телефон"
               phone={phone}
               setPhone={(v) => {
@@ -565,7 +565,12 @@ const EditProfileScreenComponent: React.FC<EditProfileScreenProps> = ({ navigati
             marginBottom={ESpacings.s12}
           />
 
-          <MaskedInput title="Max" phone={max} setPhone={setMax} marginBottom={ESpacings.s12} />
+          <MaskedPhoneInput
+            title="Max"
+            phone={max}
+            setPhone={setMax}
+            marginBottom={ESpacings.s12}
+          />
 
           <View ref={experienceRef}>
             <Select
