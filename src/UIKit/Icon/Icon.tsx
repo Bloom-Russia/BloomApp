@@ -29,6 +29,7 @@ export enum IconNames {
   chat = 'chat',
   plus = 'plus',
   back = 'back',
+  clock = 'clock',
 }
 
 export const IconSet = createIconSetFromIcoMoon(config);

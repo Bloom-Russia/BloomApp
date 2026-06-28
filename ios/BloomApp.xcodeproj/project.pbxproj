@@ -19,7 +19,7 @@
 		ADD781E6B3EB4EDB92E2F618 /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */; };
 		B64966D0940477FDCFE437A2 /* Pods_BloomApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3893BD97C5872057434EE78 /* Pods_BloomApp.framework */; };
 		C23972063ED34FC0A9C4EA54 /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */; };
-		C51B6C2E7BAF4BA58EEE328B /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2D879F08A85547EC9C1B2F8E /* icomoon.ttf */; };
+		4BB2CB1FAB414BFB863ADD04 /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 985C0E9F936349FCB889CB11 /* icomoon.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,7 +41,7 @@
 		EDE225E58CC3418FA358FCF3 /* Inter-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Medium.ttf"; path = "../assets/fonts/Inter-Medium.ttf"; sourceTree = "<group>"; };
 		FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-SemiBold.ttf"; path = "../assets/fonts/Inter-SemiBold.ttf"; sourceTree = "<group>"; };
 		FFFC9CD92B0547BBB83EB784 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = BloomApp/BootSplash.storyboard; sourceTree = "<group>"; };
-		2D879F08A85547EC9C1B2F8E /* icomoon.ttf */ = {isa = PBXFileReference; name = "icomoon.ttf"; path = "../assets/fonts/icomoon.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		985C0E9F936349FCB889CB11 /* icomoon.ttf */ = {isa = PBXFileReference; name = "icomoon.ttf"; path = "../assets/fonts/icomoon.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,7 +127,7 @@
 				5312912E773C4FDFA23B7C47 /* Inter-Bold.ttf */,
 				6291AC65FF974375A65435D4 /* Inter-Regular.ttf */,
 				FC91047E03DF452D844635E1 /* Inter-SemiBold.ttf */,
-				2D879F08A85547EC9C1B2F8E /* icomoon.ttf */,
+				985C0E9F936349FCB889CB11 /* icomoon.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -204,7 +204,7 @@
 				ADD781E6B3EB4EDB92E2F618 /* Inter-SemiBold.ttf in Resources */,
 				74D5850411CB489FA4A82D49 /* BootSplash.storyboard in Resources */,
 				8E44AA57DF7A498BB89F89D1 /* Colors.xcassets in Resources */,
-				C51B6C2E7BAF4BA58EEE328B /* icomoon.ttf in Resources */,
+				4BB2CB1FAB414BFB863ADD04 /* icomoon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

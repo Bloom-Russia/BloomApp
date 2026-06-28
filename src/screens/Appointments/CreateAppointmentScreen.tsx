@@ -116,6 +116,7 @@ const CreateAppointmentScreenComponent: React.FC<CreateAppointmentScreenProps> =
 
         <View ref={timeInputRef}>
           <AppointmentTime
+            title={'Время'}
             startTime={startTime}
             finishTime={finishTime}
             setFinishTime={setFinishTime}
