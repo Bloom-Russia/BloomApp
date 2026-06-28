@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppointmentsScreen, CreateAppointmentScreen } from '@screens';
 import React, { memo } from 'react';
 import isEqual from 'react-fast-compare';
-import { AppointmentsStackParamList, AppointmentsStackProps } from 'src/navigation/navigationTypes';
+import { AppointmentsStackParamList, AppointmentsStackProps } from './navigationTypes';
 import { EScreens } from './types';
 
 const Stack = createNativeStackNavigator<AppointmentsStackParamList>();

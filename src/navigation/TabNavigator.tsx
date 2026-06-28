@@ -3,7 +3,7 @@ import { useUserStore } from '@store';
 import { Colors, ESize, ESpacings, Icon, IconNames, TAB_BAR_HEIGHT, Typography } from '@UIKit';
 import React, { memo, useMemo } from 'react';
 import isEqual from 'react-fast-compare';
-import { AppointmentsStack } from 'src/navigation/AppointmentsStack';
+import { AppointmentsStack } from './AppointmentsStack';
 import { ChatStack } from './ChatStack';
 import { HomeStack } from './HomeStack';
 import { RootTabParamList } from './navigationTypes';
