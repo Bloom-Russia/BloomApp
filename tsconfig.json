@@ -17,34 +17,70 @@
     "noEmit": true,
     "jsx": "react-native",
     "ignoreDeprecations": "5.0",
+
     /* Строгие проверки TypeScript */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 
+    /* Настройки для декораторов (Inversify) */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+
+    /* ✅ Для работы с import type в TypeScript 5.5+ */
+    "verbatimModuleSyntax": false,
+
     /* Настройки для React Native */
-    "types": ["react-native", "jest", "node"],
+    "types": ["react-native", "jest", "node", "reflect-metadata"],
     "baseUrl": "./",
     "paths": {
-      "@screens": ["src/screens/index.ts"],
-      "@navigation": ["src/navigation/index.ts"],
-      "@hooks": ["src/hooks/index.ts"],
-      "@UIKit": ["src/UIKit/index.ts"],
-      "@utils": ["src/utils/index.ts"],
-      "@contexts": ["src/contexts/index.ts"],
-      "@services": ["src/services/index.ts"],
-      "@config": ["src/config.ts"],
+      /* Core */
+      "@core/*": ["src/core/*"],
+      "@core/i18n/*": ["src/core/i18n/*"],
+      "@core/utils/*": ["src/core/utils/*"],
+      "@core/di/*": ["src/core/di/*"],
+      "@core/styles/*": ["src/core/styles/*"],
+
+      /* Domain */
+      "@domain/*": ["src/domain/*"],
+      "@domain/entities/*": ["src/domain/entities/*"],
+      "@domain/usecases/*": ["src/domain/usecases/*"],
+      "@domain/repositories/*": ["src/domain/repositories/*"],
+
+      /* Data */
+      "@data/*": ["src/data/*"],
+      "@data/repositories/*": ["src/data/repositories/*"],
+      "@data/datasources/*": ["src/data/datasources/*"],
+      "@data/mappers/*": ["src/data/mappers/*"],
+
+      /* Presentation */
+      "@presentation/*": ["src/presentation/*"],
+      "@screens/*": ["src/presentation/screens/*"],
+      "@components/*": ["src/presentation/components/*"],
+      "@stores/*": ["src/presentation/stores/*"],
+      "@hooks": ["src/presentation/hooks/index.ts"],
+      "@forms/*": ["src/presentation/forms/*"],
+      "@navigation/*": ["src/presentation/navigation/*"],
+      "@services": ["src/presentation/services/index.ts"],
+
+      /* App & Shared */
+      "@app/*": ["src/app/*"],
+      "@shared/*": ["src/shared/*"],
       "@assets/*": ["assets/*"],
-      "@store": ["src/store/index.ts"]
+      "@i18n": ["src/core/i18n"],
+      "@utils": ["src/core/utils"]
     }
   },
-  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],
+  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts", "global.d.ts"],
   "exclude": [
     "node_modules",
     "babel.config.js",
     "metro.config.js",
     "jest.config.js",
-    "__tests__/**/*"
+    "__tests__/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

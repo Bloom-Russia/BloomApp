@@ -1,0 +1,36 @@
+import { Dimensions, StatusBar } from 'react-native';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
+
+/**
+ * Информация об экране устройства
+ * Используется для адаптации UI под разные устройства
+ */
+
+// ===== Статус бар =====
+export const STATUSBAR_HEIGHT = StatusBar.currentHeight ?? 0;
+export const DEVICE_HAS_NOTCH = STATUSBAR_HEIGHT > 24;
+
+// ===== Таб бар =====
+export const TAB_BAR_HEIGHT = 80;
+
+// ===== Отступы =====
+export const WINDOW_TOP_INSET = initialWindowMetrics?.insets.top ?? 0;
+export const HEADER_HEIGHT = 56 + WINDOW_TOP_INSET;
+
+// ===== Размеры окна =====
+const screenHeightFallback = DEVICE_HAS_NOTCH
+  ? Dimensions.get('window').height
+  : Dimensions.get('window').height - STATUSBAR_HEIGHT;
+
+export const WINDOW_HEIGHT =
+  (initialWindowMetrics?.frame.height || screenHeightFallback) + WINDOW_TOP_INSET;
+
+export const WINDOW_WIDTH = initialWindowMetrics?.frame.width || Dimensions.get('window').width;
+
+// ===== Отступ для устройств с вырезом =====
+export const TOP_INSET = DEVICE_HAS_NOTCH
+  ? WINDOW_HEIGHT - Dimensions.get('window').height
+  : STATUSBAR_HEIGHT;
+
+// ===== Высота экрана без системных элементов =====
+export const SCREEN_HEIGHT = WINDOW_HEIGHT - TAB_BAR_HEIGHT - STATUSBAR_HEIGHT - HEADER_HEIGHT;

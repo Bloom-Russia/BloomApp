@@ -1,0 +1,4 @@
+export const CONSTANTS = {
+  ERROR_DISPLAY_DURATION: 5000,
+  MIN_PHONE_LENGTH: 10,
+} as const;

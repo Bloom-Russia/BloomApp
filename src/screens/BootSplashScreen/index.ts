@@ -1,1 +1,0 @@
-export { BootSplashScreen } from './BootSplashScreen';

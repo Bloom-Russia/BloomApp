@@ -1,1 +1,0 @@
-export { PinCodeScreen } from './PinCodeScreen';
