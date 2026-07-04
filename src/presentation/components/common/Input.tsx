@@ -1,5 +1,4 @@
-import { Colors } from '@core/styles/Colors';
-import { ERounding, ESpacings } from '@core/styles/Spacings';
+import { Colors, ERounding, ESpacings } from '@core/styles';
 import React from 'react';
 import { KeyboardTypeOptions, TextInput, TextInputProps } from 'react-native';
 import styled from 'styled-components';

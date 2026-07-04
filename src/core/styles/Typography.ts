@@ -1,10 +1,6 @@
 import { TextStyle } from 'react-native';
 import { Colors } from './Colors';
 
-// ============================================
-// 1. КОНФИГУРАЦИЯ ШРИФТОВ
-// ============================================
-
 /**
  * Семейства шрифтов, используемые в приложении
  * Реальные названия шрифтов из файлов .ttf
@@ -27,11 +23,7 @@ export const FontFamily = {
 /**
  * Тип для семейства шрифтов
  */
-export type FontFamilyType = typeof FontFamily[keyof typeof FontFamily];
-
-// ============================================
-// 2. РАЗМЕРЫ ШРИФТОВ
-// ============================================
+export type FontFamilyType = (typeof FontFamily)[keyof typeof FontFamily];
 
 /**
  * Стандартные размеры шрифтов
@@ -63,11 +55,7 @@ export const FontSize = {
 /**
  * Тип для размера шрифта
  */
-export type FontSizeType = typeof FontSize[keyof typeof FontSize];
-
-// ============================================
-// 3. ВЫСОТА СТРОКИ
-// ============================================
+export type FontSizeType = (typeof FontSize)[keyof typeof FontSize];
 
 /**
  * Стандартные значения line-height
@@ -85,10 +73,6 @@ export const LineHeight = {
   '4xl': 40,
   '5xl': 48,
 } as const;
-
-// ============================================
-// 4. БАЗОВЫЕ СТИЛИ ТЕКСТА
-// ============================================
 
 /**
  * Базовые текстовые стили без привязки к размеру
@@ -184,10 +168,6 @@ export const TextStyles = {
     textDecorationLine: 'underline',
   } as TextStyle,
 };
-
-// ============================================
-// 5. ПРЕДУСТАНОВЛЕННЫЕ ТИПОГРАФИЧЕСКИЕ СТИЛИ
-// ============================================
 
 /**
  * Готовая типографическая система
@@ -320,10 +300,6 @@ export const TypographyStyles = {
   } as TextStyle,
 };
 
-// ============================================
-// 6. ТИПЫ ДЛЯ ИСПОЛЬЗОВАНИЯ
-// ============================================
-
 /**
  * Тип для всех стилей из TypographyStyles
  */
@@ -333,10 +309,6 @@ export type TypographyStyleKey = keyof typeof TypographyStyles;
  * Тип для готового стиля
  */
 export type TypographyStyle = TextStyle;
-
-// ============================================
-// 7. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
 
 /**
  * Получить стиль по ключу
@@ -348,25 +320,12 @@ export const getTypographyStyle = (key: TypographyStyleKey): TypographyStyle => 
 /**
  * Объединить несколько стилей
  */
-export const combineTypographyStyles = (
-  ...keys: TypographyStyleKey[]
-): TypographyStyle => {
-  return keys.reduce((acc, key) => ({
-    ...acc,
-    ...TypographyStyles[key],
-  }), {});
-};
-
-// ============================================
-// 8. ЭКСПОРТ
-// ============================================
-
-export default {
-  FontFamily,
-  FontSize,
-  LineHeight,
-  TextStyles,
-  TypographyStyles,
-  getTypographyStyle,
-  combineTypographyStyles,
+export const combineTypographyStyles = (...keys: TypographyStyleKey[]): TypographyStyle => {
+  return keys.reduce(
+    (acc, key) => ({
+      ...acc,
+      ...TypographyStyles[key],
+    }),
+    {},
+  );
 };

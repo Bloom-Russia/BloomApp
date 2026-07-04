@@ -1,7 +1,5 @@
 import { IconNames } from '@core/assets';
-import { Colors } from '@core/styles/Colors';
-import { WINDOW_TOP_INSET } from '@core/styles/ScreenInfo';
-import { ESize, ESpacings } from '@core/styles/Spacings';
+import { Colors, ESize, ESpacings, WINDOW_TOP_INSET } from '@core/styles';
 import { useLoading } from '@hooks';
 import { useNavigation } from '@react-navigation/native';
 import React, { memo, ReactNode, useCallback } from 'react';

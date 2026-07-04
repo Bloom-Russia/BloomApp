@@ -1,4 +1,4 @@
-import { Colors } from '@core/styles/Colors';
+import { Colors } from '@core/styles';
 import styled from 'styled-components';
 import { Block } from './Block';
 

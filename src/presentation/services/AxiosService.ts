@@ -3,11 +3,9 @@ import { ApiResponse } from '@data/datasources/remote/dto/ApiResponse';
 import { SecureStorageRepositoryImpl } from '@data/repositories/SecureStorageRepositoryImpl';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-// Обертка для обратной совместимости
 class AxiosService {
   private static secureStorage = new SecureStorageRepositoryImpl();
 
-  // ✅ Исправлено: добавляем _ к неиспользуемому параметру
   static async initializeWithAppDefaults(_config?: { timeout?: number }): Promise<boolean> {
     try {
       ApiClient.initialize();

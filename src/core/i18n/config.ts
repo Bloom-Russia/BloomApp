@@ -3,13 +3,8 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as RNLocalize from 'react-native-localize';
 
-// Импорты переводов
 import en from './locales/en.json';
 import ru from './locales/ru.json';
-
-// ============================================
-// 1. КОНФИГУРАЦИЯ
-// ============================================
 
 /**
  * Доступные языки в приложении
@@ -31,10 +26,6 @@ export const LANGUAGE_STORAGE_KEY = 'app_language';
  */
 export type AvailableLanguage = (typeof availableLanguages)[number];
 
-// ============================================
-// 2. РЕСУРСЫ
-// ============================================
-
 const resources = {
   en: {
     translation: en,
@@ -43,10 +34,6 @@ const resources = {
     translation: ru,
   },
 };
-
-// ============================================
-// 3. ОПРЕДЕЛЕНИЕ ЯЗЫКА УСТРОЙСТВА
-// ============================================
 
 /**
  * Получить язык устройства
@@ -68,10 +55,6 @@ const getDeviceLanguage = (): AvailableLanguage => {
   }
 };
 
-// ============================================
-// 4. ЗАГРУЗКА СОХРАНЕННОГО ЯЗЫКА
-// ============================================
-
 /**
  * Загрузить сохраненный язык из AsyncStorage
  */
@@ -88,30 +71,22 @@ const loadStoredLanguage = async (): Promise<AvailableLanguage | null> => {
   }
 };
 
-// ============================================
-// 5. ИНИЦИАЛИЗАЦИЯ I18N
-// ============================================
-
 /**
  * Инициализация i18n
  * Сначала проверяет сохраненный язык, затем язык устройства
  */
 export const initI18n = async (): Promise<void> => {
   try {
-    // Пытаемся загрузить сохраненный язык
     let language = await loadStoredLanguage();
 
-    // Если нет сохраненного, используем язык устройства
     if (!language) {
       language = getDeviceLanguage();
     }
 
-    // ✅ Исправленная конфигурация для i18next v4+
     await i18n.use(initReactI18next).init({
       resources,
       lng: language,
       fallbackLng: defaultLanguage,
-      // ❌ Удаляем compatibilityJSON: 'v3' - не поддерживается в v4+
       interpolation: {
         escapeValue: false,
       },
@@ -126,7 +101,6 @@ export const initI18n = async (): Promise<void> => {
   } catch (error) {
     console.error('Error initializing i18n:', error);
 
-    // Fallback инициализация с языком по умолчанию
     await i18n.use(initReactI18next).init({
       resources,
       lng: defaultLanguage,
@@ -140,10 +114,6 @@ export const initI18n = async (): Promise<void> => {
     });
   }
 };
-
-// ============================================
-// 6. УПРАВЛЕНИЕ ЯЗЫКОМ
-// ============================================
 
 /**
  * Сменить язык приложения
@@ -181,10 +151,6 @@ export const isLanguageAvailable = (language: string): language is AvailableLang
   return availableLanguages.includes(language as AvailableLanguage);
 };
 
-// ============================================
-// 7. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
-
 /**
  * Получить список доступных языков с их названиями
  */
@@ -203,10 +169,6 @@ export const getLanguageName = (code: AvailableLanguage): string => {
   const found = languages.find((l) => l.code === code);
   return found?.name || code;
 };
-
-// ============================================
-// 8. ЭКСПОРТ
-// ============================================
 
 /**
  * Экспортируем i18n для использования в компонентах

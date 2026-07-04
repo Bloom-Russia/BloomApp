@@ -27,7 +27,6 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
     );
     const unsubscribeRef = useRef<(() => void) | null>(null);
 
-    // Настройка NativeEventEmitter для iOS
     useEffect(() => {
       if (Platform.OS === 'ios' && NativeModules.RCTDeviceEventEmitter) {
         nativeEventEmitter.current = new NativeEventEmitter(NativeModules.RCTDeviceEventEmitter);
@@ -40,14 +39,12 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       };
     }, []);
 
-    // Обработка изменения состояния приложения
     const handleAppStateChange = useCallback(
       async (nextAppState: AppStateStatus) => {
         const isBackgroundToActive =
           appState.current.match(/inactive|background/) && nextAppState === 'active';
 
         if (isBackgroundToActive && Platform.OS === 'ios') {
-          // ✅ Используем публичные методы Store
           const badgeCount = await notificationStore.getBadgeCount();
           await notificationStore.updateBadgeCount(badgeCount);
         }
@@ -57,7 +54,6 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       [notificationStore],
     );
 
-    // Обработка уведомлений
     const handleNotification = useCallback(
       async (notification: NotificationPayload) => {
         if (onNotificationReceived) {
@@ -69,7 +65,6 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       [notificationStore, onNotificationReceived],
     );
 
-    // Настройка обработчика уведомлений
     const setupNotificationHandler = useCallback((): void => {
       if (setupCompleteRef.current) {
         return;
@@ -79,14 +74,12 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       setupCompleteRef.current = true;
     }, [handleNotification]);
 
-    // Настройка iOS silent push
     const setupIOSSilentPushHandler = useCallback((): (() => void) => {
       if (Platform.OS !== 'ios' || !nativeEventEmitter.current) {
         return () => {};
       }
 
       const handler = async () => {
-        // ✅ Используем публичные методы Store
         const badgeCount = await notificationStore.getBadgeCount();
         await notificationStore.updateBadgeCount(badgeCount);
       };
@@ -95,7 +88,6 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       return () => subscription.remove();
     }, [notificationStore]);
 
-    // Инициализация
     const initializeServices = useCallback(async (): Promise<() => void> => {
       try {
         await UnifiedNotificationService.initialize();
@@ -112,7 +104,6 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
       }
     }, [setupNotificationHandler, setupIOSSilentPushHandler]);
 
-    // Подписка на изменения состояния
     useEffect(() => {
       let isMounted = true;
       let iosCleanup: (() => void) | undefined;

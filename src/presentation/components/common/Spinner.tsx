@@ -1,4 +1,4 @@
-import { Colors } from '@core/styles/Colors';
+import { Colors } from '@core/styles';
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { Block } from './Block';

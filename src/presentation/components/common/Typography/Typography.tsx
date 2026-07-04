@@ -1,13 +1,7 @@
-import { Colors } from '@core/styles/Colors';
-import { spacings, SpacingsProps } from '@core/styles/Spacings';
-import { FontFamily, TypographyStyles } from '@core/styles/Typography';
+import { Colors, FontFamily, spacings, SpacingsProps, TypographyStyles } from '@core/styles';
 import React from 'react';
 import { TextProps } from 'react-native';
 import styled from 'styled-components/native';
-
-// ============================================
-// 1. БАЗОВЫЙ КОМПОНЕНТ
-// ============================================
 
 export interface TypographyProps extends TextProps, SpacingsProps {
   /** Цвет текста */
@@ -24,10 +18,6 @@ export interface TypographyProps extends TextProps, SpacingsProps {
   variant?: keyof typeof TypographyStyles;
 }
 
-// ============================================
-// 2. БАЗОВЫЙ СТИЛИЗОВАННЫЙ ТЕКСТ
-// ============================================
-
 /**
  * Базовый текстовый компонент
  * Используется как основа для всех типографических компонентов
@@ -39,10 +29,6 @@ const BaseText = styled.Text<TypographyProps>`
   ${({ fontSize }) => (fontSize ? `font-size: ${fontSize}px` : '')}
   ${(props) => spacings(props)}
 `;
-
-// ============================================
-// 3. ШРИФТЫ ПО НАЧЕРТАНИЮ
-// ============================================
 
 /**
  * Компоненты с предустановленным начертанием
@@ -67,10 +53,6 @@ const Bold = styled(BaseText)`
 const Light = styled(BaseText)`
   font-family: '${FontFamily.Light}';
 `;
-
-// ============================================
-// 4. ГОТОВЫЕ КОМПОНЕНТЫ С РАЗМЕРОМ
-// ============================================
 
 /**
  * Компоненты с предустановленным начертанием и размером
@@ -153,10 +135,6 @@ const M16 = styled(Medium)`
   line-height: 22px;
 `;
 
-// ============================================
-// 5. УНИВЕРСАЛЬНЫЙ КОМПОНЕНТ (с variant)
-// ============================================
-
 /**
  * Универсальный типографический компонент
  * Используйте его, когда нужно быстро применить стиль из TypographyStyles
@@ -175,10 +153,6 @@ const TypographyComponent: React.FC<TypographyProps> = ({ variant, children, sty
     </BaseText>
   );
 };
-
-// ============================================
-// 6. ЭКСПОРТЫ
-// ============================================
 
 /**
  * 📚 Типографическая система
@@ -267,10 +241,6 @@ export type TypographyVariant = keyof typeof TypographyStyles;
  * Тип для объекта Typography (все компоненты)
  */
 export type TypographyObject = typeof Typography;
-
-// ============================================
-// 8. ЭКСПОРТ ПО УМОЛЧАНИЮ
-// ============================================
 
 /**
  * Экспорт по умолчанию - вся типографическая система

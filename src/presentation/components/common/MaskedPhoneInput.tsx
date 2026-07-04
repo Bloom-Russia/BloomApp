@@ -1,5 +1,4 @@
-import { Colors } from '@core/styles/Colors';
-import { ERounding, ESize, ESpacings } from '@core/styles/Spacings';
+import { Colors, ERounding, ESize, ESpacings } from '@core/styles';
 import React from 'react';
 import { TextInputProps } from 'react-native';
 import MaskInput from 'react-native-mask-input';

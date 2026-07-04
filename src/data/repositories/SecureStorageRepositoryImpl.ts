@@ -1,25 +1,16 @@
-import { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
+import { ISecureStorageRepository } from '@domain/repositories';
 import Keychain, { ACCESSIBLE } from 'react-native-keychain';
 
 /**
  * Ключи для безопасного хранилища
  */
 export enum SecureStorageKeys {
-  // Токены
   ACCESS_TOKEN = 'access_token',
   REFRESH_TOKEN = 'refresh_token',
-
-  // Данные пользователя
   PHONE_NUMBER = 'phone_number',
   IS_VERIFIED = 'isVerified',
-
-  // PIN-код
   PIN_CODE_IS_SET = 'pin_code_is_set',
-
-  // Onboarding
   ONBOARDING_COMPLETED = 'onboarding_completed',
-
-  // Биометрия
   BIOMETRIC_ENABLED = 'biometric_enabled',
   BIOMETRIC_SETUP_COMPLETED = 'biometric_setup_completed',
 }
@@ -29,18 +20,10 @@ export enum SecureStorageKeys {
  * Использует react-native-keychain для шифрованного хранения на устройстве
  */
 export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
-  // ============================================
-  // 🔒 PRIVATE PROPERTIES
-  // ============================================
-
   private readonly options = {
     accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     service: 'com.bloom.app.tokens',
   };
-
-  // ============================================
-  // 📝 БАЗОВЫЕ ОПЕРАЦИИ
-  // ============================================
 
   /**
    * Сохранение значения по ключу
@@ -53,7 +36,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
 
       const stringValue = String(value);
 
-      // ✅ Альтернативный метод с использованием setGenericPassword
       const result = await Keychain.setGenericPassword(key, stringValue, {
         accessible: this.options.accessible,
         service: this.options.service,
@@ -71,13 +53,11 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
    */
   async getValue<T = string>(key: string): Promise<T | null> {
     try {
-      // ✅ Получение через getGenericPassword
       const credentials = await Keychain.getGenericPassword({
         service: this.options.service,
       });
 
       if (credentials && credentials.password) {
-        // Проверяем, что это наш ключ
         if (credentials.username === key) {
           return credentials.password as T;
         }
@@ -94,7 +74,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
    */
   async removeValue(key: string): Promise<boolean> {
     try {
-      // ✅ Удаление через resetGenericPassword
       await Keychain.resetGenericPassword({
         service: this.options.service,
       });
@@ -114,7 +93,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
       for (const key of keys) {
         await this.removeValue(key);
       }
-      // ✅ Правильный способ очистки с объектом опций
       await Keychain.resetInternetCredentials({
         service: this.options.service,
       });
@@ -124,10 +102,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
       return false;
     }
   }
-
-  // ============================================
-  // 🔑 ТОКЕНЫ
-  // ============================================
 
   async saveAccessToken(token: string): Promise<boolean> {
     return this.saveValue(SecureStorageKeys.ACCESS_TOKEN, token);
@@ -158,10 +132,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     }
   }
 
-  // ============================================
-  // 👤 ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
-  // ============================================
-
   async saveIsVerified(value: boolean): Promise<boolean> {
     return this.saveValue(SecureStorageKeys.IS_VERIFIED, value.toString());
   }
@@ -179,10 +149,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     return this.getValue<string>(SecureStorageKeys.PHONE_NUMBER);
   }
 
-  // ============================================
-  // 🔐 PIN-КОД
-  // ============================================
-
   async savePinCodeStatus(isSet: boolean): Promise<boolean> {
     return this.saveValue(SecureStorageKeys.PIN_CODE_IS_SET, isSet.toString());
   }
@@ -192,10 +158,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     return result === 'true';
   }
 
-  // ============================================
-  // 📱 ONBOARDING
-  // ============================================
-
   async saveOnboardingCompleted(completed: boolean): Promise<boolean> {
     return this.saveValue(SecureStorageKeys.ONBOARDING_COMPLETED, completed.toString());
   }
@@ -204,10 +166,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     const result = await this.getValue<string>(SecureStorageKeys.ONBOARDING_COMPLETED);
     return result === 'true';
   }
-
-  // ============================================
-  // 🔐 БИОМЕТРИЯ
-  // ============================================
 
   async saveBiometricEnabled(enabled: boolean): Promise<boolean> {
     return this.saveValue(SecureStorageKeys.BIOMETRIC_ENABLED, enabled.toString());
@@ -226,10 +184,6 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     const result = await this.getValue<string>(SecureStorageKeys.BIOMETRIC_SETUP_COMPLETED);
     return result === 'true';
   }
-
-  // ============================================
-  // 📦 BATCH-ОПЕРАЦИИ
-  // ============================================
 
   async saveAllAuthData(params: {
     accessToken: string;
@@ -286,9 +240,5 @@ export class SecureStorageRepositoryImpl implements ISecureStorageRepository {
     }
   }
 }
-
-// ============================================
-// 📦 ЭКСПОРТ ПО УМОЛЧАНИЮ
-// ============================================
 
 export default SecureStorageRepositoryImpl;

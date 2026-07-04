@@ -33,7 +33,6 @@ export class NavigationServiceClass {
       return;
     }
 
-    // ✅ Проверяем, передан ли RefObject или прямой референс
     if ('current' in ref) {
       this.navigationRef = ref.current;
     } else {

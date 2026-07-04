@@ -1,5 +1,3 @@
-// src/presentation/components/common/Typography/index.ts
-
 /**
  * Экспорт всей типографической системы
  */

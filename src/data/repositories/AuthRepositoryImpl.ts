@@ -6,7 +6,6 @@ import { NotificationPermissionService } from '@services';
 import { ApiClient } from '../datasources/remote/api/client';
 import { TokenManager } from '../datasources/remote/api/tokenManager';
 
-// Тип для ответа API
 interface VerifyCodeResponse {
   token: string;
   user: User;
@@ -19,10 +18,6 @@ export class AuthRepositoryImpl implements IAuthRepository {
   constructor(private secureStorage: ISecureStorageRepository) {
     this.tokenManager = TokenManager.getInstance();
   }
-
-  // ============================================
-  // 🔑 Аутентификация
-  // ============================================
 
   async requestVerificationCode(params: { phoneNumber: string; fcmToken: string }): Promise<void> {
     await ApiClient.post('/auth/request-code', {
@@ -72,10 +67,6 @@ export class AuthRepositoryImpl implements IAuthRepository {
     ApiClient.reset();
   }
 
-  // ============================================
-  // 📊 Статус
-  // ============================================
-
   async getAuthStatus(): Promise<{ isVerified: boolean }> {
     const isVerified = await this.secureStorage.loadIsVerified();
     return { isVerified };
@@ -84,10 +75,6 @@ export class AuthRepositoryImpl implements IAuthRepository {
   async setAuthStatus(isVerified: boolean): Promise<void> {
     await this.secureStorage.saveIsVerified(isVerified);
   }
-
-  // ============================================
-  // 📱 FCM
-  // ============================================
 
   async getFCMToken(): Promise<string | null> {
     try {
@@ -98,19 +85,13 @@ export class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-  // ✅ Используем единый сервис для разрешений
   async checkNotificationPermission(): Promise<boolean> {
     return NotificationPermissionService.checkPermission();
   }
 
-  // ✅ Используем единый сервис для разрешений
   async requestNotificationPermission(): Promise<boolean> {
     return NotificationPermissionService.requestPermission();
   }
-
-  // ============================================
-  // 👤 Пользователь
-  // ============================================
 
   async getCurrentUser(): Promise<User | null> {
     try {

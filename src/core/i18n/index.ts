@@ -10,7 +10,6 @@ import i18n, {
   LANGUAGE_STORAGE_KEY,
 } from './config';
 
-// Экспортируем основные функции
 export {
   initI18n,
   changeLanguage,
@@ -25,5 +24,4 @@ export {
 
 export type { AvailableLanguage } from './config';
 
-// Экспортируем i18n по умолчанию
 export default i18n;

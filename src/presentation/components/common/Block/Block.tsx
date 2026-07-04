@@ -1,7 +1,7 @@
+import { spacings, SpacingsProps } from '@core/styles';
 import React from 'react';
 import { ViewProps } from 'react-native';
 import styled, { css } from 'styled-components/native';
-import { spacings, SpacingsProps } from '@core/styles/Spacings';
 
 export interface BlockStyleProps {
   /** Выравнивание по основной оси */
@@ -39,8 +39,8 @@ export interface BlockStyleProps {
 export type BlockProps = BlockStyleProps &
   ViewProps &
   SpacingsProps & {
-  children?: React.ReactNode;
-};
+    children?: React.ReactNode;
+  };
 
 /**
  * Базовый контейнерный компонент
@@ -58,18 +58,18 @@ export const Block = styled.View<BlockProps>`
   flex-wrap: ${({ flexWrap }) => flexWrap ?? 'nowrap'};
 
   ${({ flex }) =>
-  flex &&
-  css`
+    flex &&
+    css`
       flex: ${flex};
     `}
   ${({ flexShrink }) =>
-  flexShrink !== undefined &&
-  css`
+    flexShrink !== undefined &&
+    css`
       flex-shrink: ${flexShrink};
     `}
   ${({ gap }) =>
-  gap !== undefined &&
-  css`
+    gap !== undefined &&
+    css`
       gap: ${gap}px;
     `}
   ${(props) => spacings(props)}

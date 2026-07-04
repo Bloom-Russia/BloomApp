@@ -27,7 +27,6 @@ export class ApiClient {
       withCredentials: false,
     });
 
-    // Настройка интерцепторов
     AxiosInterceptors.setup(this.instance, this.tokenManager, this.refreshToken.bind(this));
 
     console.log('[ApiClient] Initialized');
@@ -65,7 +64,6 @@ export class ApiClient {
     }
   }
 
-  // ✅ ДОБАВЛЯЕМ МЕТОД setAuthHeader
   static setAuthHeader(token: string): void {
     const instance = this.getInstance();
     if (instance.defaults.headers.common) {
@@ -75,7 +73,6 @@ export class ApiClient {
     }
   }
 
-  // HTTP методы с типизацией
   static async get<T = unknown>(
     url: string,
     config?: AxiosRequestConfig,

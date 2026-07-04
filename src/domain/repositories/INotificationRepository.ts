@@ -1,4 +1,3 @@
-// src/domain/repositories/INotificationRepository.ts
 import { NotificationLog, NotificationPayload, NotificationResult } from '../entities/Notification';
 
 export interface INotificationRepository {

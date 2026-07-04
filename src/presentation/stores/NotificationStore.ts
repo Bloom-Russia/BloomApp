@@ -1,15 +1,11 @@
 import { NotificationPayload } from '@domain/entities/Notification';
-import type { INotificationRepository } from '@domain/repositories/INotificationRepository';
+import type { INotificationRepository } from '@domain/repositories';
 import { inject, injectable } from 'inversify';
 import { noop } from 'lodash';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 
 @injectable()
 export class NotificationStore {
-  // ============================================
-  // 📦 STATE (наблюдаемые поля)
-  // ============================================
-
   /** Последнее полученное уведомление */
   lastNotification: NotificationPayload | null = null;
 
@@ -25,22 +21,13 @@ export class NotificationStore {
   /** Количество непрочитанных уведомлений */
   badgeCount: number = 0;
 
-  // ============================================
-  // 🔒 DEPENDENCIES (не наблюдаемые)
-  // ============================================
-
   private notificationRepository: INotificationRepository;
   private unsubscribe: (() => void) | null = null;
-
-  // ============================================
-  // 🏗️ CONSTRUCTOR
-  // ============================================
 
   constructor(@inject('INotificationRepository') notificationRepository: INotificationRepository) {
     this.notificationRepository = notificationRepository;
     this.unsubscribe = null;
 
-    // ✅ Используем makeObservable с явными аннотациями
     makeObservable(this, {
       // observable поля
       lastNotification: observable,
@@ -70,10 +57,6 @@ export class NotificationStore {
 
     this.initialize().then(noop);
   }
-
-  // ============================================
-  // 🎯 PUBLIC ACTIONS
-  // ============================================
 
   async initialize(): Promise<void> {
     try {
@@ -198,10 +181,6 @@ export class NotificationStore {
     }
   }
 
-  // ============================================
-  // 🔒 PRIVATE METHODS
-  // ============================================
-
   private isDuplicate(notification: NotificationPayload): boolean {
     if (!notification.messageId) {
       return false;
@@ -209,10 +188,6 @@ export class NotificationStore {
 
     return this.notifications.some((n) => n.messageId === notification.messageId);
   }
-
-  // ============================================
-  // 💡 COMPUTED PROPERTIES
-  // ============================================
 
   get unreadCount(): number {
     return this.notifications.filter((n) => !n.data?.read).length;

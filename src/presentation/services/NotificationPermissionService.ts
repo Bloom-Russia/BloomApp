@@ -70,5 +70,4 @@ class NotificationPermissionServiceClass {
   }
 }
 
-// Экспорт синглтона
 export default NotificationPermissionServiceClass.getInstance();

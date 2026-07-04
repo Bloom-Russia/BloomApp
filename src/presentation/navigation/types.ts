@@ -1,7 +1,3 @@
-// ============================================
-// ЭКРАНЫ И СТЕКИ
-// ============================================
-
 export enum EScreens {
   // ===== СТЕКИ =====
   /** Стек для авторизованных пользователей */
@@ -46,10 +42,6 @@ export enum EScreens {
   EDIT_PROFILE_SCREEN = 'EditProfileScreen',
 }
 
-// ============================================
-// ТИПЫ ДЛЯ ПАРАМЕТРОВ ЭКРАНОВ
-// ============================================
-
 /** Тип для всех параметров экранов */
 export type ScreenParams = {
   // Auth Screens
@@ -69,10 +61,6 @@ export type ScreenParams = {
   [EScreens.PROFILE_SCREEN]: undefined;
   [EScreens.EDIT_PROFILE_SCREEN]: undefined;
 };
-
-// ============================================
-// ТИПЫ ДЛЯ НАВИГАЦИИ
-// ============================================
 
 /** Общий тип для стэков */
 export type RootStackParamList = {
@@ -111,20 +99,16 @@ export type HomeStackParamList = Pick<ScreenParams, EScreens.HOME_SCREEN>;
 export type ChatStackParamList = Pick<ScreenParams, EScreens.CHAT_SCREEN>;
 
 /** Тип для стэка Appointments */
-export type AppointmentsStackParamList = Pick<ScreenParams,
-  | EScreens.APPOINTMENTS_SCREEN
-  | EScreens.CREATE_APPOINTMENT_SCREEN
+export type AppointmentsStackParamList = Pick<
+  ScreenParams,
+  EScreens.APPOINTMENTS_SCREEN | EScreens.CREATE_APPOINTMENT_SCREEN
 >;
 
 /** Тип для стэка Profile */
-export type ProfileStackParamList = Pick<ScreenParams,
-  | EScreens.PROFILE_SCREEN
-  | EScreens.EDIT_PROFILE_SCREEN
+export type ProfileStackParamList = Pick<
+  ScreenParams,
+  EScreens.PROFILE_SCREEN | EScreens.EDIT_PROFILE_SCREEN
 >;
-
-// ============================================
-// ТИПЫ ДЛЯ КОМПОНЕНТОВ НАВИГАЦИИ
-// ============================================
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -139,11 +123,29 @@ export type AuthenticationStackProps = NativeStackScreenProps<RootStackParamList
 
 /** Пропсы для экранов */
 export type LoginScreenProps = NativeStackScreenProps<UnAuthStackParamList, EScreens.LOGIN_SCREEN>;
-export type SmsConfirmScreenProps = NativeStackScreenProps<UnAuthStackParamList, EScreens.SMS_CONFIRM_SCREEN>;
-export type PinCodeScreenProps = NativeStackScreenProps<AuthStackParamList, EScreens.AUTH_PIN_CODE_SCREEN>;
+export type SmsConfirmScreenProps = NativeStackScreenProps<
+  UnAuthStackParamList,
+  EScreens.SMS_CONFIRM_SCREEN
+>;
+export type PinCodeScreenProps = NativeStackScreenProps<
+  AuthStackParamList,
+  EScreens.AUTH_PIN_CODE_SCREEN
+>;
 export type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, EScreens.HOME_SCREEN>;
-export type ProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.PROFILE_SCREEN>;
-export type EditProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, EScreens.EDIT_PROFILE_SCREEN>;
-export type AppointmentsScreenProps = NativeStackScreenProps<AppointmentsStackParamList, EScreens.APPOINTMENTS_SCREEN>;
-export type CreateAppointmentScreenProps = NativeStackScreenProps<AppointmentsStackParamList, EScreens.CREATE_APPOINTMENT_SCREEN>;
+export type ProfileScreenProps = NativeStackScreenProps<
+  ProfileStackParamList,
+  EScreens.PROFILE_SCREEN
+>;
+export type EditProfileScreenProps = NativeStackScreenProps<
+  ProfileStackParamList,
+  EScreens.EDIT_PROFILE_SCREEN
+>;
+export type AppointmentsScreenProps = NativeStackScreenProps<
+  AppointmentsStackParamList,
+  EScreens.APPOINTMENTS_SCREEN
+>;
+export type CreateAppointmentScreenProps = NativeStackScreenProps<
+  AppointmentsStackParamList,
+  EScreens.CREATE_APPOINTMENT_SCREEN
+>;
 export type ChatScreenProps = NativeStackScreenProps<ChatStackParamList, EScreens.CHAT_SCREEN>;

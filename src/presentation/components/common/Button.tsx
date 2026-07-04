@@ -1,5 +1,4 @@
-import { Colors } from '@core/styles/Colors';
-import { ERounding, SpacingsProps } from '@core/styles/Spacings';
+import { Colors, ERounding, SpacingsProps } from '@core/styles';
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
 import styled from 'styled-components';

@@ -19,10 +19,6 @@ import { makeAutoObservable, runInAction } from 'mobx';
  */
 @injectable()
 export class AuthStore {
-  // ========================================
-  // 📦 STATE (наблюдаемые поля)
-  // ========================================
-
   /** Текущий пользователь */
   user: User | null = null;
 
@@ -44,18 +40,10 @@ export class AuthStore {
   /** Номер телефона пользователя */
   phoneNumber: string = '';
 
-  // ========================================
-  // 🔒 DEPENDENCIES (не наблюдаемые)
-  // ========================================
-
   private authRepository: IAuthRepository;
   private secureStorage: ISecureStorageRepository;
   private checkAuthStatusUseCase: CheckAuthStatusUseCase;
   private setAuthStatusUseCase: SetAuthStatusUseCase;
-
-  // ========================================
-  // 🏗️ CONSTRUCTOR
-  // ========================================
 
   constructor(
     @inject('IAuthRepository') authRepository: IAuthRepository,
@@ -64,7 +52,6 @@ export class AuthStore {
     this.authRepository = authRepository;
     this.secureStorage = secureStorage;
 
-    // ✅ Правильное решение: используем as any
     makeAutoObservable(this, {
       authRepository: false,
       secureStorage: false,
@@ -77,10 +64,6 @@ export class AuthStore {
     this.setAuthStatusUseCase = new SetAuthStatusUseCase(authRepository);
     this.loadAuthStatus().then(noop);
   }
-
-  // ========================================
-  // 🎯 PUBLIC ACTIONS
-  // ========================================
 
   /**
    * Загрузка статуса авторизации при старте приложения
@@ -96,7 +79,6 @@ export class AuthStore {
       if (result.isSuccess && result.data) {
         this.isVerified = result.data.isVerified;
         this.isAuthenticated = result.data.isVerified;
-        // Если есть токен, пробуем загрузить пользователя
         if (this.isVerified) {
           this.loadUser();
         }
@@ -137,7 +119,6 @@ export class AuthStore {
    * @param phone - номер телефона
    */
   async requestVerificationCode(phone: string): Promise<boolean> {
-    // Сохраняем номер телефона
     await this.secureStorage.savePhoneNumber(phone);
 
     this.phoneNumber = phone;
@@ -146,13 +127,11 @@ export class AuthStore {
     this.resetCodeSentStatus();
 
     try {
-      // Получаем FCM токен
       const fcmToken = await this.authRepository.getFCMToken();
       if (!fcmToken) {
         throw new Error('auth.errors.FCM_TOKEN_NOT_RECEIVED');
       }
 
-      // Отправляем запрос на сервер
       await this.authRepository.requestVerificationCode({
         phoneNumber: phone,
         fcmToken,
@@ -192,7 +171,6 @@ export class AuthStore {
         code,
       });
 
-      // ✅ Извлекаем refreshToken из результата
       const refreshToken = (result as any).refreshToken || '';
 
       runInAction(() => {
@@ -203,7 +181,6 @@ export class AuthStore {
         this.isCodeSent = false;
       });
 
-      // Сохраняем данные в SecureStorage
       await this.secureStorage.saveAllAuthData({
         accessToken: result.token,
         refreshToken: refreshToken,
@@ -240,7 +217,6 @@ export class AuthStore {
         this.phoneNumber = '';
       });
 
-      // Очищаем SecureStorage
       await this.secureStorage.clearAllAuthData();
 
       return true;
@@ -364,10 +340,6 @@ export class AuthStore {
     }
   }
 
-  // ========================================
-  // 🔒 PRIVATE HELPERS
-  // ========================================
-
   private setLoading(loading: boolean): void {
     runInAction(() => {
       this.isLoading = loading;
@@ -392,10 +364,6 @@ export class AuthStore {
     }
     return 'auth.errors.UNKNOWN_ERROR';
   }
-
-  // ========================================
-  // 💡 COMPUTED PROPERTIES
-  // ========================================
 
   /**
    * Полное имя пользователя или телефон, если имя не задано
