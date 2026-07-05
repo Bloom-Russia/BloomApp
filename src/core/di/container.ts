@@ -1,35 +1,17 @@
-import {
-  AuthRepositoryImpl,
-  NotificationRepositoryImpl,
-  SecureStorageRepositoryImpl,
-} from '@data/repositories';
-import { NavigationService, NotificationPermissionService } from '@services';
 import { AuthStore, NotificationStore, RootStore } from '@stores';
 
-// 1. Инициализируем репозитории (Data слой)
-const secureStorageRepository = new SecureStorageRepositoryImpl();
-const authRepository = new AuthRepositoryImpl(secureStorageRepository);
-const notificationRepository = new NotificationRepositoryImpl();
+// const secureStorageRepository = new SecureStorageRepositoryImpl();
+// const authRepository = new AuthRepositoryImpl(secureStorageRepository);
+// const notificationRepository = new NotificationRepositoryImpl();
 
-// 2. Инициализируем Stores и передаем им зависимости напрямую в конструктор
-const authStore = new AuthStore(authRepository, secureStorageRepository);
-const notificationStore = new NotificationStore(notificationRepository);
+// ✅ Создаем экземпляры
+const authStore = new AuthStore();
+const notificationStore = new NotificationStore();
+const rootStore = new RootStore();
 
-const rootStore = new RootStore(authStore, notificationStore);
-
-// 3. Экспортируем готовый легковесный контейнер-объект
+// ✅ Экспортируем контейнер
 export const container = {
-  // Репозитории
-  getSecureStorageRepository: () => secureStorageRepository,
-  getAuthRepository: () => authRepository,
-  getNotificationRepository: () => notificationRepository,
-
-  // Stores
   getAuthStore: () => authStore,
   getNotificationStore: () => notificationStore,
   getRootStore: () => rootStore,
-
-  // Сервисы
-  getNotificationPermissionService: () => NotificationPermissionService,
-  getNavigationService: () => NavigationService,
-} as const;
+};

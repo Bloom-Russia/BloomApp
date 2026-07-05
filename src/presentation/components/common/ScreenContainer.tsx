@@ -1,14 +1,14 @@
 import { IconNames } from '@core/assets';
 import { Colors, ESize, ESpacings, WINDOW_TOP_INSET } from '@core/styles';
 import { useLoading } from '@hooks';
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native';
 import React, { memo, ReactNode, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
 import { Pressable, RefreshControl, ScrollView, StatusBar } from 'react-native';
 import styled from 'styled-components';
 
 import { Block, Row } from './Block';
-import { FocusAwareStatusBar } from './FocusAwareStatusBar';
+// import { FocusAwareStatusBar } from './FocusAwareStatusBar';
 import { Icon } from './Icon';
 import { Typography } from './Typography';
 
@@ -50,7 +50,7 @@ type HeaderProps = {
  * Компонент заголовка
  */
 const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon, hideBackIcon }) => {
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
 
   return (
     <Row
@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ title, onPressIcon, icon, hideBackIcon 
           style={({ pressed }) => ({
             backgroundColor: pressed ? 'rgba(255,255,255,0.2)' : Colors.transparent,
           })}
-          onPress={navigation.goBack}
+          // onPress={navigation.goBack}
         >
           <Icon size={ESize.s20} color={Colors.white} name={IconNames.back} />
         </StyledPressableBack>
@@ -121,12 +121,12 @@ const ScreenContainerComponent: React.FC<ScreenContainerProps> = ({
   if (scrollEnabled) {
     return (
       <Block flex={1} paddingTop={paddingTop} backgroundColor={Colors.backgroundPrimary}>
-        <FocusAwareStatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor={Colors.backgroundPrimary}
-          animated
-        />
+        {/*<FocusAwareStatusBar*/}
+        {/*  barStyle="light-content"*/}
+        {/*  translucent*/}
+        {/*  backgroundColor={Colors.backgroundPrimary}*/}
+        {/*  animated*/}
+        {/*/>*/}
 
         {title ? (
           <Header hideBackIcon={hideBackIcon} icon={icon} onPressIcon={onPressIcon} title={title} />
