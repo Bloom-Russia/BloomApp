@@ -1,5 +1,5 @@
-import { Colors, spacings, SpacingsProps } from '@core/styles';
-import { Text } from 'react-native';
+import {Colors, spacings, SpacingsProps} from '@core/styles';
+import {Text} from 'react-native';
 import styled from 'styled-components';
 
 // ===== Базовые интерфейсы =====

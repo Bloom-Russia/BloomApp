@@ -1,5 +1,5 @@
 export * from './Block';
-export * from './Typography';
+export { Typography } from './Typography';
 export { Block, Row, Column } from './Block';
 export { Input } from './Input';
 export { Button } from './Button';
@@ -8,5 +8,5 @@ export { ScreenContainer } from './ScreenContainer';
 export { Spinner } from './Spinner';
 export { AbsoluteSpinner } from './AbsoluteSpinner';
 export { Separator } from './Separator';
-export { FocusAwareStatusBar } from './FocusAwareStatusBar';
+// export { FocusAwareStatusBar } from './FocusAwareStatusBar';
 export { Icon } from './Icon';
