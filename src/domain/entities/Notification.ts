@@ -24,6 +24,7 @@ export interface NotificationPayload {
   data?: Record<string, any>;
   /** Время получения */
   timestamp?: Date;
+  read?: boolean;
 }
 
 /**
