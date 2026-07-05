@@ -31,8 +31,8 @@
       "@stores": ["src/presentation/stores/index.ts"],
       "@hooks": ["src/presentation/hooks/index.ts"],
       "@navigation": ["src/presentation/navigation/index.ts"],
-      // "@forms": ["src/presentation/forms/index.ts"],
-      // "@screens": ["src/presentation/screens/index.ts"],
+      "@forms": ["src/presentation/forms/index.ts"],
+      "@screens": ["src/presentation/screens/index.ts"],
       "@services": ["src/presentation/services/index.ts"],
       "@app/*": ["src/app/*"],
       "@assets/*": ["assets/*"]

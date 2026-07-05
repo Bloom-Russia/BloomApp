@@ -1,41 +1,48 @@
-import {
-  INotificationRepository,
-  NotificationLog,
-  NotificationPayload,
-  NotificationResult,
-} from '@domain';
-import { AxiosService, UnifiedNotificationService } from '@services';
+import { NotificationPayload } from '@domain';
 import { Platform } from 'react-native';
 
-export class NotificationRepositoryImpl implements INotificationRepository {
+export class NotificationRepositoryImpl {
   private lastProcessedNotifications: Map<string, number> = new Map();
 
   async initialize(): Promise<void> {
-    await UnifiedNotificationService.initialize();
+    console.log('[NotificationRepository] Initialized');
   }
 
   subscribe(handler: (notification: NotificationPayload) => void): () => void {
-    return UnifiedNotificationService.subscribe(handler);
+    console.log('[NotificationRepository] Subscribed');
+
+    // Тестовое уведомление через 5 секунд
+    setTimeout(() => {
+      const testNotification: NotificationPayload = {
+        id: 'test-1',
+        title: 'Тестовое уведомление',
+        body: 'Привет из репозитория!',
+        messageId: 'test-msg-1',
+        eventType: 'foreground',
+        data: { test: true },
+      };
+      handler(testNotification);
+    }, 5000);
+
+    return () => {
+      console.log('[NotificationRepository] Unsubscribed');
+    };
   }
 
-  async logNotification(log: NotificationLog): Promise<void> {
-    try {
-      await AxiosService.post('/api/notifications/log', log);
-    } catch (error) {
-      console.error('Failed to log notification:', error);
-    }
+  async logNotification(log: any): Promise<void> {
+    console.log('[NotificationRepository] Log:', log);
   }
 
   async updateBadgeCount(count: number): Promise<void> {
-    await UnifiedNotificationService.setBadgeCount(count);
+    console.log('[NotificationRepository] Badge count:', count);
   }
 
   async getBadgeCount(): Promise<number> {
-    return UnifiedNotificationService.getBadgeCount();
+    return 0;
   }
 
   async getFCMToken(): Promise<string | null> {
-    return UnifiedNotificationService.getFCMToken();
+    return null;
   }
 
   isDuplicateNotification(notificationId?: string, eventType?: string): boolean {
@@ -64,29 +71,23 @@ export class NotificationRepositoryImpl implements INotificationRepository {
     this.lastProcessedNotifications.set(key, Date.now());
   }
 
-  /**
-   * Обработка полученного уведомления
-   * @param notification - уведомление для обработки
-   * @returns результат обработки
-   */
-  async handleNotification(notification: NotificationPayload): Promise<NotificationResult> {
+  async handleNotification(
+    notification: NotificationPayload,
+  ): Promise<{ success: boolean; error?: Error }> {
     try {
       if (this.isDuplicateNotification(notification.messageId, notification.eventType)) {
         return { success: true };
       }
 
-      // ✅ Безопасное извлечение данных
-      const notificationData = notification.data || {};
-
       await this.logNotification({
         eventType: notification.eventType || 'unknown',
-        notificationData: notificationData,
+        notificationData: notification.data || {},
         platform: Platform.OS,
         appState: 'active',
         timestamp: new Date().toISOString(),
         additionalData: {
-          messageId: notification.messageId || undefined,
-          title: notification.title || undefined,
+          messageId: notification.messageId,
+          title: notification.title,
         },
       });
 

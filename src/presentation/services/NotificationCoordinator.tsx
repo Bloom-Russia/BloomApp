@@ -1,3 +1,4 @@
+// src/presentation/services/NotificationCoordinator.tsx
 import { useStores } from '@app/providers';
 import { NotificationPayload } from '@domain';
 import { noop } from 'lodash';
@@ -56,7 +57,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
     );
 
     const handleNotification = useCallback(
-      async (notification: any) => {
+      async (notification: NotificationPayload) => {
         if (onNotificationReceived) {
           onNotificationReceived(notification);
         }
