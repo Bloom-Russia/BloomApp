@@ -1,5 +1,4 @@
-import { User } from '@domain/entities/User';
-import { IAuthRepository, ISecureStorageRepository } from '@domain/repositories';
+import { IAuthRepository, ISecureStorageRepository, User } from '@domain';
 import messaging from '@react-native-firebase/messaging';
 import { NotificationPermissionService } from '@services';
 import { ApiClient } from '../datasources/remote/api/client';

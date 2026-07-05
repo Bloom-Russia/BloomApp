@@ -1,7 +1,7 @@
 import { container } from '@core/di/container';
-import { NotificationPayload } from '@domain/entities/Notification';
+import { NotificationPayload } from '@domain';
 
-const UnifiedNotificationService = {
+export const UnifiedNotificationService = {
   initialize: () => container.getNotificationRepository().initialize(),
   subscribe: (handler: (notification: NotificationPayload) => void) =>
     container.getNotificationRepository().subscribe(handler),
@@ -9,7 +9,5 @@ const UnifiedNotificationService = {
   getBadgeCount: () => container.getNotificationRepository().getBadgeCount(),
   setBadgeCount: (count: number) => container.getNotificationRepository().updateBadgeCount(count),
 };
-
-export default UnifiedNotificationService;
 
 export type { NotificationPayload };

@@ -1,9 +1,9 @@
 import { ApiClient } from '@data/datasources/remote/api/client';
 import { ApiResponse } from '@data/datasources/remote/dto/ApiResponse';
-import type { ISecureStorageRepository } from '@domain/repositories';
+import type { ISecureStorageRepository } from '@domain';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-class AxiosService {
+export class AxiosService {
   // Теперь храним ссылку на интерфейс, изначально null
   private static secureStorage: ISecureStorageRepository | null = null;
 
@@ -76,5 +76,3 @@ class AxiosService {
     ApiClient.reset();
   }
 }
-
-export default AxiosService;

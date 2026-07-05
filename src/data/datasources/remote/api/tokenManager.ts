@@ -1,5 +1,5 @@
 import { SecureStorageRepositoryImpl } from '@data/repositories';
-import type { ISecureStorageRepository } from '@domain/repositories';
+import type { ISecureStorageRepository } from '@domain';
 
 export class TokenManager {
   private static instance: TokenManager;

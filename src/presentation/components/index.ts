@@ -1,1 +1,1 @@
-export { Block, Column, Row, Typography } from './common';
+export * from './common';

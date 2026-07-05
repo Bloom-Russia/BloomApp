@@ -1,24 +1,14 @@
-import { User } from '@domain/entities/User';
-import type { IAuthRepository, ISecureStorageRepository } from '@domain/repositories';
-import { CheckAuthStatusUseCase, SetAuthStatusUseCase } from '@domain/usecases';
+import {
+  CheckAuthStatusUseCase,
+  IAuthRepository,
+  ISecureStorageRepository,
+  SetAuthStatusUseCase,
+  User,
+} from '@domain';
 import { noop } from 'lodash';
 import { makeAutoObservable, runInAction } from 'mobx';
 
-/**
- * AuthStore - ViewModel для управления аутентификацией
- *
- * Отвечает за:
- * - Состояние авторизации пользователя
- * - Верификацию по телефону
- * - Управление токенами
- * - Работу с SecureStorage
- * - Навигацию (через флаги)
- */
-export class AuthStore {
-  // ========================================
-  // 📦 STATE (наблюдаемые поля)
-  // ========================================
-
+class AuthStore {
   user: User | null = null;
   isVerified: boolean = false;
   isAuthenticated: boolean = false;
@@ -26,10 +16,6 @@ export class AuthStore {
   error: string | null = null;
   isCodeSent: boolean = false;
   phoneNumber: string = '';
-
-  // ========================================
-  // 🔒 DEPENDENCIES (не наблюдаемые)
-  // ========================================
 
   private authRepository: IAuthRepository;
   private secureStorage: ISecureStorageRepository;
@@ -43,8 +29,6 @@ export class AuthStore {
     this.checkAuthStatusUseCase = new CheckAuthStatusUseCase(authRepository);
     this.setAuthStatusUseCase = new SetAuthStatusUseCase(authRepository);
 
-    // ✅ Используем as any для обхода TypeScript
-    // Все приватные зависимости исключаем из наблюдения
     makeAutoObservable(
       this,
       {
@@ -334,10 +318,6 @@ export class AuthStore {
     }
   }
 
-  // ========================================
-  // 🔒 PRIVATE HELPERS
-  // ========================================
-
   private setLoading(loading: boolean): void {
     runInAction(() => {
       this.isLoading = loading;
@@ -362,10 +342,6 @@ export class AuthStore {
     }
     return 'auth.errors.UNKNOWN_ERROR';
   }
-
-  // ========================================
-  // 💡 COMPUTED PROPERTIES
-  // ========================================
 
   /**
    * Полное имя пользователя или телефон, если имя не задано
@@ -421,3 +397,5 @@ export class AuthStore {
     return !this.isLoading && code.length >= 4;
   }
 }
+
+export default AuthStore;

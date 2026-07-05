@@ -1,17 +1,10 @@
 import { useStores } from '@app/providers/StoreProvider';
 import { RoundLogoAppImage } from '@assets/images';
-import {
-  Block,
-  Button,
-  MaskedPhoneInput,
-  Row,
-  ScreenContainer,
-  Typography,
-} from '@components/common';
+import { Block, Button, MaskedPhoneInput, Row, ScreenContainer, Typography } from '@components';
 import { Colors, ESpacings } from '@core/styles';
 import { LoginFormValues, loginSchema } from '@forms';
 import { useAppForm, useNotificationPermission } from '@hooks';
-import { EScreens, UnAuthStackParamList } from '@navigation/types';
+import { EScreens, UnAuthStackParamList } from '@navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { observer } from 'mobx-react-lite';
 import React, { memo, useCallback, useEffect } from 'react';

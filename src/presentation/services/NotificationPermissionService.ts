@@ -70,4 +70,4 @@ class NotificationPermissionServiceClass {
   }
 }
 
-export default NotificationPermissionServiceClass.getInstance();
+export const NotificationPermissionService = NotificationPermissionServiceClass.getInstance();

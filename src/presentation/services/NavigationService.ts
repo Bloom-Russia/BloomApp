@@ -1,4 +1,4 @@
-import type { RootStackParamList } from '@navigation/types';
+import type { RootStackParamList } from '@navigation';
 import {
   NavigationAction,
   NavigationContainerRef,
@@ -210,6 +210,4 @@ export class NavigationServiceClass {
   }
 }
 
-export const navigationService = NavigationServiceClass.getInstance();
-
-export default navigationService;
+export const NavigationService = NavigationServiceClass.getInstance();

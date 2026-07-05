@@ -1,4 +1,4 @@
-import { AuthStore } from './AuthStore';
+import AuthStore from './AuthStore';
 import { NotificationStore } from './NotificationStore';
 
 export class RootStore {

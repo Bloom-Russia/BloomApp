@@ -1,6 +1,6 @@
 import { Colors } from '@core/styles';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LoginScreen } from '@screens/auth';
+import { LoginScreen } from '@screens';
 
 import { observer } from 'mobx-react-lite';
 import React, { memo, useEffect } from 'react';

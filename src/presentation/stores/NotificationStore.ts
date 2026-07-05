@@ -1,6 +1,4 @@
-// src/presentation/stores/NotificationStore.ts
-import { NotificationPayload } from '@domain/entities/Notification';
-import type { INotificationRepository } from '@domain/repositories';
+import type { INotificationRepository, NotificationPayload } from '@domain';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 
 export class NotificationStore {

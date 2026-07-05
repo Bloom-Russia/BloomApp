@@ -1,77 +1,60 @@
-import { I18nProvider, StoreProvider } from '@app/providers';
 import { TransparentLogoAppImage } from '@assets/images';
-import { Block } from '@components/common';
-import { container } from '@core/di/container';
-import { Colors } from '@core/styles';
-import { AppNavigator } from '@navigation/AppNavigator';
-import { AxiosService, NotificationCoordinator } from '@services';
-import { noop } from 'lodash';
+import { Block } from '@components';
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect } from 'react';
 import { Image } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import RNBootSplash from 'react-native-bootsplash';
 import styled from 'styled-components';
 
-const rootStore = container.getRootStore();
-
 const App: React.FC = () => {
-  const { t } = useTranslation();
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  // const { t } = useTranslation();
+  // const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  // const [error, setError] = useState<string | null>(null);
+
+  // useEffect(() => {
+  //   const initApp = async (): Promise<void> => {
+  //     try {
+  //       // 1. Инициализация Axios
+  //       const success = await AxiosService.initializeWithAppDefaults(
+  //         container.getSecureStorageRepository(),
+  //       );
+  //
+  //       if (!success) {
+  //         setError(t('common.error'));
+  //         return;
+  //       }
+  //
+  //       // 2. Инициализация RootStore (уведомления и т.д.)
+  //       await rootStore.initialize();
+  //
+  //       setIsInitialized(true);
+  //     } catch (err) {
+  //       setError(t('common.error'));
+  //       console.error('App initialization error:', err);
+  //     }
+  //   };
+  //
+  //   initApp().then(noop);
+  // }, [t]);
+
+  // if (error || !isInitialized) {
+  //   return (
+  //     <SafeAreaProvider>
+  //       <Block flex={1} backgroundColor={Colors.black} justifyContent="center" alignItems="center">
+  //         <Logo source={TransparentLogoAppImage} />
+  //       </Block>
+  //     </SafeAreaProvider>
+  //   );
+  // }
 
   useEffect(() => {
-    const initApp = async (): Promise<void> => {
-      try {
-        // 1. Инициализация Axios
-        const success = await AxiosService.initializeWithAppDefaults(
-          container.getSecureStorageRepository(),
-        );
-
-        if (!success) {
-          setError(t('common.error'));
-          return;
-        }
-
-        // 2. Инициализация RootStore (уведомления и т.д.)
-        await rootStore.initialize();
-
-        setIsInitialized(true);
-      } catch (err) {
-        setError(t('common.error'));
-        console.error('App initialization error:', err);
-      }
-    };
-
-    initApp().then(noop);
-  }, [t]);
-
-  if (error || !isInitialized) {
-    return (
-      <SafeAreaProvider>
-        <Block flex={1} backgroundColor={Colors.black} justifyContent="center" alignItems="center">
-          <Logo source={TransparentLogoAppImage} />
-        </Block>
-      </SafeAreaProvider>
-    );
-  }
+    RNBootSplash.hide({ fade: true });
+  }, []);
 
   return (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StoreProvider store={rootStore}>
-        <I18nProvider>
-          <KeyboardProvider>
-            <SafeAreaProvider>
-              <NotificationCoordinator />
-              <AppNavigator />
-            </SafeAreaProvider>
-          </KeyboardProvider>
-        </I18nProvider>
-      </StoreProvider>
-    </GestureHandlerRootView>
+    <Block>
+      <Logo source={TransparentLogoAppImage} />
+    </Block>
   );
 };
 

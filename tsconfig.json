@@ -25,27 +25,25 @@
     "baseUrl": "./",
     "paths": {
       "@core/*": ["src/core/*"],
-      "@domain/*": ["src/domain/*"],
+      //"@domain": ["src/domain/index.ts"],
       "@data/*": ["src/data/*"],
-      "@components/*": ["src/presentation/components/*"],
-      "@stores/*": ["src/presentation/stores/*"],
+      "@components": ["src/presentation/components/index.ts"],
+      "@stores": ["src/presentation/stores/index.ts"],
       "@hooks": ["src/presentation/hooks/index.ts"],
-      "@navigation/*": ["src/presentation/navigation/*"],
-      "@forms": ["src/presentation/forms"],
-      "@screens/*": ["src/presentation/screens/*"],
+      //"@navigation": ["src/presentation/navigation/index.ts"],
+      //      "@forms": ["src/presentation/forms"],
+      //      "@screens": ["src/presentation/screens/index.ts"],
       "@services": ["src/presentation/services/index.ts"],
       "@app/*": ["src/app/*"],
       "@assets/*": ["assets/*"]
     }
   },
-  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts", "global.d.ts"],
+  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],
   "exclude": [
     "node_modules",
     "babel.config.js",
     "metro.config.js",
     "jest.config.js",
-    "__tests__/**/*",
-    "**/*.test.ts",
-    "**/*.test.tsx"
+    "__tests__/**/*"
   ]
 }

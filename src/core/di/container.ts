@@ -4,9 +4,7 @@ import {
   SecureStorageRepositoryImpl,
 } from '@data/repositories';
 import { NavigationService, NotificationPermissionService } from '@services';
-import { AuthStore } from '@stores/AuthStore';
-import { NotificationStore } from '@stores/NotificationStore';
-import { RootStore } from '@stores/RootStore';
+import { AuthStore, NotificationStore, RootStore } from '@stores';
 
 // 1. Инициализируем репозитории (Data слой)
 const secureStorageRepository = new SecureStorageRepositoryImpl();

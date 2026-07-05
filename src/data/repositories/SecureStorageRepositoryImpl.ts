@@ -1,5 +1,4 @@
-// src/data/repositories/SecureStorageRepositoryImpl.ts
-import { ISecureStorageRepository } from '@domain/repositories';
+import { ISecureStorageRepository } from '@domain';
 import Keychain, { ACCESSIBLE } from 'react-native-keychain';
 
 /**

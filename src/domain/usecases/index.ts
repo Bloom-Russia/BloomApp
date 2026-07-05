@@ -1,4 +1,3 @@
-export * from './BaseUseCase';
-export * from './Result';
-export { SetAuthStatusUseCase } from './auth/SetAuthStatusUseCase';
-export { CheckAuthStatusUseCase } from './auth/CheckAuthStatusUseCase';
+export type { IUseCase } from './BaseUseCase';
+export { UseCaseResult } from './Result';
+export { SetAuthStatusUseCase, CheckAuthStatusUseCase } from './auth';

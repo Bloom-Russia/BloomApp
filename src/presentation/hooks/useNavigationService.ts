@@ -1,4 +1,4 @@
-import { RootStackParamList } from '@navigation/types';
+import { RootStackParamList } from '@navigation';
 import { useNavigationContainerRef } from '@react-navigation/native';
 import { NavigationService } from '@services';
 import { useEffect, useRef } from 'react';

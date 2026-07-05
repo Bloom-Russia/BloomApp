@@ -9,7 +9,7 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import UnifiedNotificationService, { NotificationPayload } from './UnifiedNotificationService';
+import { NotificationPayload, UnifiedNotificationService } from './UnifiedNotificationService';
 
 interface NotificationCoordinatorProps {
   onNotificationReceived?: (notification: NotificationPayload) => void;

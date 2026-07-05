@@ -1,4 +1,4 @@
-import { IAuthRepository } from '@domain/repositories/IAuthRepository';
+import { IAuthRepository } from '../../repositories';
 import { IUseCase } from '../BaseUseCase';
 import { UseCaseResult } from '../Result';
 
