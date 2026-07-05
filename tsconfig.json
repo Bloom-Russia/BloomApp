@@ -1,7 +1,6 @@
 {
   "extends": "@tsconfig/react-native/tsconfig.json",
   "compilerOptions": {
-    /* Базовые настройки */
     "target": "esnext",
     "lib": ["esnext"],
     "allowJs": true,
@@ -17,60 +16,26 @@
     "noEmit": true,
     "jsx": "react-native",
     "ignoreDeprecations": "5.0",
-
-    /* Строгие проверки TypeScript */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
-    /* Настройки для декораторов (Inversify) */
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "strictPropertyInitialization": false,
-
-    /* ✅ Для работы с import type в TypeScript 5.5+ */
     "verbatimModuleSyntax": false,
-
-    /* Настройки для React Native */
-    "types": ["react-native", "jest", "node", "reflect-metadata"],
+    "types": ["react-native", "jest", "node"],
     "baseUrl": "./",
     "paths": {
-      /* Core */
       "@core/*": ["src/core/*"],
-      "@core/i18n/*": ["src/core/i18n/*"],
-      "@core/utils/*": ["src/core/utils/*"],
-      "@core/di/*": ["src/core/di/*"],
-      "@core/styles/*": ["src/core/styles/*"],
-
-      /* Domain */
       "@domain/*": ["src/domain/*"],
-      "@domain/entities/*": ["src/domain/entities/*"],
-      "@domain/usecases/*": ["src/domain/usecases/*"],
-      "@domain/repositories/*": ["src/domain/repositories/*"],
-
-      /* Data */
       "@data/*": ["src/data/*"],
-      "@data/repositories/*": ["src/data/repositories/*"],
-      "@data/datasources/*": ["src/data/datasources/*"],
-      "@data/mappers/*": ["src/data/mappers/*"],
-
-      /* Presentation */
-      "@presentation/*": ["src/presentation/*"],
-      "@screens/*": ["src/presentation/screens/*"],
       "@components/*": ["src/presentation/components/*"],
       "@stores/*": ["src/presentation/stores/*"],
       "@hooks": ["src/presentation/hooks/index.ts"],
-      "@forms/*": ["src/presentation/forms/*"],
       "@navigation/*": ["src/presentation/navigation/*"],
+      "@forms": ["src/presentation/forms"],
+      "@screens/*": ["src/presentation/screens/*"],
       "@services": ["src/presentation/services/index.ts"],
-
-      /* App & Shared */
       "@app/*": ["src/app/*"],
-      "@shared/*": ["src/shared/*"],
-      "@assets/*": ["assets/*"],
-      "@i18n": ["src/core/i18n"],
-      "@utils": ["src/core/utils"]
+      "@assets/*": ["assets/*"]
     }
   },
   "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts", "global.d.ts"],

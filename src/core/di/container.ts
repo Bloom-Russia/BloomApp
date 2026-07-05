@@ -1,27 +1,35 @@
-import 'reflect-metadata';
 import { AuthRepositoryImpl } from '@data/repositories/AuthRepositoryImpl';
 import { NotificationRepositoryImpl } from '@data/repositories/NotificationRepositoryImpl';
 import { SecureStorageRepositoryImpl } from '@data/repositories/SecureStorageRepositoryImpl';
-import { IAuthRepository } from '@domain/repositories/IAuthRepository';
-import { INotificationRepository } from '@domain/repositories/INotificationRepository';
-import { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
+import { NavigationService, NotificationPermissionService } from '@services';
 import { AuthStore } from '@stores/AuthStore';
 import { NotificationStore } from '@stores/NotificationStore';
 import { RootStore } from '@stores/RootStore';
-import { Container } from 'inversify';
 
-const container = new Container({ defaultScope: 'Singleton' });
+// 1. Инициализируем репозитории (Data слой)
+const secureStorageRepository = new SecureStorageRepositoryImpl();
+const authRepository = new AuthRepositoryImpl(secureStorageRepository);
+const notificationRepository = new NotificationRepositoryImpl();
 
-// Регистрируем репозитории
-container
-  .bind<ISecureStorageRepository>('ISecureStorageRepository')
-  .to(SecureStorageRepositoryImpl);
-container.bind<IAuthRepository>('IAuthRepository').to(AuthRepositoryImpl);
-container.bind<INotificationRepository>('INotificationRepository').to(NotificationRepositoryImpl);
+// 2. Инициализируем Stores и передаем им зависимости напрямую в конструктор
+const authStore = new AuthStore(authRepository, secureStorageRepository);
+const notificationStore = new NotificationStore(notificationRepository);
 
-// Регистрируем Stores
-container.bind<AuthStore>(AuthStore).toSelf();
-container.bind<NotificationStore>(NotificationStore).toSelf();
-container.bind<RootStore>(RootStore).toSelf();
+const rootStore = new RootStore(authStore, notificationStore);
 
-export { container };
+// 3. Экспортируем готовый легковесный контейнер-объект
+export const container = {
+  // Репозитории
+  getSecureStorageRepository: () => secureStorageRepository,
+  getAuthRepository: () => authRepository,
+  getNotificationRepository: () => notificationRepository,
+
+  // Stores
+  getAuthStore: () => authStore,
+  getNotificationStore: () => notificationStore,
+  getRootStore: () => rootStore,
+
+  // Сервисы
+  getNotificationPermissionService: () => NotificationPermissionService,
+  getNavigationService: () => NavigationService,
+} as const;

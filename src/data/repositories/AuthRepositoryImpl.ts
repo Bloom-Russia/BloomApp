@@ -30,6 +30,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     phoneNumber: string;
     code: string;
   }): Promise<{ token: string; user: User }> {
+    // ✅ Используем типизированный ответ
     const response = await ApiClient.post<VerifyCodeResponse>('/auth/verify-code', params);
 
     const data = response.data.data;
@@ -38,6 +39,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
       throw new Error('Invalid response from server');
     }
 
+    // ✅ Теперь refreshToken типизирован
     const { token, user, refreshToken = '' } = data;
 
     await this.secureStorage.saveAllAuthData({

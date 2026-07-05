@@ -1,10 +1,8 @@
+// src/presentation/stores/NotificationStore.ts
 import { NotificationPayload } from '@domain/entities/Notification';
 import type { INotificationRepository } from '@domain/repositories';
-import { inject, injectable } from 'inversify';
-import { noop } from 'lodash';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 
-@injectable()
 export class NotificationStore {
   /** Последнее полученное уведомление */
   lastNotification: NotificationPayload | null = null;
@@ -24,10 +22,11 @@ export class NotificationStore {
   private notificationRepository: INotificationRepository;
   private unsubscribe: (() => void) | null = null;
 
-  constructor(@inject('INotificationRepository') notificationRepository: INotificationRepository) {
+  constructor(notificationRepository: INotificationRepository) {
     this.notificationRepository = notificationRepository;
     this.unsubscribe = null;
 
+    // ✅ Явное указание всех полей для makeObservable
     makeObservable(this, {
       // observable поля
       lastNotification: observable,
@@ -39,11 +38,6 @@ export class NotificationStore {
       // actions
       initialize: action,
       handleNotification: action,
-      getBadgeCount: action,
-      updateBadgeCount: action,
-      isDuplicateNotification: action,
-      markAsProcessed: action,
-      getFCMToken: action,
       loadBadgeCount: action,
       resetBadgeCount: action,
       clearLastNotification: action,
@@ -54,16 +48,12 @@ export class NotificationStore {
       // computed
       unreadCount: computed,
     });
-
-    this.initialize().then(noop);
   }
 
   async initialize(): Promise<void> {
     try {
       await this.notificationRepository.initialize();
-
-      this.unsubscribe = this.notificationRepository.subscribe(this.handleNotification.bind(this));
-
+      this.unsubscribe = this.notificationRepository.subscribe(this.handleNotification);
       await this.loadBadgeCount();
     } catch (error) {
       console.error('Failed to initialize notifications:', error);
@@ -71,7 +61,7 @@ export class NotificationStore {
   }
 
   async handleNotification(notification: NotificationPayload): Promise<void> {
-    if (this.isDuplicate(notification)) {
+    if (this.isDuplicatePrivate(notification)) {
       return;
     }
 
@@ -154,24 +144,18 @@ export class NotificationStore {
   }
 
   clearLastNotification(): void {
-    runInAction(() => {
-      this.lastNotification = null;
-    });
+    this.lastNotification = null;
   }
 
   clearNotifications(): void {
-    runInAction(() => {
-      this.notifications = [];
-    });
+    this.notifications = [];
   }
 
   resetState(): void {
-    runInAction(() => {
-      this.lastNotification = null;
-      this.isProcessing = false;
-      this.error = null;
-      this.badgeCount = 0;
-    });
+    this.lastNotification = null;
+    this.isProcessing = false;
+    this.error = null;
+    this.badgeCount = 0;
   }
 
   cleanup(): void {
@@ -181,11 +165,10 @@ export class NotificationStore {
     }
   }
 
-  private isDuplicate(notification: NotificationPayload): boolean {
+  private isDuplicatePrivate(notification: NotificationPayload): boolean {
     if (!notification.messageId) {
       return false;
     }
-
     return this.notifications.some((n) => n.messageId === notification.messageId);
   }
 

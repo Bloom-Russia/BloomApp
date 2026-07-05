@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+// src/app/App.tsx
 import { I18nProvider, StoreProvider } from '@app/providers';
 import { TransparentLogoAppImage } from '@assets/images';
 import { Block } from '@components/common';
@@ -6,7 +6,6 @@ import { container } from '@core/di/container';
 import { Colors } from '@core/styles';
 import { AppNavigator } from '@navigation/AppNavigator';
 import { AxiosService, NotificationCoordinator } from '@services';
-import { RootStore } from '@stores/RootStore';
 import { noop } from 'lodash';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
@@ -17,7 +16,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import styled from 'styled-components';
 
-const rootStore = container.resolve(RootStore);
+const rootStore = container.getRootStore();
 
 const App: React.FC = () => {
   const { t } = useTranslation();
@@ -27,12 +26,20 @@ const App: React.FC = () => {
   useEffect(() => {
     const initApp = async (): Promise<void> => {
       try {
-        const success = await AxiosService.initializeWithAppDefaults();
-        if (success) {
-          setIsInitialized(true);
-        } else {
+        // 1. Инициализация Axios
+        const success = await AxiosService.initializeWithAppDefaults(
+          container.getSecureStorageRepository(),
+        );
+
+        if (!success) {
           setError(t('common.error'));
+          return;
         }
+
+        // 2. Инициализация RootStore (уведомления и т.д.)
+        await rootStore.initialize();
+
+        setIsInitialized(true);
       } catch (err) {
         setError(t('common.error'));
         console.error('App initialization error:', err);

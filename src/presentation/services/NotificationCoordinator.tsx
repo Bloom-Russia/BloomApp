@@ -1,4 +1,4 @@
-import { useStores } from '@app/providers/StoreProvider';
+import { useStores } from '@app/providers';
 import { noop } from 'lodash';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';

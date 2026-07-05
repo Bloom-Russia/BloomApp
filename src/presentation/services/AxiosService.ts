@@ -1,13 +1,21 @@
 import { ApiClient } from '@data/datasources/remote/api/client';
 import { ApiResponse } from '@data/datasources/remote/dto/ApiResponse';
-import { SecureStorageRepositoryImpl } from '@data/repositories/SecureStorageRepositoryImpl';
+// Импортируем интерфейс репозитория, а не его конкретную реализацию
+import type { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 class AxiosService {
-  private static secureStorage = new SecureStorageRepositoryImpl();
+  // Теперь храним ссылку на интерфейс, изначально null
+  private static secureStorage: ISecureStorageRepository | null = null;
 
-  static async initializeWithAppDefaults(_config?: { timeout?: number }): Promise<boolean> {
+  // Принимаем secureStorage через параметры метода инициализации
+  static async initializeWithAppDefaults(
+    secureStorageInstance: ISecureStorageRepository,
+    _config?: { timeout?: number },
+  ): Promise<boolean> {
     try {
+      this.secureStorage = secureStorageInstance;
+
       ApiClient.initialize();
       return true;
     } catch (error) {
@@ -63,7 +71,9 @@ class AxiosService {
   }
 
   static async reset(): Promise<void> {
-    await this.secureStorage.clearAllAuthData();
+    if (this.secureStorage) {
+      await this.secureStorage.clearAllAuthData();
+    }
     ApiClient.reset();
   }
 }

@@ -1,9 +1,9 @@
+// src/presentation/stores/AuthStore.ts
 import { User } from '@domain/entities/User';
 import type { IAuthRepository } from '@domain/repositories/IAuthRepository';
 import type { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
 import { CheckAuthStatusUseCase } from '@domain/usecases/auth/CheckAuthStatusUseCase';
 import { SetAuthStatusUseCase } from '@domain/usecases/auth/SetAuthStatusUseCase';
-import { inject, injectable } from 'inversify';
 import { noop } from 'lodash';
 import { makeAutoObservable, runInAction } from 'mobx';
 
@@ -17,51 +17,48 @@ import { makeAutoObservable, runInAction } from 'mobx';
  * - Работу с SecureStorage
  * - Навигацию (через флаги)
  */
-@injectable()
 export class AuthStore {
-  /** Текущий пользователь */
+  // ========================================
+  // 📦 STATE (наблюдаемые поля)
+  // ========================================
+
   user: User | null = null;
-
-  /** Флаг верификации пользователя */
   isVerified: boolean = false;
-
-  /** Флаг аутентификации (есть токен) */
   isAuthenticated: boolean = false;
-
-  /** Индикатор загрузки */
   isLoading: boolean = true;
-
-  /** Сообщение об ошибке */
   error: string | null = null;
-
-  /** Флаг отправки кода подтверждения */
   isCodeSent: boolean = false;
-
-  /** Номер телефона пользователя */
   phoneNumber: string = '';
+
+  // ========================================
+  // 🔒 DEPENDENCIES (не наблюдаемые)
+  // ========================================
 
   private authRepository: IAuthRepository;
   private secureStorage: ISecureStorageRepository;
   private checkAuthStatusUseCase: CheckAuthStatusUseCase;
   private setAuthStatusUseCase: SetAuthStatusUseCase;
 
-  constructor(
-    @inject('IAuthRepository') authRepository: IAuthRepository,
-    @inject('ISecureStorageRepository') secureStorage: ISecureStorageRepository,
-  ) {
+  constructor(authRepository: IAuthRepository, secureStorage: ISecureStorageRepository) {
     this.authRepository = authRepository;
     this.secureStorage = secureStorage;
 
-    makeAutoObservable(this, {
-      authRepository: false,
-      secureStorage: false,
-      rootStore: false,
-      checkAuthStatusUseCase: false,
-      setAuthStatusUseCase: false,
-    } as any);
-
     this.checkAuthStatusUseCase = new CheckAuthStatusUseCase(authRepository);
     this.setAuthStatusUseCase = new SetAuthStatusUseCase(authRepository);
+
+    // ✅ Используем as any для обхода TypeScript
+    // Все приватные зависимости исключаем из наблюдения
+    makeAutoObservable(
+      this,
+      {
+        authRepository: false,
+        secureStorage: false,
+        checkAuthStatusUseCase: false,
+        setAuthStatusUseCase: false,
+      } as any,
+      { autoBind: true },
+    );
+
     this.loadAuthStatus().then(noop);
   }
 
@@ -340,6 +337,10 @@ export class AuthStore {
     }
   }
 
+  // ========================================
+  // 🔒 PRIVATE HELPERS
+  // ========================================
+
   private setLoading(loading: boolean): void {
     runInAction(() => {
       this.isLoading = loading;
@@ -364,6 +365,10 @@ export class AuthStore {
     }
     return 'auth.errors.UNKNOWN_ERROR';
   }
+
+  // ========================================
+  // 💡 COMPUTED PROPERTIES
+  // ========================================
 
   /**
    * Полное имя пользователя или телефон, если имя не задано

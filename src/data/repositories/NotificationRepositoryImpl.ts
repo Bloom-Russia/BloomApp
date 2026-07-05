@@ -72,20 +72,21 @@ export class NotificationRepositoryImpl implements INotificationRepository {
   async handleNotification(notification: NotificationPayload): Promise<NotificationResult> {
     try {
       if (this.isDuplicateNotification(notification.messageId, notification.eventType)) {
-        return {
-          success: true,
-        };
+        return { success: true };
       }
+
+      // ✅ Безопасное извлечение данных
+      const notificationData = notification.data || {};
 
       await this.logNotification({
         eventType: notification.eventType || 'unknown',
-        notificationData: notification.data || {},
+        notificationData: notificationData,
         platform: Platform.OS,
-        appState: 'active', // Можно получать из AppState
+        appState: 'active',
         timestamp: new Date().toISOString(),
         additionalData: {
-          messageId: notification.messageId,
-          title: notification.title,
+          messageId: notification.messageId || undefined,
+          title: notification.title || undefined,
         },
       });
 

@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@components/common';
 import { Colors, ESpacings } from '@core/styles';
-import { LoginFormValues, loginSchema } from '@forms/validators/loginSchema';
+import { LoginFormValues, loginSchema } from '@forms';
 import { useAppForm, useNotificationPermission } from '@hooks';
 import { EScreens, UnAuthStackParamList } from '@navigation/types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';

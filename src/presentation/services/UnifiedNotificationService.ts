@@ -1,15 +1,18 @@
-import { NotificationRepositoryImpl } from '@data/repositories/NotificationRepositoryImpl';
+import { container } from '@core/di/container'; // Импортируем наш центральный DI-контейнер
 import { NotificationPayload } from '@domain/entities/Notification';
 
-const repository = new NotificationRepositoryImpl();
-
 const UnifiedNotificationService = {
-  initialize: () => repository.initialize(),
+  // Динамически берем единственный созданный в приложении экземпляр репозитория при вызове каждого метода
+  initialize: () => container.getNotificationRepository().initialize(),
+
   subscribe: (handler: (notification: NotificationPayload) => void) =>
-    repository.subscribe(handler),
-  getFCMToken: () => repository.getFCMToken(),
-  getBadgeCount: () => repository.getBadgeCount(),
-  setBadgeCount: (count: number) => repository.updateBadgeCount(count),
+    container.getNotificationRepository().subscribe(handler),
+
+  getFCMToken: () => container.getNotificationRepository().getFCMToken(),
+
+  getBadgeCount: () => container.getNotificationRepository().getBadgeCount(),
+
+  setBadgeCount: (count: number) => container.getNotificationRepository().updateBadgeCount(count),
 };
 
 export default UnifiedNotificationService;

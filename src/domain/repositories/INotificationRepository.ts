@@ -1,26 +1,27 @@
+// src/domain/repositories/INotificationRepository.ts
 import { NotificationLog, NotificationPayload, NotificationResult } from '../entities/Notification';
 
 export interface INotificationRepository {
-  // ===== Инициализация =====
+  // Инициализация
   initialize(): Promise<void>;
 
-  // ===== Подписка =====
+  // Подписка
   subscribe(handler: (notification: NotificationPayload) => void): () => void;
 
-  // ===== Логирование =====
+  // Логирование
   logNotification(log: NotificationLog): Promise<void>;
 
-  // ===== Бейдж =====
+  // Бейдж
   updateBadgeCount(count: number): Promise<void>;
   getBadgeCount(): Promise<number>;
 
-  // ===== FCM =====
+  // FCM
   getFCMToken(): Promise<string | null>;
 
-  // ===== Обработка дубликатов =====
+  // Дубликаты
   isDuplicateNotification(notificationId?: string, eventType?: string): boolean;
   markAsProcessed(notificationId: string, eventType?: string): void;
 
-  // ===== Обработка уведомлений =====
+  // Обработка
   handleNotification(notification: NotificationPayload): Promise<NotificationResult>;
 }
