@@ -1,4 +1,5 @@
 import { useStores } from '@app/providers';
+import { NotificationPayload } from '@domain';
 import { noop } from 'lodash';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -9,7 +10,7 @@ import {
   NativeModules,
   Platform,
 } from 'react-native';
-import { NotificationPayload, UnifiedNotificationService } from './UnifiedNotificationService';
+import { UnifiedNotificationService } from './UnifiedNotificationService';
 
 interface NotificationCoordinatorProps {
   onNotificationReceived?: (notification: NotificationPayload) => void;
@@ -55,7 +56,7 @@ export const NotificationCoordinator: React.FC<NotificationCoordinatorProps> = o
     );
 
     const handleNotification = useCallback(
-      async (notification: NotificationPayload) => {
+      async (notification: any) => {
         if (onNotificationReceived) {
           onNotificationReceived(notification);
         }

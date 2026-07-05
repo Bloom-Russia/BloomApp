@@ -9,5 +9,3 @@ export const UnifiedNotificationService = {
   getBadgeCount: () => container.getNotificationRepository().getBadgeCount(),
   setBadgeCount: (count: number) => container.getNotificationRepository().updateBadgeCount(count),
 };
-
-export type { NotificationPayload };
