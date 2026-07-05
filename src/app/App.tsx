@@ -1,4 +1,3 @@
-// src/app/App.tsx
 import { I18nProvider, StoreProvider } from '@app/providers';
 import { TransparentLogoAppImage } from '@assets/images';
 import { Block } from '@components/common';

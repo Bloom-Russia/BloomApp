@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { IAuthRepository } from '@domain/repositories/IAuthRepository';
 import { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
 import { AuthStore } from '@stores/AuthStore';

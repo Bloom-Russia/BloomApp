@@ -3,7 +3,7 @@ import {
   NotificationPayload,
   NotificationResult,
 } from '@domain/entities/Notification';
-import { INotificationRepository } from '@domain/repositories/INotificationRepository';
+import { INotificationRepository } from '@domain/repositories';
 import { AxiosService, UnifiedNotificationService } from '@services';
 import { Platform } from 'react-native';
 

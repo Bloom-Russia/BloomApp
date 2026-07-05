@@ -1,5 +1,5 @@
-import { NotificationLog } from '@domain/entities/Notification';
-import { INotificationRepository } from '@domain/repositories/INotificationRepository';
+import { INotificationRepository } from '@domain/repositories';
+import { NotificationLog } from '../../entities/Notification';
 import { IUseCase } from '../BaseUseCase';
 import { UseCaseResult } from '../Result';
 

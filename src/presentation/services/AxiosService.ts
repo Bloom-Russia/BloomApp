@@ -1,7 +1,6 @@
 import { ApiClient } from '@data/datasources/remote/api/client';
 import { ApiResponse } from '@data/datasources/remote/dto/ApiResponse';
-// Импортируем интерфейс репозитория, а не его конкретную реализацию
-import type { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
+import type { ISecureStorageRepository } from '@domain/repositories';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 class AxiosService {

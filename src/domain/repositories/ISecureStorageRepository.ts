@@ -1,4 +1,3 @@
-// src/domain/repositories/ISecureStorageRepository.ts
 export interface ISecureStorageRepository {
   // Базовые операции
   saveValue(key: string, value: string | null | number | boolean): Promise<boolean>;

@@ -1,9 +1,6 @@
-// src/presentation/stores/AuthStore.ts
 import { User } from '@domain/entities/User';
-import type { IAuthRepository } from '@domain/repositories/IAuthRepository';
-import type { ISecureStorageRepository } from '@domain/repositories/ISecureStorageRepository';
-import { CheckAuthStatusUseCase } from '@domain/usecases/auth/CheckAuthStatusUseCase';
-import { SetAuthStatusUseCase } from '@domain/usecases/auth/SetAuthStatusUseCase';
+import type { IAuthRepository, ISecureStorageRepository } from '@domain/repositories';
+import { CheckAuthStatusUseCase, SetAuthStatusUseCase } from '@domain/usecases';
 import { noop } from 'lodash';
 import { makeAutoObservable, runInAction } from 'mobx';
 

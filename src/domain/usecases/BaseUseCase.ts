@@ -1,4 +1,4 @@
-import type { UseCaseResult } from '@domain/usecases/Result';
+import type { UseCaseResult } from './Result';
 
 /**
  * Базовый интерфейс для всех Use Cases

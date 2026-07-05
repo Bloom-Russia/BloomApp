@@ -1,6 +1,8 @@
-import { AuthRepositoryImpl } from '@data/repositories/AuthRepositoryImpl';
-import { NotificationRepositoryImpl } from '@data/repositories/NotificationRepositoryImpl';
-import { SecureStorageRepositoryImpl } from '@data/repositories/SecureStorageRepositoryImpl';
+import {
+  AuthRepositoryImpl,
+  NotificationRepositoryImpl,
+  SecureStorageRepositoryImpl,
+} from '@data/repositories';
 import { NavigationService, NotificationPermissionService } from '@services';
 import { AuthStore } from '@stores/AuthStore';
 import { NotificationStore } from '@stores/NotificationStore';
