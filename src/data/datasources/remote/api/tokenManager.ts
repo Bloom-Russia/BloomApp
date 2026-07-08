@@ -1,12 +1,9 @@
-import { SecureStorageRepositoryImpl } from '@data/repositories';
-import type { ISecureStorageRepository } from '@domain';
-
 export class TokenManager {
   private static instance: TokenManager;
-  private secureStorage: ISecureStorageRepository;
+  private secureStorage: any;
 
   private constructor() {
-    this.secureStorage = new SecureStorageRepositoryImpl();
+    this.secureStorage = null; //new SecureStorageRepositoryImpl();
   }
 
   static getInstance(): TokenManager {

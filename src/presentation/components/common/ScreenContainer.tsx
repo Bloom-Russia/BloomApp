@@ -1,10 +1,10 @@
 import { IconNames } from '@core/assets';
-import { Colors, ESize, ESpacings, WINDOW_TOP_INSET } from '@core/styles';
+import { Colors, ESize, ESpacings } from '@core/styles';
 import { useLoading } from '@hooks';
 // import { useNavigation } from '@react-navigation/native';
 import React, { memo, ReactNode, useCallback } from 'react';
 import isEqual from 'react-fast-compare';
-import { Pressable, RefreshControl, ScrollView, StatusBar } from 'react-native';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import styled from 'styled-components';
 
 import { Block, Row } from './Block';
@@ -116,7 +116,7 @@ const ScreenContainerComponent: React.FC<ScreenContainerProps> = ({
     }
   }, [hideLoader, reload, showLoader]);
 
-  const paddingTop = (StatusBar.currentHeight || WINDOW_TOP_INSET) + ESpacings.s16;
+  const paddingTop = 16; //(StatusBar.currentHeight || WINDOW_TOP_INSET) + ESpacings.s16;
 
   if (scrollEnabled) {
     return (

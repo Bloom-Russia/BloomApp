@@ -110,6 +110,6 @@ export class AuthStore {
   }
 
   get isLoggedIn(): boolean {
-    return this.isAuthenticated && !!this.user;
+    return this.isAuthenticated;
   }
 }

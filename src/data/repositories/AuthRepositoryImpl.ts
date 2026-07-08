@@ -1,19 +1,17 @@
-import { IAuthRepository, ISecureStorageRepository, User } from '@domain';
+import { IAuthRepository, User } from '@domain';
 import messaging from '@react-native-firebase/messaging';
-import { NotificationPermissionService } from '@services';
 import { ApiClient } from '../datasources/remote/api/client';
 import { TokenManager } from '../datasources/remote/api/tokenManager';
 
 interface VerifyCodeResponse {
   token: string;
-  user: User;
   refreshToken?: string;
 }
 
 export class AuthRepositoryImpl implements IAuthRepository {
   private tokenManager: TokenManager;
 
-  constructor(private secureStorage: ISecureStorageRepository) {
+  constructor(private secureStorage: any) {
     this.tokenManager = TokenManager.getInstance();
   }
 
@@ -24,10 +22,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     });
   }
 
-  async verifyCode(params: {
-    phoneNumber: string;
-    code: string;
-  }): Promise<{ token: string; user: User }> {
+  async verifyCode(params: { phoneNumber: string; code: string }): Promise<{ token: string }> {
     // ✅ Используем типизированный ответ
     const response = await ApiClient.post<VerifyCodeResponse>('/auth/verify-code', params);
 
@@ -38,7 +33,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     }
 
     // ✅ Теперь refreshToken типизирован
-    const { token, user, refreshToken = '' } = data;
+    const { token, refreshToken = '' } = data;
 
     await this.secureStorage.saveAllAuthData({
       accessToken: token,
@@ -49,7 +44,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
 
     ApiClient.setAuthHeader(token);
 
-    return { token, user };
+    return { token };
   }
 
   async logout(): Promise<void> {
@@ -86,11 +81,13 @@ export class AuthRepositoryImpl implements IAuthRepository {
   }
 
   async checkNotificationPermission(): Promise<boolean> {
-    return NotificationPermissionService.checkPermission();
+    console.error('Error checkNotificationPermission');
+    return false;
   }
 
   async requestNotificationPermission(): Promise<boolean> {
-    return NotificationPermissionService.requestPermission();
+    console.error('Error requestNotificationPermission');
+    return false;
   }
 
   async getCurrentUser(): Promise<User | null> {

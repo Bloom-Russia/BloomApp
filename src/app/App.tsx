@@ -1,88 +1,45 @@
-// src/app/App.tsx
-import { TransparentLogoAppImage } from '@assets/images';
-import { Block, Button, MaskedPhoneInput, ScreenContainer, Typography } from '@components';
-import { container } from '@core/di';
+import { Block } from '@components';
 import { Colors } from '@core/styles';
-import { observer } from 'mobx-react-lite';
-import React, { useEffect, useState } from 'react';
-import { Alert, Image } from 'react-native';
+import React, { useEffect } from 'react';
 import RNBootSplash from 'react-native-bootsplash';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const App: React.FC = () => {
-  const [isReady, setIsReady] = useState(false);
-  const [phone, setPhone] = useState('');
-  const rootStore = container.getRootStore();
-  const { authStore } = rootStore;
-
   useEffect(() => {
-    const init = async () => {
-      try {
-        await rootStore.initialize();
-        setIsReady(true);
-      } catch (error) {
-        console.error('Init error:', error);
-        setIsReady(true);
-      } finally {
-        await RNBootSplash.hide({ fade: true });
-      }
-    };
-    init();
-  }, [rootStore]);
+    RNBootSplash.hide({ fade: true });
+  }, []);
 
-  const handleGetCode = async () => {
-    if (phone.length < 10) {
-      Alert.alert('Ошибка', 'Введите корректный номер телефона');
-      return;
-    }
+  // Экран загрузки
+  // if (!isReady) {
+  //   return (
+  //     <Block flex={1} justifyContent="center" alignItems="center" backgroundColor={Colors.black}>
+  //       <Image source={TransparentLogoAppImage} style={{ width: 200, height: 200 }} />
+  //     </Block>
+  //   );
+  // }
 
-    const success = await authStore.requestVerificationCode(phone);
-
-    if (success) {
-      Alert.alert('Успех', 'Код подтверждения отправлен!');
-      console.log('Code sent to:', phone);
-    } else {
-      Alert.alert('Ошибка', authStore.error || 'Не удалось отправить код');
-    }
-  };
-
-  if (!isReady) {
-    return (
-      <Block flex={1} justifyContent="center" alignItems="center" backgroundColor={Colors.black}>
-        <Image source={TransparentLogoAppImage} style={{ width: 200, height: 200 }} />
-      </Block>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <Block flex={1} justifyContent="center" alignItems="center" backgroundColor={Colors.black}>
+  //       <Image source={TransparentLogoAppImage} style={{ width: 200, height: 200 }} />
+  //       <Block marginTop={20}>
+  //         <Typography.B16 color={Colors.error} textAlign="center">
+  //           Ошибка загрузки приложения
+  //         </Typography.B16>
+  //         <Typography.R14 color={Colors.textSecondary} textAlign="center" marginTop={8}>
+  //           {error}
+  //         </Typography.R14>
+  //       </Block>
+  //     </Block>
+  //   );
+  // }
 
   return (
-    <ScreenContainer title="Bloom App">
-      <Block flex={1} justifyContent="center" paddingHorizontal={20}>
-        <Image
-          source={TransparentLogoAppImage}
-          style={{ width: 200, height: 200, alignSelf: 'center' }}
-        />
-        <Typography.B16 color={Colors.white} marginTop={20} textAlign="center">
-          Добро пожаловать!
-        </Typography.B16>
-        <Typography.B16 color={Colors.textSecondary} marginTop={8} textAlign="center">
-          Введите номер телефона для входа
-        </Typography.B16>
-        <MaskedPhoneInput title="Номер телефона" phone={phone} setPhone={setPhone} />
-        <Button
-          title={authStore.isLoading ? 'Отправка...' : 'Получить код'}
-          onPress={handleGetCode}
-          color={Colors.blue}
-          textColor={Colors.white}
-          disabled={authStore.isLoading}
-          marginTop={20}
-        />
-        {authStore.error && (
-          <Typography.B16 color={Colors.error} marginTop={12} textAlign="center">
-            {authStore.error}
-          </Typography.B16>
-        )}
-      </Block>
-    </ScreenContainer>
+    // eslint-disable-next-line react-native/no-inline-styles
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Block flex={1} backgroundColor={Colors.blue}></Block>
+    </GestureHandlerRootView>
   );
 };
 
-export default observer(App);
+export default App;

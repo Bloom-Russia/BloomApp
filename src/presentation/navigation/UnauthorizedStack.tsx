@@ -24,13 +24,10 @@ const UnAuthentication: React.FC = observer(() => {
         animated
       />
       <Stack.Navigator
-        initialRouteName={EScreens.BOOT_SPLASH_SCREEN}
+        initialRouteName={EScreens.LOGIN_SCREEN}
         screenOptions={{ headerShown: false }}
       >
-        {/*<Stack.Screen name={EScreens.BOOT_SPLASH_SCREEN} component={BootSplashScreen} />*/}
         <Stack.Screen name={EScreens.LOGIN_SCREEN} component={LoginScreen} />
-        {/*<Stack.Screen name={EScreens.SMS_CONFIRM_SCREEN} component={SmsConfirmScreen} />*/}
-        {/*<Stack.Screen name={EScreens.AUTH_PIN_CODE_SCREEN} component={PinCodeScreen} />*/}
       </Stack.Navigator>
     </>
   );

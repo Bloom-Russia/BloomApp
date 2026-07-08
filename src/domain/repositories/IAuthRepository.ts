@@ -3,7 +3,7 @@ import { User } from '../entities';
 export interface IAuthRepository {
   // ===== Аутентификация =====
   requestVerificationCode(params: { phoneNumber: string; fcmToken: string }): Promise<void>;
-  verifyCode(params: { phoneNumber: string; code: string }): Promise<{ token: string; user: User }>;
+  verifyCode(params: { phoneNumber: string; code: string }): Promise<{ token: string }>;
   logout(): Promise<void>;
 
   // ===== Статус =====

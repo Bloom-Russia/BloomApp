@@ -5,6 +5,17 @@ module.exports = {
       'module-resolver',
       {
         root: ['./src'],
+        extensions: [
+          '.ios.ts',
+          '.android.ts',
+          '.ts',
+          '.ios.tsx',
+          '.android.tsx',
+          'PinCodeScreen.tsx',
+          '.jsx',
+          '.js',
+          '.json',
+        ],
         alias: {
           '@components': './src/presentation/components/index.ts',
           '@assets': './assets',
@@ -23,7 +34,7 @@ module.exports = {
         },
       },
     ],
-    ['@babel/plugin-transform-class-properties', { loose: true }],
+    ['@babel/plugin-transform-private-methods', { loose: true }],
     'react-native-reanimated/plugin',
   ],
 };

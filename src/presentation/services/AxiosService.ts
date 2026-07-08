@@ -1,15 +1,14 @@
 import { ApiClient } from '@data/datasources/remote/api/client';
 import { ApiResponse } from '@data/datasources/remote/dto/ApiResponse';
-import type { ISecureStorageRepository } from '@domain';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export class AxiosService {
   // Теперь храним ссылку на интерфейс, изначально null
-  private static secureStorage: ISecureStorageRepository | null = null;
+  private static secureStorage: any | null = null;
 
   // Принимаем secureStorage через параметры метода инициализации
   static async initializeWithAppDefaults(
-    secureStorageInstance: ISecureStorageRepository,
+    secureStorageInstance: any,
     _config?: { timeout?: number },
   ): Promise<boolean> {
     try {
