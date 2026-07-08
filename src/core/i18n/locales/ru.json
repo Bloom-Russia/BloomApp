@@ -1,0 +1,20 @@
+{
+  "common": {
+    "error": "Ошибка",
+    "welcome": "Добро пожаловать",
+    "loading": "Загрузка...",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить"
+  },
+  "auth": {
+    "login": {
+      "title": "Вход",
+      "phonePlaceholder": "Введите номер телефона",
+      "requestCode": "Запросить код"
+    },
+    "errors": {
+      "invalidPhoneFormat": "invalidPhoneFormat"
+    }
+  }
+}

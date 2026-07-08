@@ -38,7 +38,7 @@
       "@assets/*": ["assets/*"]
     }
   },
-  "include": ["src/**/*", "src/App.tsx", "index.js", "declarations.d.ts"],
+  "include": ["src/**/*", "src/App.tsx", "index.ts", "declarations.d.ts"],
   "exclude": [
     "node_modules",
     "babel.config.js",

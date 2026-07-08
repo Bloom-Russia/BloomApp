@@ -1,8 +1,6 @@
-// src/presentation/stores/AuthStore.ts
 import { makeAutoObservable, runInAction } from 'mobx';
 
 export class AuthStore {
-  user: any = null;
   isVerified: boolean = false;
   isAuthenticated: boolean = false;
   isLoading: boolean = false;
@@ -54,7 +52,6 @@ export class AuthStore {
         this.isLoading = false;
         this.isVerified = true;
         this.isAuthenticated = true;
-        this.user = { id: '1', phone: this.phoneNumber, name: 'User' };
         this.isCodeSent = false;
       });
 
@@ -79,7 +76,6 @@ export class AuthStore {
         this.isLoading = false;
         this.isVerified = false;
         this.isAuthenticated = false;
-        this.user = null;
         this.phoneNumber = '';
         this.isCodeSent = false;
       });
@@ -102,11 +98,6 @@ export class AuthStore {
     this.isCodeSent = false;
     this.isVerified = false;
     this.isAuthenticated = false;
-    this.user = null;
-  }
-
-  get displayName(): string {
-    return this.user?.name || this.phoneNumber || 'Гость';
   }
 
   get isLoggedIn(): boolean {

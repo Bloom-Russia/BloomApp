@@ -1,4 +1,4 @@
-import i18n, {
+import {
   availableLanguages,
   changeLanguage,
   defaultLanguage,
@@ -23,5 +23,3 @@ export {
 };
 
 export type { AvailableLanguage } from './config';
-
-export default i18n;
