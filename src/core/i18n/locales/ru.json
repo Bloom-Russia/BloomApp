@@ -9,7 +9,7 @@
   },
   "auth": {
     "login": {
-      "title": "Вход",
+      "title": "Авторизация",
       "phonePlaceholder": "Введите номер телефона",
       "requestCode": "Запросить код"
     },
