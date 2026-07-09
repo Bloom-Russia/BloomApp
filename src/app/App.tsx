@@ -63,17 +63,19 @@ const App: React.FC = () => {
   }
 
   return (
-    <StyledGestureHandlerRootView>
-      <StoreProvider store={rootStore}>
-        <I18nProvider>
-          <KeyboardProvider>
-            <SafeAreaProvider>
-              <AppNavigator />
-            </SafeAreaProvider>
-          </KeyboardProvider>
-        </I18nProvider>
-      </StoreProvider>
-    </StyledGestureHandlerRootView>
+    <SafeAreaProvider>
+      <StyledGestureHandlerRootView>
+        <StoreProvider store={rootStore}>
+          <I18nProvider>
+            <KeyboardProvider>
+              <SafeAreaProvider>
+                <AppNavigator />
+              </SafeAreaProvider>
+            </KeyboardProvider>
+          </I18nProvider>
+        </StoreProvider>
+      </StyledGestureHandlerRootView>
+    </SafeAreaProvider>
   );
 };
 
