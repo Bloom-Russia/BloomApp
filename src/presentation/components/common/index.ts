@@ -8,5 +8,5 @@ export { ScreenContainer } from './ScreenContainer';
 export { Spinner } from './Spinner';
 export { AbsoluteSpinner } from './AbsoluteSpinner';
 export { Separator } from './Separator';
-// export { FocusAwareStatusBar } from './FocusAwareStatusBar';
+export { FocusAwareStatusBar } from './FocusAwareStatusBar';
 export { Icon } from './Icon';

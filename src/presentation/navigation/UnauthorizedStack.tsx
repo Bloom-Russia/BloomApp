@@ -1,6 +1,6 @@
 import { Colors } from '@core/styles';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { LoginScreen } from '@screens';
+import { BootSplashScreen, LoginScreen } from '@screens';
 
 import { observer } from 'mobx-react-lite';
 import React, { memo, useEffect } from 'react';
@@ -24,9 +24,10 @@ const UnAuthentication: React.FC = observer(() => {
         animated
       />
       <Stack.Navigator
-        initialRouteName={EScreens.LOGIN_SCREEN}
+        initialRouteName={EScreens.BOOT_SPLASH_SCREEN}
         screenOptions={{ headerShown: false }}
       >
+        <Stack.Screen name={EScreens.BOOT_SPLASH_SCREEN} component={BootSplashScreen} />
         <Stack.Screen name={EScreens.LOGIN_SCREEN} component={LoginScreen} />
       </Stack.Navigator>
     </>
